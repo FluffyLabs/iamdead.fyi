@@ -9,9 +9,11 @@ struct Animal {
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
+    let server_url = std::env::var("SERVER_URL")
+      .unwrap_or_else(|_| "127.0.0.1:8080".to_owned());
     let mut app = tide::new();
     app.at("/orders/shoes").post(order_shoes);
-    app.listen("127.0.0.1:8080").await?;
+    app.listen(server_url).await?;
     Ok(())
 }
 
