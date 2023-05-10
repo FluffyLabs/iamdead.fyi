@@ -14,7 +14,7 @@ export const IndieAuthForm = () => {
       <input id="url" type="text" name="me" placeholder="yourdomain.com" />
       <button type="submit" className={styles.btn}>Login</button>
       <input type="hidden" name="client_id" value={`${origin}`} />
-      <input type="hidden" name="redirect_uri" value={`${origin}/${pathname}-redirect`} />
+      <input type="hidden" name="redirect_uri" value={`${origin}${pathname}-redirect`} />
       <input type="hidden" name="state" value={state} />
     </form>
   </div>
