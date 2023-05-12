@@ -3,10 +3,10 @@ name: Rust
 on:
   push:
     branches: [ "main" ]
-    paths: ['authenticator/**']
+    paths: ['authenticator/**', 'Cargo.lock']
   pull_request:
     branches: [ "main" ]
-    paths: ['authenticator/**']
+    paths: ['authenticator/**', 'Cargo.lock']
 
 env:
   CARGO_TERM_COLOR: always
