@@ -25,7 +25,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --passWithNoTests",
     "eject": "react-scripts eject",
     "prettier": "prettier --list-different \"{public,src}/**/*.{ts,tsx,js,jsx,json,scss,css}\" \"*.{ts,tsx,js,jsx,json,scss,css}\"",
     "prettier-fix": "prettier --write \"{public,src}/**/*.{ts,tsx,js,jsx,json,scss,css}\" \"*.{ts,tsx,js,jsx,json,scss,css}\""
