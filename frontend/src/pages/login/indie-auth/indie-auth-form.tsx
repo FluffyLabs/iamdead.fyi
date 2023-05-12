@@ -14,6 +14,7 @@ export const IndieAuthForm = () => {
       <input type="hidden" name="client_id" value={clientId} />
       <input type="hidden" name="redirect_uri" value={redirectUri} />
       <input type="hidden" name="state" value={state} />
+      <p><a href="https://indielogin.com/setup" target="_blank" rel="noreferrer">How to Set Up Your Website</a></p>
     </form>
   </div>
   )
