@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { axios } from '../../../services/axios';
 
 export function useAuthorizationParams() {
   const origin = window.location.origin;
@@ -36,19 +37,7 @@ export function useIndieAuthAuthorization() {
   const navigate = useNavigate();
 
   const { isLoading, error, isSuccess, isError } = useQuery([], ({ signal }) =>
-    fetch('/auth/indie-auth/authorize', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(profileParams),
-      signal,
-    }).then(res => {
-      if (res.ok) {
-        return Promise.resolve({}); // 204 - no content
-      }
-      return res.json();
-    }), {
+    axios.post('/auth/indie-auth/authorize', profileParams, {signal}), {
       enabled: hasProfileParams,
     }
   )
