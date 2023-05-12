@@ -29,5 +29,7 @@ jobs:
       run: yarn install
     - name: Build
       run: yarn build
+    - name: Check formatting
+      run: yarn prettier
     - name: Tests
       run: yarn test
