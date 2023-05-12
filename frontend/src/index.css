@@ -12,7 +12,8 @@ code {
     monospace;
 }
 
-body, html {
+body,
+html {
   height: 100%;
 }
 
