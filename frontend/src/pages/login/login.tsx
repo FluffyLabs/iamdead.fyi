@@ -10,7 +10,9 @@ export const Login = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const pathFragments = pathname.split('/').filter(pathFragment => !!pathFragment);
+    const pathFragments = pathname
+      .split('/')
+      .filter((pathFragment) => !!pathFragment);
     const isAuthMethodSelected = pathFragments.length > 1;
     if (!isAuthMethodSelected) {
       navigate(DEFAULT_AUTH_ROUTE);
@@ -21,5 +23,5 @@ export const Login = () => {
     <div className={styles.bgImg}>
       <Outlet />
     </div>
-  )
-}
+  );
+};

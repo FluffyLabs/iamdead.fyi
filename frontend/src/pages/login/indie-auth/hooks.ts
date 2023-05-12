@@ -11,7 +11,7 @@ export function useAuthorizationParams() {
     redirectUri: `${origin}/login/indie-auth-redirect`,
     clientId: origin,
     state,
-  }
+  };
 }
 
 export function useProfileParams() {
@@ -27,26 +27,29 @@ export function useProfileParams() {
 
 export function useHasProfileParams() {
   const [searchParams] = useSearchParams();
-  return searchParams.has('code') && searchParams.has('state')
+  return searchParams.has('code') && searchParams.has('state');
 }
 
 export function useIndieAuthAuthorization() {
   const hasProfileParams = useHasProfileParams();
-  const profileParams  = useProfileParams();
+  const profileParams = useProfileParams();
   const [, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { isLoading, error, isSuccess, isError } = useQuery([], ({ signal }) =>
-    axios.post('/auth/indie-auth/authorize', profileParams, {signal}), {
+  const { isLoading, error, isSuccess, isError } = useQuery(
+    [],
+    ({ signal }) =>
+      axios.post('/auth/indie-auth/authorize', profileParams, { signal }),
+    {
       enabled: hasProfileParams,
-    }
-  )
+    },
+  );
 
   useEffect(() => {
     if (hasProfileParams && (isSuccess || isError)) {
-        setSearchParams({});
-    } 
-    
+      setSearchParams({});
+    }
+
     if (isSuccess) {
       navigate('/');
     }
@@ -55,6 +58,6 @@ export function useIndieAuthAuthorization() {
   return {
     isLoading,
     error,
-    isError
-  }
+    isError,
+  };
 }
