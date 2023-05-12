@@ -1,23 +1,18 @@
-use tide::Request;
-use tide::prelude::*;
+use tide_tracing::TraceMiddleware;
 
-#[derive(Debug, Deserialize)]
-struct Animal {
-    name: String,
-    legs: u16,
-}
+mod indie_auth;
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
+    tracing_subscriber::fmt()
+      .with_max_level(tracing::Level::INFO)
+      .init();
+    
     let server_url = std::env::var("SERVER_URL")
       .unwrap_or_else(|_| "127.0.0.1:8080".to_owned());
     let mut app = tide::new();
-    app.at("/orders/shoes").post(order_shoes);
+    app.with(TraceMiddleware::new());
+    app.at("/auth/indie-auth/authorize").post(indie_auth::authorize_indie_auth);
     app.listen(server_url).await?;
     Ok(())
-}
-
-async fn order_shoes(mut req: Request<()>) -> tide::Result {
-    let Animal { name, legs } = req.body_json().await?;
-    Ok(format!("Hello, {}! I've put in an order for {} shoes", name, legs).into())
 }
