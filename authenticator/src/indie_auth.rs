@@ -47,7 +47,7 @@ pub async fn authorize_indie_auth(mut req: Request<()>) -> tide::Result {
     } 
 
     let json = response.body_json::<IndieAuthResponse>().await?;
-    println!("Website authorized correctly: {:?}", json.me);
+    tracing::info!("Website authorized correctly: {:?}", json.me);
 
     Ok(Response::new(204))
 }
