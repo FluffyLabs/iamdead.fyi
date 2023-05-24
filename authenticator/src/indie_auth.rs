@@ -1,13 +1,12 @@
 use form_urlencoded::Serializer;
 use icod_data::models::NewUser;
-use icod_data::{query_users_by_auth_provider, insert_user};
+use icod_data::{insert_user, query_users_by_auth_provider};
 use surf;
 use tide::prelude::*;
 use tide::{Body, Request, Response};
 
-use crate::auth::{create_jwt};
+use crate::auth::create_jwt;
 use crate::state::State;
-
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -56,23 +55,33 @@ pub async fn authorize_indie_auth(mut req: Request<State>) -> tide::Result {
   }
 
   let json = response.body_json::<IndieAuthResponse>().await?;
-  let user = query_users_by_auth_provider(&mut req.state().db_pool.get().unwrap(), "IndieAuth".to_owned(), json.me.clone());
+  let user = query_users_by_auth_provider(
+    &mut req.state().db_pool.get().unwrap(),
+    "IndieAuth".to_owned(),
+    json.me.clone(),
+  );
 
   if user.is_ok() && user.unwrap().is_none() {
     tracing::info!("User not found");
-    insert_user(&mut req.state().db_pool.get().unwrap(), NewUser {
-      auth_provider: "IndieAuth".to_owned(),
-      auth_provider_id: json.me.clone(),
-      username: json.me.clone(),
-    })?;    
-  
+    insert_user(
+      &mut req.state().db_pool.get().unwrap(),
+      NewUser {
+        auth_provider: "IndieAuth".to_owned(),
+        auth_provider_id: json.me.clone(),
+        username: json.me.clone(),
+      },
+    )?;
   }
 
-  let created_user = query_users_by_auth_provider(&mut req.state().db_pool.get().unwrap(), "IndieAuth".to_owned(), json.me.clone()).unwrap();
+  let created_user = query_users_by_auth_provider(
+    &mut req.state().db_pool.get().unwrap(),
+    "IndieAuth".to_owned(),
+    json.me.clone(),
+  )
+  .unwrap();
 
   let response = create_jwt(created_user.unwrap().id);
   tracing::info!("Website authorized correctly: {:?}", json.me);
-    
-  Ok(tide::Body::from_json(&response)?.into())
 
+  Ok(tide::Body::from_json(&response)?.into())
 }

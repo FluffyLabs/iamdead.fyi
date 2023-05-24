@@ -1,14 +1,14 @@
-use diesel::ExpressionMethods;
-use diesel::QueryDsl;
-use diesel::SqliteConnection;
+use diesel::associations::HasTable;
 use diesel::r2d2::ConnectionManager;
 use diesel::r2d2::Pool;
 use diesel::r2d2::PooledConnection;
 use diesel::result::Error;
-use diesel::associations::HasTable;
-use diesel::RunQueryDsl;
-use models::User;
+use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
+use diesel::QueryDsl;
+use diesel::RunQueryDsl;
+use diesel::SqliteConnection;
+use models::User;
 
 pub mod models;
 pub mod schema;
@@ -22,50 +22,53 @@ type DbConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
 pub struct MigrationError;
 
 pub fn get_connection_pool() -> DbPool {
-    dotenvy::dotenv().ok();
-    let database_url =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL env variable must be set in .env file.");
-    let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+  dotenvy::dotenv().ok();
+  let database_url =
+    std::env::var("DATABASE_URL").expect("DATABASE_URL env variable must be set in .env file.");
+  let manager = ConnectionManager::<SqliteConnection>::new(database_url);
 
-    Pool::builder()
-        .test_on_check_out(true)
-        .build(manager)
-        .expect("Could not build connection pool")
+  Pool::builder()
+    .test_on_check_out(true)
+    .build(manager)
+    .expect("Could not build connection pool")
 }
 
 pub fn perform_migrations(connection: &mut DbConnection) -> Result<(), MigrationError> {
-    migrations::run_migrations(connection).map_err(|e| {
-        tracing::error!("Unable to run migrations: {}\n{:?}", e, e);
-        MigrationError
-    })?;
+  migrations::run_migrations(connection).map_err(|e| {
+    tracing::error!("Unable to run migrations: {}\n{:?}", e, e);
+    MigrationError
+  })?;
 
-    Ok(())
+  Ok(())
 }
-
 
 pub fn insert_user(connection: &mut DbConnection, new_user: models::NewUser) -> Result<(), Error> {
-    use self::schema::users::dsl::*;
+  use self::schema::users::dsl::*;
 
-    diesel::insert_into(users::table())
-        .values(&new_user)
-        .execute(connection)
-        .map(|_| ())
-        .map_err(|e| {
-            tracing::error!("Error saving user: {:?}", e);
-            e
-        })?;
+  diesel::insert_into(users::table())
+    .values(&new_user)
+    .execute(connection)
+    .map(|_| ())
+    .map_err(|e| {
+      tracing::error!("Error saving user: {:?}", e);
+      e
+    })?;
 
-    Ok(())
+  Ok(())
 }
 
-pub fn query_users_by_auth_provider(connection: &mut DbConnection, auth_provider_val: String, auth_provider_id_val: String) -> Result<Option<User>, Error> {
-    use self::schema::users::dsl::*;
+pub fn query_users_by_auth_provider(
+  connection: &mut DbConnection,
+  auth_provider_val: String,
+  auth_provider_id_val: String,
+) -> Result<Option<User>, Error> {
+  use self::schema::users::dsl::*;
 
-    let user = users
-      .filter(auth_provider.eq(auth_provider_val))
-      .filter(auth_provider_id.eq(auth_provider_id_val))
-      .first(connection)      
-      .optional()?;
+  let user = users
+    .filter(auth_provider.eq(auth_provider_val))
+    .filter(auth_provider_id.eq(auth_provider_id_val))
+    .first(connection)
+    .optional()?;
 
-    Ok(user)
+  Ok(user)
 }
