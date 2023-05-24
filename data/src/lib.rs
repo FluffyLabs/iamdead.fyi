@@ -63,11 +63,11 @@ pub fn query_users_by_auth_provider(
   auth_provider_val: String,
   auth_provider_id_val: String,
 ) -> Result<Option<User>, Error> {
-  use self::schema::users::dsl::*;
+  use self::schema::users::dsl;
 
-  let user = users
-    .filter(auth_provider.eq(auth_provider_val))
-    .filter(auth_provider_id.eq(auth_provider_id_val))
+  let user = dsl::users
+    .filter(dsl::auth_provider.eq(auth_provider_val))
+    .filter(dsl::auth_provider_id.eq(auth_provider_id_val))
     .first(connection)
     .optional()?;
 
