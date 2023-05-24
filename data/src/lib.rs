@@ -72,3 +72,11 @@ pub fn query_users_by_auth_provider(
 
   Ok(user)
 }
+
+pub fn query_users_by_id(connection: &mut DbConnection, user_id: i32) -> Result<User, Error> {
+  use self::schema::users::dsl::*;
+
+  let user = users.filter(id.eq(user_id)).first(connection)?;
+
+  Ok(user)
+}

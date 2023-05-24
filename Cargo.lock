@@ -1207,8 +1207,11 @@ name = "icod-authenticator"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "async-trait",
+ "dotenvy",
  "form_urlencoded",
  "icod-data",
+ "jsonwebtoken",
  "serde",
  "surf",
  "tide",

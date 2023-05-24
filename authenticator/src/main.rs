@@ -1,11 +1,24 @@
 use icod_data::{get_connection_pool, perform_migrations};
+use jsonwebtoken::{DecodingKey, Validation};
+use tide_jwt::JwtAuthenticationDecoder;
 use tide_tracing::TraceMiddleware;
+
+use crate::{
+  auth::{require_authorization_middleware, Claims, RequireAuthorizationMiddleware},
+  user::me,
+};
 
 mod auth;
 mod indie_auth;
 mod state;
+mod user;
+
 #[async_std::main]
 async fn main() -> tide::Result<()> {
+  dotenvy::dotenv().ok();
+
+  let jwt_secret = std::env::var("SESSION_SECRET").unwrap();
+
   tracing_subscriber::fmt()
     .with_max_level(tracing::Level::INFO)
     .init();
@@ -19,6 +32,18 @@ async fn main() -> tide::Result<()> {
   app
     .at("/auth/indie-auth/authorize")
     .post(indie_auth::authorize_indie_auth);
+
+  app.with(JwtAuthenticationDecoder::<Claims>::new(
+    Validation::default(),
+    DecodingKey::from_base64_secret(&jwt_secret)?,
+  ));
+
+  app
+    .at("/api")
+    .with(RequireAuthorizationMiddleware)
+    .at("/users/me")
+    .get(me);
+
   app.listen(server_url).await?;
   Ok(())
 }

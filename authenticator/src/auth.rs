@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
+use tide::{Next, Request, Response, Result};
 use tide_jwt;
+
+use crate::state::State;
 
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {
@@ -8,7 +11,7 @@ pub struct AuthResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-  id: i32,
+  pub id: i32,
   exp: u64,
 }
 
@@ -16,8 +19,42 @@ const EXP: u64 = 10000000000;
 
 pub fn create_jwt(id: i32) -> AuthResponse {
   let secret = std::env::var("SESSION_SECRET").unwrap();
+  println!("secret: {:?}", secret);
   let claims = Claims { exp: EXP, id };
 
   let token = tide_jwt::jwtsign_secret(&claims, &secret).unwrap();
   AuthResponse { token }
+}
+
+pub async fn require_authorization_middleware<'a>(
+  req: Request<State>,
+  next: Next<'a, State>,
+) -> Result {
+  let res = match req.ext::<Claims>() {
+    None => Response::new(401),
+    Some(_claims) => next.run(req).await,
+  };
+
+  Ok(res)
+}
+
+use async_trait::async_trait;
+
+#[async_trait]
+pub trait Middleware<S>: Send + Sync {
+  async fn handle<'a>(&'a self, req: Request<S>, next: Next<'a, S>) -> tide::Result;
+}
+
+pub struct RequireAuthorizationMiddleware;
+
+#[async_trait]
+impl<S> Middleware<S> for RequireAuthorizationMiddleware {
+  async fn handle<'a>(&'a self, req: Request<S>, next: Next<'a, S>) -> tide::Result {
+    let res = match req.ext::<Claims>() {
+      None => Response::new(401),
+      Some(_claims) => next.run(req).await,
+    };
+
+    Ok(res)
+  }
 }
