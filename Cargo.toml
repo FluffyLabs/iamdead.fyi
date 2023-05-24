@@ -3,4 +3,5 @@ members = [
   "authenticator",
   "crypto",
   "crypto-js",
+  "data",
 ]
