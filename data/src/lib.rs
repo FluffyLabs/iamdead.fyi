@@ -16,6 +16,7 @@ pub mod schema;
 mod migrations;
 
 pub type DbPool = Pool<ConnectionManager<SqliteConnection>>;
+
 type DbConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
 
 #[derive(Debug)]

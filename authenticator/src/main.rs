@@ -4,7 +4,7 @@ use tide_jwt::JwtAuthenticationDecoder;
 use tide_tracing::TraceMiddleware;
 
 use crate::{
-  auth::{require_authorization_middleware, Claims, RequireAuthorizationMiddleware},
+  auth::{require_authorization_middleware, Claims},
   user::me,
 };
 
@@ -17,7 +17,7 @@ mod user;
 async fn main() -> tide::Result<()> {
   dotenvy::dotenv().ok();
 
-  let jwt_secret = std::env::var("SESSION_SECRET").unwrap();
+  let jwt_secret = std::env::var("SESSION_SECRET").expect("SESSION_SECRET must be set");
 
   tracing_subscriber::fmt()
     .with_max_level(tracing::Level::INFO)
@@ -40,7 +40,7 @@ async fn main() -> tide::Result<()> {
 
   app
     .at("/api")
-    .with(RequireAuthorizationMiddleware)
+    .with(require_authorization_middleware)
     .at("/users/me")
     .get(me);
 
