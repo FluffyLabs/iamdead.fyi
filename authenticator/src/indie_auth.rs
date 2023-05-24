@@ -1,7 +1,6 @@
 use form_urlencoded::Serializer;
 use icod_data::models::NewUser;
 use icod_data::{insert_user, query_users_by_auth_provider};
-use surf;
 use tide::prelude::*;
 use tide::{Body, Request, Response};
 
@@ -79,7 +78,7 @@ pub async fn authorize_indie_auth(mut req: Request<State>) -> tide::Result {
           )?;
           let created_user = query_users_by_auth_provider(
               connection,
-              auth_provider.clone(),
+              auth_provider,
               json.me.clone(),
           )?;
 

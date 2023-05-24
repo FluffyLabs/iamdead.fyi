@@ -2,7 +2,6 @@ use std::{future::Future, pin::Pin};
 
 use serde::{Deserialize, Serialize};
 use tide::{Next, Request, Response, Result};
-use tide_jwt;
 
 use crate::state::State;
 
