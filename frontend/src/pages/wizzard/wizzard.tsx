@@ -3,17 +3,38 @@ import { useDefaultSubpath } from '../../hooks/use-default-subpath';
 import { DEFAULT_WIZZARD_ROUTE, Steps } from './consts';
 import { useStepName, useStepsNavigation } from './hooks';
 
-const createStepConfig = (title: string, previousStep: Steps | null, nextStep: Steps | null) => ({
-  title,
-  nextStep,
-  previousStep,
-});
+const createStepConfig = (
+  title: string,
+  previousStep: Steps | null,
+  nextStep: Steps | null,
+  progress: string,
+) => ({ title, nextStep, previousStep, progress });
 
 const STEPS_CONFIG = {
-  [Steps.Security]: createStepConfig('STEP 1: Configure Security', null, Steps.Recipients),
-  [Steps.Recipients]: createStepConfig('STEP 2: Configure Recipients', Steps.Security, Steps.ProofOfLife),
-  [Steps.ProofOfLife]: createStepConfig('STEP 3: Configure Proof of Life', Steps.Recipients, Steps.Message),
-  [Steps.Message]: createStepConfig('STEP 4: Create Message', Steps.ProofOfLife, null),
+  [Steps.Security]: createStepConfig(
+    'STEP 1: Configure Security',
+    null,
+    Steps.Recipients,
+    '20%',
+  ),
+  [Steps.Recipients]: createStepConfig(
+    'STEP 2: Configure Recipients',
+    Steps.Security,
+    Steps.ProofOfLife,
+    '40%',
+  ),
+  [Steps.ProofOfLife]: createStepConfig(
+    'STEP 3: Configure Proof of Life',
+    Steps.Recipients,
+    Steps.Message,
+    '60%',
+  ),
+  [Steps.Message]: createStepConfig(
+    'STEP 4: Create Message',
+    Steps.ProofOfLife,
+    null,
+    '80%',
+  ),
 };
 export const Wizzard = () => {
   useDefaultSubpath(DEFAULT_WIZZARD_ROUTE);
@@ -22,8 +43,17 @@ export const Wizzard = () => {
   const { handleNext, handlePrevious } = useStepsNavigation(stepConfig);
   return (
     <div className="md:container md:mx-auto px-4">
-      <h1 className="text-xl">{stepConfig.title}</h1>
+      <h1 className="text-xl mt-5">{stepConfig.title}</h1>
+      <div className="w-full bg-gray-200 rounded-full h-1.5 mb-4 dark:bg-gray-700">
+        <div
+          className="my-5 h-1.5 rounded-full dark:bg-primary transition-width transition-slowest ease"
+          style={{ width: stepConfig.progress }}
+        ></div>
+      </div>
+
       <Outlet />
+
+      <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
 
       <div className="flex flex-row justify-between">
         <button

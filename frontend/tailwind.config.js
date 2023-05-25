@@ -11,6 +11,9 @@ module.exports = {
         color2: '#7ea7a4',
         color3: '#e5eee7',
       },
+      transitionProperty: {
+        width: 'width',
+      },
     },
     fontFamily: {
       Raleway: ['Raleway, sans-serif'],
