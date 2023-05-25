@@ -32,11 +32,11 @@ pub fn require_authorization_middleware<'a>(
   next: Next<'a, State>,
 ) -> Pin<Box<dyn Future<Output = Result> + Send + 'a>> {
   Box::pin(async {
-      let res = match req.ext::<Claims>() {
-          None => Response::new(401),
-          Some(_claims) => next.run(req).await,
-      };
+    let res = match req.ext::<Claims>() {
+      None => Response::new(401),
+      Some(_claims) => next.run(req).await,
+    };
 
-      Ok(res)
+    Ok(res)
   })
 }
