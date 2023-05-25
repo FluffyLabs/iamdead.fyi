@@ -16,9 +16,12 @@ axios.interceptors.request.use((req) => {
   return req;
 });
 
-axios.interceptors.response.use((res) => res, (error) => {
-  if (error.response.status === 401) {
-    Cookies.remove('token');
-  }
-  return error;
-});
+axios.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response.status === 401) {
+      Cookies.remove('token');
+    }
+    return error;
+  },
+);

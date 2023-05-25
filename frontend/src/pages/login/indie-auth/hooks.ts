@@ -60,8 +60,8 @@ export function useIndieAuthAuthorization() {
     if (token) {
       Cookies.set('token', token);
     }
-  }, [data])
-  
+  }, [data]);
+
   return {
     isLoading,
     error,

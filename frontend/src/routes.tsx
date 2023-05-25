@@ -19,8 +19,8 @@ export function Routes() {
         <Route index element={<Home />} />
         <Route element={<Editor />} path="editor" />
         <Route element={<Recover />} path="recover" />
+        <Route element={<Dashboard />} path="/dashboard" />
 
-        <Route element={<Dashboard />} path="/dashboard"/>
         <Route element={<Login />} path="login">
           <Route index element={<IndieAuthForm />} path="indie-auth" />
           <Route element={<IndieAuthRedirect />} path="indie-auth-redirect" />
