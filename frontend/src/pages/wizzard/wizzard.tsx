@@ -26,10 +26,20 @@ export const Wizzard = () => {
       <Outlet />
 
       <div className="flex flex-row justify-between">
-        <button disabled={!stepConfig.previousStep} type="button" onClick={handlePrevious}>
+        <button
+          disabled={!stepConfig.previousStep}
+          type="button"
+          onClick={handlePrevious}
+          className="bg-secondary text-white text-xs px-2 py-3 rounded-md w-24"
+        >
           Previous
         </button>
-        <button disabled={!stepConfig.nextStep} type="button" onClick={handleNext}>
+        <button
+          disabled={!stepConfig.nextStep}
+          type="button"
+          onClick={handleNext}
+          className="bg-primary text-white text-xs px-2 py-3 rounded-md w-24"
+        >
           Next
         </button>
       </div>

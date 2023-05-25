@@ -4,12 +4,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        primary: '#317372',
+        secondary: '#649693',
+        color0: '#4a8482',
         color1: '#e5eee7',
-        color2: '#317372',
-        color3: '#4a8482',
-        color4: '#649693',
-        color5: '#7ea7a4',
-        color6: '#e5eee7',
+        color2: '#7ea7a4',
+        color3: '#e5eee7',
       },
     },
     fontFamily: {
