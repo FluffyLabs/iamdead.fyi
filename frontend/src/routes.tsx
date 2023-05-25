@@ -10,6 +10,7 @@ import { Security } from './pages/wizard/security';
 import { ProofOfLife } from './pages/wizard/proof-of-life';
 import { Steps } from './pages/wizard/consts';
 import { Message } from './pages/wizard/message';
+import { Dashboard } from './pages/dashboard';
 
 export function Routes() {
   return (
@@ -19,6 +20,7 @@ export function Routes() {
         <Route element={<Editor />} path="editor" />
         <Route element={<Recover />} path="recover" />
 
+        <Route element={<Dashboard />} path="/dashboard"/>
         <Route element={<Login />} path="login">
           <Route index element={<IndieAuthForm />} path="indie-auth" />
           <Route element={<IndieAuthRedirect />} path="indie-auth-redirect" />
