@@ -16,7 +16,7 @@ code {
 
 body,
 html {
-  @apply min-h-screen font-Raleway;
+  @apply min-h-screen font-Raleway place-content-center;
 }
 
 * {

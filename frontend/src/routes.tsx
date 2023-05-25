@@ -9,6 +9,7 @@ import { Wizzard } from './pages/wizzard';
 import { Security } from './pages/wizzard/security';
 import { Recipients } from './pages/wizzard/recipients/recipients';
 import { ProofOfLife } from './pages/wizzard/proof-of-life';
+import { Steps } from './pages/wizzard/consts';
 import { Message } from './pages/wizzard/message';
 
 export function Routes() {
@@ -25,10 +26,10 @@ export function Routes() {
         </Route>
 
         <Route element={<Wizzard />} path="wizzard">
-          <Route index element={<Security />} path="security" />
-          <Route element={<Recipients />} path="recipients" />
-          <Route element={<ProofOfLife />} path="proof-of-life" />
-          <Route element={<Message />} path="message" />
+          <Route index element={<Security />} path={Steps.Security} />
+          <Route element={<Recipients />} path={Steps.Recipients} />
+          <Route element={<ProofOfLife />} path={Steps.ProofOfLife} />
+          <Route element={<Message />} path={Steps.Message} />
         </Route>
       </ReactRoutes>
       <Outlet />
