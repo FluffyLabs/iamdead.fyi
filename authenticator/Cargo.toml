@@ -20,4 +20,3 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
 
 icod-data = { path = "../data/" }
-async-trait = "0.1.68"
