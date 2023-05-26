@@ -1,20 +1,9 @@
-import { createContext, useContext, useMemo, useState } from 'react';
-
-type WizzardContext = ReturnType<typeof useWizzard>;
-const wizzardContext = createContext<ReturnType<typeof useWizzard>>(
-  null as unknown as WizzardContext,
-);
-
-export const WizzardContextProvider = wizzardContext.Provider;
-
-export function useWizzardContext() {
-  return useContext(wizzardContext);
-}
+import { useMemo, useState } from 'react';
 
 const DEFAULT_NUMBER_OF_RECIPIENTS = 4;
 const DEFAULT_NUMBER_OF_ADDITIONAL_PIECES = 1;
 
-function useSecurityStep() {
+export function useSecurityStep() {
   const [noOfRecipients, setNoOfRecipients] = useState(
     DEFAULT_NUMBER_OF_RECIPIENTS,
   );
@@ -39,16 +28,5 @@ function useSecurityStep() {
       noOfAdditionalPieces,
       setNoOfAdditionalPieces,
     ],
-  );
-} 
-
-export function useWizzard() {
-  const security = useSecurityStep();
-
-  return useMemo(
-    () => ({
-      security,
-    }),
-    [security],
   );
 }

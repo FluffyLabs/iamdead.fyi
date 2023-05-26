@@ -25,7 +25,6 @@ export const Security = () => {
   );
 };
 
-
 const Row = ({
   Icon,
   counter,
@@ -41,9 +40,7 @@ const Row = ({
         <Icon style={{ width: '100px', height: '100px' }} />
         <span style={{ fontSize: '50px', marginLeft: '5px' }}>{counter}</span>
       </span>
-      <p className="mx-5">
-        {text}
-      </p>
+      <p className="mx-5">{text}</p>
     </div>
   );
 };

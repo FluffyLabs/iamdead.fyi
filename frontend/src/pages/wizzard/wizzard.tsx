@@ -56,7 +56,7 @@ export const Wizzard = () => {
       <WizzardContextProvider value={wizzard}>
         <Outlet />
       </WizzardContextProvider>
-      
+
       <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
 
       <div className="flex flex-row justify-between">
