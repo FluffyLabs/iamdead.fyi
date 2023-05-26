@@ -1,3 +1,4 @@
+import { useWizzardContext } from '../wizzard-context';
 import { ReactComponent as KeyPerson } from './icons/key-person.svg';
 import { ReactComponent as Key } from './icons/key.svg';
 import { ComponentType, SVGProps } from 'react';
@@ -5,22 +6,20 @@ import { ComponentType, SVGProps } from 'react';
 const MULTIPLICATION_CHAR = '×';
 
 export const Security = () => {
-  const data = {
-    noOfRecipients: 4,
-    noOfAdditionalPieces: 1,
-  };
+  const { security } = useWizzardContext();
+
   return (
     <div>
       <Row
         Icon={KeyPerson}
-        counter={`${MULTIPLICATION_CHAR}${data.noOfRecipients}`}
-        text={`I want any ${data.noOfRecipients} recipients to come together to read the message`}
+        counter={`${MULTIPLICATION_CHAR}${security.noOfRecipients.value}`}
+        text={`I want any ${security.noOfRecipients.value} recipients to come together to read the message`}
       />
 
       <Row
         Icon={Key}
-        counter={`+${data.noOfAdditionalPieces}`}
-        text={`For redundancy I want ${data.noOfAdditionalPieces} pieces to be distributed`}
+        counter={`+${security.noOfAdditionalPieces.value}`}
+        text={`For redundancy I want ${security.noOfAdditionalPieces.value} pieces to be distributed`}
       />
     </div>
   );

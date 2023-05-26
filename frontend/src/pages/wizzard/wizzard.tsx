@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { useDefaultSubpath } from '../../hooks/use-default-subpath';
 import { DEFAULT_WIZZARD_ROUTE, Steps } from './consts';
 import { useStepName, useStepsNavigation } from './hooks';
+import { WizzardContextProvider, useWizzard } from './wizzard-context';
 
 const createStepConfig = (
   title: string,
@@ -37,6 +38,7 @@ const STEPS_CONFIG = {
   ),
 };
 export const Wizzard = () => {
+  const wizzard = useWizzard();
   useDefaultSubpath(DEFAULT_WIZZARD_ROUTE);
   const stepName = useStepName();
   const stepConfig = STEPS_CONFIG[stepName];
@@ -51,8 +53,10 @@ export const Wizzard = () => {
         ></div>
       </div>
 
-      <Outlet />
-
+      <WizzardContextProvider value={wizzard}>
+        <Outlet />
+      </WizzardContextProvider>
+      
       <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
 
       <div className="flex flex-row justify-between">
