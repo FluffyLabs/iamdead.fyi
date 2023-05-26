@@ -1,8 +1,8 @@
 import { ReactComponent as KeyPerson } from './icons/key-person.svg';
 import { ReactComponent as Key } from './icons/key.svg';
-import { CSSProperties, ComponentType, SVGProps } from 'react';
+import { ComponentType, SVGProps } from 'react';
 
-const MULTIPLICATION_CHAR = '\u{215}';
+const MULTIPLICATION_CHAR = '×';
 
 export const Security = () => {
   const data = {
