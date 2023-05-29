@@ -1,5 +1,6 @@
 [workspace]
 members = [
   "authenticator",
-  "crypto"
+  "crypto",
+  "crypto-js",
 ]
