@@ -132,6 +132,7 @@ const Popover = ({
           <div
             className="absolute bg-white shadow-md rounded p-4 mt-2 text-base z-10"
             ref={ref}
+            onMouseLeave={hide}
           >
             <label
               htmlFor="range"
