@@ -135,7 +135,7 @@ const Popover = ({
           >
             <label
               htmlFor="range"
-              className="mb-2 inline-block text-neutral-700 dark:text-neutral-200"
+              className="mb-2 inline-block text-neutral-700"
             >
               {popoverLabel}
             </label>
