@@ -2,7 +2,7 @@ import { useWizzardContext } from '../wizzard-context';
 import { ReactComponent as KeyPerson } from './icons/key-person.svg';
 import { ReactComponent as Key } from './icons/key.svg';
 import { ReactComponent as Card } from './icons/card.svg';
-import { ComponentType, SVGProps, useCallback, useEffect, useMemo } from 'react';
+import { ComponentType, SVGProps, useCallback, useMemo } from 'react';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
 
 const MULTIPLICATION_CHAR = '×';
@@ -10,15 +10,6 @@ const MULTIPLICATION_CHAR = '×';
 export const Security = () => {
   const { security } = useWizzardContext();
 
-  const handleNoOfPiecesChange = useCallback(
-    (val: number) => {
-      security.noOfAdditionalPieces.setValue(
-        val - security.noOfRecipients.value,
-      );
-    },
-    [security.noOfAdditionalPieces, security.noOfRecipients],
-  );
-  
   return (
     <div>
       <Row
@@ -60,16 +51,8 @@ export const Security = () => {
         text={
           <>
             For redundancy I want{' '}
-            <DraggableNumberInput
-              value={
-                security.noOfAdditionalPieces.value +
-                security.noOfRecipients.value
-              }
-              onChange={handleNoOfPiecesChange}
-              max={18}
-              min={security.noOfRecipients.value}
-            />
-            pieces to be distributed
+            {security.noOfRecipients.value === 1 && <OneRecipient />}
+            {security.noOfRecipients.value > 1 && <ManyRecipients />}
           </>
         }
       />
@@ -105,12 +88,54 @@ const Row = ({
 
 const Cards = ({ quantity }: { quantity: number }) => {
   const array = useMemo(() => Array.from(Array(quantity).keys()), [quantity]);
-  
+
   return (
     <div className="flex flex-wrap justify-center gap-1 px-8">
       {array.map((i) => (
         <Card style={{ width: '100px', height: '100px' }} key={i} />
       ))}
     </div>
-  ); 
-}
+  );
+};
+
+const OneRecipient = () => {
+  const { security } = useWizzardContext();
+
+  return (
+    <>
+      <DraggableNumberInput
+        value={security.noOfAdditionalPieces.value}
+        onChange={security.noOfAdditionalPieces.setValue}
+        max={9}
+        min={0}
+      />{' '}
+      extra keys
+    </>
+  );
+};
+
+const ManyRecipients = () => {
+  const { security } = useWizzardContext();
+
+  const handleNoOfPiecesChange = useCallback(
+    (val: number) => {
+      security.noOfAdditionalPieces.setValue(
+        val - security.noOfRecipients.value,
+      );
+    },
+    [security.noOfAdditionalPieces, security.noOfRecipients],
+  );
+  return (
+    <>
+      <DraggableNumberInput
+        value={
+          security.noOfAdditionalPieces.value + security.noOfRecipients.value
+        }
+        onChange={handleNoOfPiecesChange}
+        min={security.noOfRecipients.value}
+        max={security.noOfRecipients.value + 9}
+      />{' '}
+      pieces to be distributed
+    </>
+  );
+};

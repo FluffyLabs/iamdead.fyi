@@ -1,15 +1,18 @@
-import { InputHTMLAttributes, useCallback, useEffect, useState } from "react"
+import { InputHTMLAttributes, useCallback, useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 
 import { clamp } from '../../utils/math';
 
 import styles from './styles.module.scss';
-import { usePrevious } from "../../hooks/use-previous";
+import { usePrevious } from '../../hooks/use-previous';
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 9;
 
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'|'value'|'min'|'max'> & {
+type Props = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'onChange' | 'value' | 'min' | 'max'
+> & {
   onChange: (val: number) => void;
   value: number;
   min?: number;
@@ -74,4 +77,3 @@ export const DraggableNumberInput = ({
     />
   );
 };
-
