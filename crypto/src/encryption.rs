@@ -89,6 +89,11 @@ impl Message {
             nonce: blake2b512(message.as_bytes()),
         }
     }
+
+    /// Convert the message into the underlying `data` and `nonce`.
+    pub fn into_tuple(self) -> (Bytes, Bytes) {
+        (self.data, self.nonce)
+    }
 }
 
 fn blake2b512(input: &[u8]) -> Bytes {
@@ -106,6 +111,17 @@ pub struct EncryptedMessage {
 }
 
 impl EncryptedMessage {
+    /// Wrap externally received `data` and `nonce` into [EncryptedMessage] type.
+    pub fn new<A, B>(data: A, nonce: B) -> Self where
+        A: Into<Bytes>,
+        B: Into<Bytes>,
+    {
+        Self {
+            data: data.into(),
+            nonce: nonce.into(),
+        }
+    }
+
     /// Convert the encrypted message into the underlying `data` and `nonce`.
     pub fn into_tuple(self) -> (Bytes, Bytes) {
         (self.data, self.nonce)

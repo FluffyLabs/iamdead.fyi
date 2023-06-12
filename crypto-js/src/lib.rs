@@ -32,16 +32,18 @@ pub struct EncryptedMessage {
 }
 
 
+fn parse_key(key: Vec<u8>) -> Result<[u8; 32], Error> {
+    let mut out = [0u8; 32];
+    if key.len() != 32 {
+        return Err(Error::InvalidKeySize)
+    }
+    out.copy_from_slice(&key);
+    Ok(out)
+}
+
 #[wasm_bindgen]
 pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
-    let key = {
-        let mut out = [0u8; 32];
-        if key.len() != 32 {
-            return Err(Error::InvalidKeySize)
-        }
-        out.copy_from_slice(&key);
-        out
-    };
+    let key = parse_key(key)?;
     let key = MessageEncryptionKey::new(key);
     let msg = Message::from_str(&msg);
 
@@ -53,4 +55,16 @@ pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
         data: data.into(),
         nonce: nonce.into(),
     }).expect("EncryptedMessage serialization is infallible"))
+}
+
+#[wasm_bindgen]
+pub fn decrypt_message(key: Vec<u8>, data: Vec<u8>, nonce: Vec<u8>) -> Result<Vec<u8>, Error> {
+    let key = parse_key(key)?;
+    let key = MessageEncryptionKey::new(key);
+    let msg = icod_crypto::encryption::EncryptedMessage::new(data, nonce);
+
+    let decrypted = icod_crypto::encryption::decrypt_message(&key, &msg)?;
+
+    let (data, _nonce) = decrypted.into_tuple();
+    Ok(data.into())
 }
