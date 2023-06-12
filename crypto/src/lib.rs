@@ -53,6 +53,12 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
+impl From<Bytes> for Vec<u8> {
+    fn from(value: Bytes) -> Self {
+        value.data
+    }
+}
+
 impl std::fmt::Debug for Bytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let hex = hex::encode(&self.data);
