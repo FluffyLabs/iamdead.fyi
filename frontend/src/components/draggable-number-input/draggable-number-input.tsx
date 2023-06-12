@@ -28,9 +28,11 @@ export const DraggableNumberInput = ({
   const [startPosition, setStartPositon] = useState(0);
   const [isDragged, setDragged] = useState(false);
   const wasDragged = usePrevious(isDragged);
+  const [valueWhenDragged, setValueWhenDragged] = useState(0);
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
       setStartPositon(e.clientX);
+      setValueWhenDragged(inputProps.value);
       setDragged(true);
       inputProps.onMouseDown?.(e);
     },
@@ -47,25 +49,38 @@ export const DraggableNumberInput = ({
         window.innerWidth - startPosition,
         startPosition,
       );
-      const limit = Math.min(distanceToScreenEdge, startPosition) / 2;
+      const limit = Math.min(distanceToScreenEdge, startPosition, 1000) / 2;
 
       document.onmousemove = function (e: MouseEvent) {
-        const delta = clamp(
+        const currentX = clamp(
           Math.ceil(e.clientX),
           startPosition - limit,
           startPosition + limit,
         );
 
-        const newVal = Math.round(
-          ((delta - (startPosition - limit)) / (2 * limit)) * (max - min) + min,
-        );
-        onChange(newVal);
+        const newVal =
+          currentX <= startPosition
+            ? ((currentX - startPosition + limit) / limit) *
+                (valueWhenDragged - min) +
+              min
+            : ((currentX - startPosition) / limit) * (max - valueWhenDragged) +
+              valueWhenDragged;
+        onChange(Math.round(newVal));
       };
     } else if (wasDragged) {
       document.onmousemove = null;
       document.onmouseup = null;
     }
-  }, [isDragged, setDragged, startPosition, max, min, onChange, wasDragged]);
+  }, [
+    isDragged,
+    setDragged,
+    startPosition,
+    max,
+    min,
+    onChange,
+    wasDragged,
+    valueWhenDragged,
+  ]);
 
   return (
     <input

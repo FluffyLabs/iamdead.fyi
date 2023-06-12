@@ -6,6 +6,10 @@ import { ComponentType, SVGProps, useCallback, useMemo } from 'react';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
 
 const MULTIPLICATION_CHAR = '×';
+const MIN_NO_OF_RECIPIENTS = 1;
+const MAX_NO_OF_RECIPIENTS = 9;
+const MIN_NO_OF_ADDITIONAL_PIECES = 0;
+const MAX_NO_OF_ADDITIONAL_PIECES = 9;
 
 export const Security = () => {
   const { security } = useWizzardContext();
@@ -20,7 +24,8 @@ export const Security = () => {
             <DraggableNumberInput
               value={security.noOfRecipients.value}
               onChange={security.noOfRecipients.setValue}
-              min={1}
+              min={MIN_NO_OF_RECIPIENTS}
+              max={MAX_NO_OF_RECIPIENTS}
             />
           </>
         }
@@ -30,7 +35,8 @@ export const Security = () => {
             <DraggableNumberInput
               value={security.noOfRecipients.value}
               onChange={security.noOfRecipients.setValue}
-              min={1}
+              min={MIN_NO_OF_RECIPIENTS}
+              max={MAX_NO_OF_RECIPIENTS}
             />
             recipients to come together to read the message
           </>
@@ -106,8 +112,8 @@ const OneRecipient = () => {
       <DraggableNumberInput
         value={security.noOfAdditionalPieces.value}
         onChange={security.noOfAdditionalPieces.setValue}
-        max={9}
-        min={0}
+        max={MAX_NO_OF_ADDITIONAL_PIECES}
+        min={MIN_NO_OF_ADDITIONAL_PIECES}
       />{' '}
       extra keys
     </>
@@ -133,7 +139,7 @@ const ManyRecipients = () => {
         }
         onChange={handleNoOfPiecesChange}
         min={security.noOfRecipients.value}
-        max={security.noOfRecipients.value + 9}
+        max={security.noOfRecipients.value + MAX_NO_OF_ADDITIONAL_PIECES}
       />{' '}
       pieces to be distributed
     </>
