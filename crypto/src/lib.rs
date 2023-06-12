@@ -98,17 +98,12 @@ mod tests {
     }
 
     #[test]
-    fn should_format_message() {
-        assert_eq!(false, true);
-    }
-
-    #[test]
-    fn should_format_encrypted_message() {
-        assert_eq!(false, true);
-    }
-
-    #[test]
     fn should_format_bytes() {
-        assert_eq!(false, true);
+        let bytes = Bytes::from_slice(b"these are str bytes");
+
+        assert_eq!(
+            &format!("{:?}", bytes),
+            r#"String("these are str bytes") == Bytes("74686573652061726520737472206279746573")"#,
+        );
     }
 }
