@@ -82,7 +82,7 @@ impl Message {
 
     /// Copy given string into the `Message` type and compute nonce on the flight.
     ///
-    /// The nonce is derived from the message using BLAKE2s256 hash function.
+    /// The nonce is derived from the message using BLAKE2b512 hash function.
     pub fn from_str(message: &str) -> Self {
         Self {
             data: Bytes::from_slice(message.as_bytes()),
