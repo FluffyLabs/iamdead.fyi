@@ -7,7 +7,7 @@ import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Wizzard } from './pages/wizzard';
 import { Security } from './pages/wizzard/security';
-import { Recipients } from './pages/wizzard/recipients/recipients';
+import { Recipients } from './pages/wizzard/recipients';
 import { ProofOfLife } from './pages/wizzard/proof-of-life';
 import { Steps } from './pages/wizzard/consts';
 import { Message } from './pages/wizzard/message';
