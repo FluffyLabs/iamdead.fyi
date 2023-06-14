@@ -5,6 +5,8 @@ import { ReactComponent as Card } from './icons/card.svg';
 import { ComponentType, SVGProps, useCallback, useMemo } from 'react';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
 
+import styles from './styles.module.scss';
+
 const MULTIPLICATION_CHAR = '×';
 const MIN_NO_OF_RECIPIENTS = 1;
 const MAX_NO_OF_RECIPIENTS = 9;
@@ -96,13 +98,22 @@ const Cards = ({ quantity }: { quantity: number }) => {
   const array = useMemo(() => Array.from(Array(quantity).keys()), [quantity]);
 
   return (
-    <div className="flex flex-wrap justify-center gap-1 px-8">
+    <div className={styles.cards}>
       {array.map((i) => (
-        <Card style={{ width: '100px', height: '100px' }} key={i} />
+        <CardItem key={i} label={i.toString()} />
       ))}
     </div>
   );
 };
+
+const CardItem = ({label}: {label: string}) => {
+  return (
+  <div className="relative">
+    <Card style={{ width: '100px', height: '100px' }} />
+    <span className={styles.label}>{label}</span>
+  </div>
+  )
+}
 
 const OneRecipient = () => {
   const { security } = useWizzardContext();
