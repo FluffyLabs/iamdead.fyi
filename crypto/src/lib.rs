@@ -4,18 +4,44 @@
 //! 1. Avoid leaking secure data between JS<>WASM (avoiding intermediary results?)
 //! 2. More docs & examples.
 //! 3. Tests & fuzzing.
-//! 4. Help with nonce prepation?
 
 #![warn(missing_docs)]
 
 use std::ops::Deref;
 
 pub mod encryption;
+pub mod shamir;
 
-/// A representation of 32-bytes secure cryptographic hash output.
-#[derive(PartialEq, Eq)]
+
+const HASH_SIZE: usize = 64;
+/// A representation of 64-bytes secure cryptographic hash output.
+#[derive(Clone, PartialEq, Eq)]
 pub struct Hash {
-  data: [u8; 32],
+  data: [u8; HASH_SIZE],
+}
+
+impl Hash {
+    pub fn new(data: [u8; HASH_SIZE]) -> Self {
+        Self { data }
+    }
+    pub fn from_slice(data: &[u8]) -> Self {
+        let mut out = [0u8; HASH_SIZE];
+        // TODO check length first!!!
+        out.copy_from_slice(&data);
+        Self::new(out)
+    }
+
+    pub fn to_bytes(&self) -> Bytes {
+        Bytes::from_slice(&self.data)
+    }
+}
+
+pub(crate) fn blake2b512(input: &[u8]) -> Hash {
+  use blake2::{Blake2b512, Digest};
+  let mut hasher = Blake2b512::new();
+  hasher.update(input);
+  let arr = hasher.finalize();
+  crate::Hash::from_slice(arr.as_slice())
 }
 
 impl std::fmt::Debug for Hash {
@@ -71,39 +97,16 @@ impl std::fmt::Debug for Bytes {
   }
 }
 
-/*
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ChunksConfiguration {
-    pub required: u8,
-    pub spare: u8,
-}
-
-pub struct Chunk {
-    key_hash: Hash,
-    chunks_configuration: ChunksConfiguration,
-    chunk_index: u8,
-    chunk_data: Bytes,
-}
-
-pub fn split_into_chunks(_key: MessageEncryptionKey, _chunks: ChunksConfiguration) -> Vec<Chunk> {
-    unimplemented!()
-}
-
-pub fn restore_key(_chunks: Vec<Chunk>) -> Result<MessageEncryptionKey, ()> {
-    unimplemented!()
-}
-*/
-
 #[cfg(test)]
 mod tests {
   use super::*;
 
   #[test]
   fn should_format_hash() {
-    let hash = Hash { data: [0u8; 32] };
+    let hash = Hash { data: [0u8; HASH_SIZE] };
     assert_eq!(
       &format!("{:?}", hash),
-      "Hash(\"0000000000000000000000000000000000000000000000000000000000000000\")"
+      "Hash(\"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\")"
     );
   }
 

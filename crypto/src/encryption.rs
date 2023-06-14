@@ -39,22 +39,59 @@ enum EncryptionKeyVersion {
   V0,
 }
 
+const KEY_SIZE: usize = 32;
 /// A key to encrypt/decrypt the message.
 ///
 /// - The key is versioned in case there is a need to change
 ///   the encryption scheme at some point.
 pub struct MessageEncryptionKey {
   version: EncryptionKeyVersion,
-  key: [u8; 32],
+  key: [u8; KEY_SIZE],
 }
+
+/// A specific byte sequence used to identify the encoding of `MessageEncryptionKey`.
+///
+/// The encoding of [MessageEncryptionKey] is simply a concatenation of:
+/// 1. The magic sequence.
+/// 2. The version byte.
+/// 3. The 32-bytes of the key.
+///
+/// The key size might change with versions, but currently it's fixed-size with version `V0`.
+pub const KEY_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-key";
 
 impl MessageEncryptionKey {
   /// Wrap an externally-generated 32 bytes encryption key.
-  pub fn new(key: [u8; 32]) -> Self {
+  pub fn new(key: [u8; KEY_SIZE]) -> Self {
     Self {
       version: EncryptionKeyVersion::V0,
       key,
     }
+  }
+
+  /// Encode the key into a vector of bytes.
+  ///
+  /// The key encoding has a magic sequence prepended and a byte representing the version.
+  pub(crate) fn encode(self) -> Vec<u8> {
+      let version = match self.version {
+          EncryptionKeyVersion::V0 => 0u8,
+      };
+      let mut out = vec![];
+      out.extend_from_slice(KEY_ENCODING_MAGIC_SEQUENCE);
+      out.push(version);
+      out.extend_from_slice(&self.key);
+      out
+  }
+
+  pub (crate) fn decode(data: &[u8]) -> Result<Self, ()> {
+      // TODO [ToDr] docs & verification
+      let len = KEY_ENCODING_MAGIC_SEQUENCE.len();
+      let prefix = &data[0..len];
+      let version = data[len];
+      let key = &data[len+1..];
+    
+      let mut out = [0u8; KEY_SIZE];
+      out.copy_from_slice(key);
+      Ok(MessageEncryptionKey::new(out))
   }
 }
 
@@ -90,7 +127,7 @@ impl Message {
   pub fn from_str(message: &str) -> Self {
     Self {
       data: Bytes::from_slice(message.as_bytes()),
-      nonce: blake2b512(message.as_bytes()),
+      nonce: crate::blake2b512(message.as_bytes()).to_bytes(),
     }
   }
 
@@ -98,13 +135,6 @@ impl Message {
   pub fn into_tuple(self) -> (Bytes, Bytes) {
     (self.data, self.nonce)
   }
-}
-
-fn blake2b512(input: &[u8]) -> Bytes {
-  use blake2::{Blake2b512, Digest};
-  let mut hasher = Blake2b512::new();
-  hasher.update(input);
-  Bytes::from_slice(hasher.finalize().as_slice())
 }
 
 /// An encrypted payload of the message and the `nonce` which was used.
