@@ -1,7 +1,7 @@
 import { useWizzardContext } from '../wizzard-context';
-import { ReactComponent as KeyPerson } from './icons/key-person.svg';
-import { ReactComponent as Key } from './icons/key.svg';
-import { ReactComponent as Card } from './icons/card.svg';
+import { ReactComponent as KeyPerson } from '../icons/key-person.svg';
+import { ReactComponent as Key } from '../icons/key.svg';
+import { ReactComponent as Card } from '../icons/card.svg';
 import { ComponentType, SVGProps, useCallback, useMemo } from 'react';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
 
