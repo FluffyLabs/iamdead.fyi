@@ -1,13 +1,12 @@
 import { useWizzardContext } from '../wizzard-context';
-import { ReactComponent as KeyPerson } from '../icons/key-person.svg';
-import { ReactComponent as Key } from '../icons/key.svg';
-import { ReactComponent as Card } from '../icons/card.svg';
-import { ComponentType, SVGProps, useCallback, useMemo } from 'react';
+import { KeyPerson } from '../icons';
+import { Key } from '../icons';
+import { ComponentType, SVGProps, useCallback } from 'react';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
+import { MULTIPLICATION_CHAR } from '../common/consts';
 
-import styles from './styles.module.scss';
+import { Cards } from '../common/components/cards';
 
-const MULTIPLICATION_CHAR = '×';
 const MIN_NO_OF_RECIPIENTS = 1;
 const MAX_NO_OF_RECIPIENTS = 9;
 const MIN_NO_OF_ADDITIONAL_PIECES = 0;
@@ -65,11 +64,7 @@ export const Security = () => {
         }
       />
 
-      <Cards
-        quantity={
-          security.noOfAdditionalPieces.value + security.noOfRecipients.value
-        }
-      />
+      <Cards />
     </div>
   );
 };
@@ -93,27 +88,6 @@ const Row = ({
     </div>
   );
 };
-
-const Cards = ({ quantity }: { quantity: number }) => {
-  const array = useMemo(() => Array.from(Array(quantity).keys()), [quantity]);
-
-  return (
-    <div className={styles.cards}>
-      {array.map((i) => (
-        <CardItem key={i} label={i.toString()} />
-      ))}
-    </div>
-  );
-};
-
-const CardItem = ({label}: {label: string}) => {
-  return (
-  <div className="relative">
-    <Card style={{ width: '100px', height: '100px' }} />
-    <span className={styles.label}>{label}</span>
-  </div>
-  )
-}
 
 const OneRecipient = () => {
   const { security } = useWizzardContext();
