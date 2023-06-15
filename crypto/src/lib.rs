@@ -24,6 +24,7 @@ impl Hash {
     pub fn new(data: [u8; HASH_SIZE]) -> Self {
         Self { data }
     }
+
     pub fn from_slice(data: &[u8]) -> Self {
         let mut out = [0u8; HASH_SIZE];
         // TODO check length first!!!
@@ -33,6 +34,10 @@ impl Hash {
 
     pub fn to_bytes(&self) -> Bytes {
         Bytes::from_slice(&self.data)
+    }
+
+    pub(crate) fn as_slice(&self) -> &[u8] {
+        &self.data
     }
 }
 
