@@ -132,6 +132,26 @@ impl Chunk {
       out.extend_from_slice(&*self.chunk_data);
       Bytes::from(out)
     }
+
+    /// Return the hash of the key the chunk is for.
+    pub fn key_hash(&self) -> &Hash {
+        &self.key_hash
+    }
+
+    /// Return the configuration of the splitting setup.
+    pub fn configuration(&self) -> ChunksConfiguration {
+        self.chunks_configuration
+    }
+
+    /// Return this chunk index.
+    pub fn index(&self) -> u8 {
+        self.chunk_index
+    }
+
+    /// Return the chunk data.
+    pub fn data(&self) -> &Bytes {
+        &self.chunk_data
+    }
 }
 
 /// Split given key into a series of SSS chunks according to given [ChunksConfiguration].
@@ -174,19 +194,58 @@ pub fn split_into_chunks(
         .collect()
 }
 
+
+/// The error which may occur during key restoration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum KeyRestorationError {
+    /// The chunks are does not have the same `key_hash`.
+    #[error("The chunks can't be used to restore one key.")]
+    InconsistentChunks,
+
+    /// The chunks have inconsistent configuration.
+    ///
+    /// This should not happen if the `key_hash` is the same,
+    /// since we recommend generating unique key, but we still
+    /// need to check that.
+    #[error("The chunks have incosistent configurations.")]
+    InconsistentConfiguration,
+
+    /// We have less chunks than the configuration states is `required`.
+    #[error("Not enough chunks to restore the key.")]
+    NotEnoughChunks,
+}
+
 pub fn restore_key(
     chunks: &[Chunk]
-) -> Result<MessageEncryptionKey, ()> {
+) -> Result<MessageEncryptionKey, KeyRestorationError> {
+    let first = chunks.first().ok_or(KeyRestorationError::NotEnoughChunks)?;
+    let configuration = first.configuration();
+
+    // First let's make sure that the chunks are coming from the same set
+    // and we have enough of them.
+    for chunk in &chunks[1..] {
+        if configuration != chunk.configuration() {
+            return Err(KeyRestorationError::InconsistentConfiguration);
+        }
+        if first.key_hash() != chunk.key_hash() {
+            return Err(KeyRestorationError::InconsistentChunks);
+        }
+    }
+
+    if chunks.len() < configuration.required() {
+        return Err(KeyRestorationError::NotEnoughChunks);
+    }
+
     let raw_chunks = {
         let mut raw_chunks = Vec::with_capacity(chunks.len());
         raw_chunks.extend(
             chunks
                 .iter()
-                .map(|c| &*c.chunk_data)
+                .map(|c| &**c.data())
         );
         raw_chunks
     };
-    // TODO [ToDr] Verify that we actually have enough chunks!
+
     let key = gf256::shamir::shamir::reconstruct(&raw_chunks);
 
     // TODO [ToDr] verify the key integrity
@@ -301,5 +360,30 @@ mod tests {
         assert!(
             chunk.starts_with( r#"Bytes("69636f642d6368756e6b3a00aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b202010203"#
         ), "Expected chunk prefix not found in: {}", chunk);
+    }
+
+    #[test]
+    fn should_fail_restoring_if_no_chunks() {
+        assert_eq!(restore_key(&[]).unwrap_err(), KeyRestorationError::NotEnoughChunks);
+    }
+
+    #[test]
+    fn should_fail_restoring_if_chunks_have_inconsistent_configuration() {
+        assert_eq!(true, false);
+    }
+
+    #[test]
+    fn should_fail_restoring_if_chunks_have_inconsistent_key_hash() {
+        assert_eq!(true, false);
+    }
+
+    #[test]
+    fn should_fail_restoring_if_key_hash_does_not_match() {
+        assert_eq!(true, false);
+    }
+
+    #[test]
+    fn should_fail_restoring_if_key_does_not_decode_correctly() {
+        assert_eq!(true, false);
     }
 }

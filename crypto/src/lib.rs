@@ -21,21 +21,28 @@ pub struct Hash {
 }
 
 impl Hash {
+    /// Create a new [Hash] given the raw key.
     pub fn new(data: [u8; HASH_SIZE]) -> Self {
         Self { data }
     }
 
-    pub fn from_slice(data: &[u8]) -> Self {
+    /// Convert the slice into a [Hash].
+    pub fn from_slice(data: &[u8]) -> Result<Self, ()> {
+        if data.len() != HASH_SIZE {
+            return Err(());
+        }
+
         let mut out = [0u8; HASH_SIZE];
-        // TODO check length first!!!
         out.copy_from_slice(&data);
-        Self::new(out)
+        Ok(Self::new(out))
     }
 
+    /// Copy the hash into raw [Bytes] structure.
     pub fn to_bytes(&self) -> Bytes {
         Bytes::from_slice(&self.data)
     }
 
+    /// View the hash as raw bytes.
     pub(crate) fn as_slice(&self) -> &[u8] {
         &self.data
     }
@@ -46,7 +53,7 @@ pub(crate) fn blake2b512(input: &[u8]) -> Hash {
   let mut hasher = Blake2b512::new();
   hasher.update(input);
   let arr = hasher.finalize();
-  crate::Hash::from_slice(arr.as_slice())
+  crate::Hash::from_slice(arr.as_slice()).expect("The blake2b512 output matches KEY_SIZE")
 }
 
 impl std::fmt::Debug for Hash {
@@ -123,5 +130,10 @@ mod tests {
       &format!("{:?}", bytes),
       r#"String("these are str bytes") == Bytes("74686573652061726520737472206279746573")"#,
     );
+  }
+
+  #[test]
+  fn should_fail_hash_from_slice_if_length_wrong() {
+    assert!(Hash::from_slice(&[]).is_err());
   }
 }

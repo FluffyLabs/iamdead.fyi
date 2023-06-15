@@ -362,6 +362,7 @@ mod tests {
     }
     
     out.extend_from_slice(&[2u8; KEY_SIZE]);
-    let ok = MessageEncryptionKey::decode(&out).unwrap();
+
+    let _ok = MessageEncryptionKey::decode(&out).unwrap();
   }
 }
