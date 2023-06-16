@@ -13,7 +13,9 @@ pub mod encryption;
 pub mod shamir;
 
 
-const HASH_SIZE: usize = 64;
+/// Byte size of the hash value.
+pub(crate) const HASH_SIZE: usize = 64;
+
 /// A representation of 64-bytes secure cryptographic hash output.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Hash {

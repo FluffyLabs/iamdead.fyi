@@ -49,9 +49,12 @@ pub enum KeyDecodingError {
 /// The version describes the scheme used for encryption
 /// and may be changed at any point in time.
 #[derive(Debug, PartialEq, Eq)]
-enum EncryptionKeyVersion {
-  /// AES-GCM-SIV with 256b key.
-  V0,
+pub(crate) enum EncryptionKeyVersion {
+    /// A version only used for testing. It will never decode.
+    #[cfg(test)]
+    Test,
+    /// AES-GCM-SIV with 256b key.
+    V0,
 }
 
 const KEY_SIZE: usize = 32;
@@ -65,6 +68,9 @@ const KEY_SIZE: usize = 32;
 /// the message.
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct MessageEncryptionKey {
+  #[cfg(test)]  
+  pub(crate) version: EncryptionKeyVersion,
+  #[cfg(not(test))]  
   version: EncryptionKeyVersion,
   key: [u8; KEY_SIZE],
 }
@@ -104,6 +110,8 @@ impl MessageEncryptionKey {
   /// TODO [ToDr] The encoded type should support `wipe/zeroize` too!
   pub fn encode(mut self) -> Bytes {
       let version = match self.version {
+          #[cfg(test)]
+          EncryptionKeyVersion::Test => 255u8,
           EncryptionKeyVersion::V0 => 0u8,
       };
       let mut out = vec![];

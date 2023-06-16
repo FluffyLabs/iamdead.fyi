@@ -6,7 +6,7 @@
 //! The idea is to split the [MessageEncryptionKey] into multiple
 //! chunks represented as [Chunk] type. The premise of SSS
 //! is that you need at least `N` required chunks out of all `N+S`
-//! generated chunks to restore the original key. None of
+//! generated chunks to recover the original key. None of
 //! the chunks should leak any information on it's own, also any
 //! combination of `N-1` chunks should not leak any information.
 //!
@@ -14,17 +14,17 @@
 //! in case of any changes. Also we bundle a bunch of additional
 //! information with the chunk to improve User Experience.
 
-use crate::{Bytes, Hash};
+use crate::{Bytes, Hash, blake2b512, encryption};
 use crate::encryption::MessageEncryptionKey;
 
 /// A configuration of the Shamir Secret Sharing split.
 ///
 /// A total number of chunks is equal to `required + spare`
 /// and any `required` number of chunks is sufficient to
-/// restore the original key.
+/// recover the original key.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunksConfiguration {
-    /// Number of chunks required to restore the key.
+    /// Number of chunks required to recover the key.
     required: u8,
     /// Number of additional chunks that we generate.
     spare: u8,
@@ -73,7 +73,7 @@ pub enum ChunkVersion {
 
 /// A single [Chunk] obtained from [split_into_chunks] function.
 ///
-/// The chunks represents one piece that can be used to restore the
+/// The chunks represents one piece that can be used to recover the
 /// original key, provided there is sufficient chunks.
 ///
 /// There is additional information attached to every chunk to allow
@@ -159,8 +159,8 @@ impl Chunk {
 /// This method returns a vector of [Chunk] objects. The number of elements
 /// equals the total of `required` and `spare` chunks from the configuration.
 ///
-/// The chunks can later be used to restore the original key
-/// using [restore_key] function.
+/// The chunks can later be used to recover the original key
+/// using [recover_key] function.
 ///
 /// NOTE in case the number of `required` chunks is `1` the [Chunk] data will
 /// simply be the key!
@@ -199,7 +199,7 @@ pub fn split_into_chunks(
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum KeyRestorationError {
     /// The chunks are does not have the same `key_hash`.
-    #[error("The chunks can't be used to restore one key.")]
+    #[error("The chunks can't be used to recover one key.")]
     InconsistentChunks,
 
     /// The chunks have inconsistent configuration.
@@ -211,11 +211,30 @@ pub enum KeyRestorationError {
     InconsistentConfiguration,
 
     /// We have less chunks than the configuration states is `required`.
-    #[error("Not enough chunks to restore the key.")]
+    #[error("Not enough chunks to recover the key.")]
     NotEnoughChunks,
+
+    /// We recovered something, but the key hash does not match the expected one.
+    #[error("The recovered key is not the one expected.")]
+    UnexpectedKey,
+    
+    /// The key was recovered successfuly and matched the expected hash, but the
+    /// payload couldn't be decoded into [MessageEncryptionKey] structure.
+    ///
+    /// This should rather never happen in reality, but we still perform t.unwrap(he checks.
+    #[error("The recovered key is not usable.")]
+    KeyDecodingError,
 }
 
-pub fn restore_key(
+impl From<encryption::KeyDecodingError> for KeyRestorationError {
+    fn from(_value: encryption::KeyDecodingError) -> Self {
+        #[cfg(feature = "tracing")]
+        tracing::error!("Cannot decode recovered key: {:?}", _value);
+        Self::KeyDecodingError
+    }
+}
+
+pub fn recover_key(
     chunks: &[Chunk]
 ) -> Result<MessageEncryptionKey, KeyRestorationError> {
     let first = chunks.first().ok_or(KeyRestorationError::NotEnoughChunks)?;
@@ -247,18 +266,24 @@ pub fn restore_key(
     };
 
     let key = gf256::shamir::shamir::reconstruct(&raw_chunks);
+    let key_hash = blake2b512(&*key);
+    
+    if &key_hash != first.key_hash() {
+        return Err(KeyRestorationError::UnexpectedKey);
+    }
 
-    // TODO [ToDr] verify the key integrity
-    Ok(MessageEncryptionKey::decode(&key).unwrap())
+    Ok(MessageEncryptionKey::decode(&key)?)
 }   
 
 
 #[cfg(test)]
 mod tests {
+    use crate::encryption::EncryptionKeyVersion;
+
     use super::*;
     
     #[test]
-    fn should_produce_chunks_and_restore_the_key() {
+    fn should_produce_chunks_and_recover_the_key() {
         let raw_key = [1u8; 32];
         let encoded = MessageEncryptionKey::new(raw_key.clone()).encode();
         let key = MessageEncryptionKey::new(raw_key);
@@ -266,10 +291,10 @@ mod tests {
 
         // when
         let chunks = split_into_chunks(key, chunks);
-        let restored_key = restore_key(&chunks[0..4]).unwrap();
+        let recovered_key = recover_key(&chunks[0..4]).unwrap();
 
         // then
-        assert_eq!(encoded, Bytes::from(restored_key.encode()));
+        assert_eq!(encoded, Bytes::from(recovered_key.encode()));
     }
 
     #[test]
@@ -364,26 +389,82 @@ mod tests {
 
     #[test]
     fn should_fail_restoring_if_no_chunks() {
-        assert_eq!(restore_key(&[]).unwrap_err(), KeyRestorationError::NotEnoughChunks);
+        assert_eq!(recover_key(&[]).unwrap_err(), KeyRestorationError::NotEnoughChunks);
     }
 
     #[test]
     fn should_fail_restoring_if_chunks_have_inconsistent_configuration() {
-        assert_eq!(true, false);
+        let key1 = MessageEncryptionKey::new([1u8; 32]);
+        let key2 = MessageEncryptionKey::new([1u8; 32]);
+        let conf1 = ChunksConfiguration::new(2, 0).unwrap();
+        let conf2 = ChunksConfiguration::new(1, 0).unwrap();
+        
+        let mut chunks1 = split_into_chunks(key1, conf1);
+        let mut chunks2 = split_into_chunks(key2, conf2);
+
+        // when
+        let recovered = recover_key(&[
+            chunks1.pop().unwrap(),
+            chunks2.pop().unwrap()
+        ]);
+
+        // then
+        assert_eq!(recovered, Err(KeyRestorationError::InconsistentConfiguration));
     }
 
     #[test]
     fn should_fail_restoring_if_chunks_have_inconsistent_key_hash() {
-        assert_eq!(true, false);
+        let key1 = MessageEncryptionKey::new([1u8; 32]);
+        let key2 = MessageEncryptionKey::new([2u8; 32]);
+        let conf1 = ChunksConfiguration::new(2, 0).unwrap();
+        let conf2 = ChunksConfiguration::new(2, 0).unwrap();
+        
+        let mut chunks1 = split_into_chunks(key1, conf1);
+        let mut chunks2 = split_into_chunks(key2, conf2);
+
+        // when
+        let recovered = recover_key(&[
+            chunks1.pop().unwrap(),
+            chunks2.pop().unwrap()
+        ]);
+
+        // then
+        assert_eq!(recovered, Err(KeyRestorationError::InconsistentChunks));
     }
 
     #[test]
     fn should_fail_restoring_if_key_hash_does_not_match() {
-        assert_eq!(true, false);
+        let key1 = MessageEncryptionKey::new([1u8; 32]);
+        let conf1 = ChunksConfiguration::new(2, 0).unwrap();
+        let mut chunks1 = split_into_chunks(key1, conf1);
+
+        let mut chunk_a = chunks1.pop().unwrap();
+        let mut chunk_b = chunks1.pop().unwrap();
+
+        chunk_a.key_hash = Hash::new([1u8; crate::HASH_SIZE]);
+        chunk_b.key_hash = Hash::new([1u8; crate::HASH_SIZE]);
+
+        // when
+        let recovered = recover_key(&[chunk_a, chunk_b]);
+
+        // then
+        assert_eq!(recovered, Err(KeyRestorationError::UnexpectedKey));
     }
 
     #[test]
     fn should_fail_restoring_if_key_does_not_decode_correctly() {
-        assert_eq!(true, false);
+        let mut key1 = MessageEncryptionKey::new([1u8; 32]);
+        key1.version = EncryptionKeyVersion::Test;
+        let conf1 = ChunksConfiguration::new(2, 0).unwrap();
+        let mut chunks1 = split_into_chunks(key1, conf1);
+
+        let chunk_a = chunks1.pop().unwrap();
+        let chunk_b = chunks1.pop().unwrap();
+
+        // when
+        let recovered = recover_key(&[chunk_a, chunk_b]);
+
+        // then
+        assert_eq!(recovered, Err(KeyRestorationError::KeyDecodingError));
     }
 }
