@@ -33,8 +33,7 @@ pub struct EncryptedMessage {
 
 #[wasm_bindgen]
 pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
-  let key = crate::parse_key(key)
-      .map_err(|_| Error::InvalidKeySize)?;
+  let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let msg = Message::from_str(&msg);
 

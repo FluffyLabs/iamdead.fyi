@@ -12,7 +12,6 @@ use std::ops::Deref;
 pub mod encryption;
 pub mod shamir;
 
-
 /// Byte size of the hash value.
 pub(crate) const HASH_SIZE: usize = 64;
 
@@ -23,31 +22,31 @@ pub struct Hash {
 }
 
 impl Hash {
-    /// Create a new [Hash] given the raw key.
-    pub fn new(data: [u8; HASH_SIZE]) -> Self {
-        Self { data }
+  /// Create a new [Hash] given the raw key.
+  pub fn new(data: [u8; HASH_SIZE]) -> Self {
+    Self { data }
+  }
+
+  /// Convert the slice into a [Hash].
+  pub fn from_slice(data: &[u8]) -> Result<Self, ()> {
+    if data.len() != HASH_SIZE {
+      return Err(());
     }
 
-    /// Convert the slice into a [Hash].
-    pub fn from_slice(data: &[u8]) -> Result<Self, ()> {
-        if data.len() != HASH_SIZE {
-            return Err(());
-        }
+    let mut out = [0u8; HASH_SIZE];
+    out.copy_from_slice(&data);
+    Ok(Self::new(out))
+  }
 
-        let mut out = [0u8; HASH_SIZE];
-        out.copy_from_slice(&data);
-        Ok(Self::new(out))
-    }
+  /// Copy the hash into raw [Bytes] structure.
+  pub fn to_bytes(&self) -> Bytes {
+    Bytes::from_slice(&self.data)
+  }
 
-    /// Copy the hash into raw [Bytes] structure.
-    pub fn to_bytes(&self) -> Bytes {
-        Bytes::from_slice(&self.data)
-    }
-
-    /// View the hash as raw bytes.
-    pub(crate) fn as_slice(&self) -> &[u8] {
-        &self.data
-    }
+  /// View the hash as raw bytes.
+  pub(crate) fn as_slice(&self) -> &[u8] {
+    &self.data
+  }
 }
 
 pub(crate) fn blake2b512(input: &[u8]) -> Hash {
@@ -117,7 +116,9 @@ mod tests {
 
   #[test]
   fn should_format_hash() {
-    let hash = Hash { data: [0u8; HASH_SIZE] };
+    let hash = Hash {
+      data: [0u8; HASH_SIZE],
+    };
     assert_eq!(
       &format!("{:?}", hash),
       "Hash(\"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\")"
