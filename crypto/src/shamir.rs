@@ -150,7 +150,7 @@ impl Chunk {
     })
   }
 
-  /// Encode the key into a vector of bytes.
+  /// Encode the chunk into a vector of bytes.
   ///
   /// The encoding has a magic sequence prepended for identification.
   pub fn encode(&self) -> Bytes {
