@@ -126,7 +126,8 @@ impl MessageEncryptionKey {
   /// Attempt to decode the [MessageEncryptionKey] from given byte slices.
   pub fn decode(data: &[u8]) -> Result<Self, KeyDecodingError> {
       let data = data.strip_prefix(KEY_ENCODING_MAGIC_SEQUENCE).ok_or(KeyDecodingError::MissingMagicBytes)?;
-      let key = data.strip_prefix(&[0]).ok_or(KeyDecodingError::InvalidVersion)?;
+      let version = [0u8];
+      let key = data.strip_prefix(&version).ok_or(KeyDecodingError::InvalidVersion)?;
     
       if key.len() != KEY_SIZE {
         return Err(KeyDecodingError::InvalidKeySize);

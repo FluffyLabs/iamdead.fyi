@@ -31,18 +31,10 @@ pub struct EncryptedMessage {
   pub nonce: Vec<u8>,
 }
 
-fn parse_key(key: Vec<u8>) -> Result<[u8; 32], Error> {
-  let mut out = [0u8; 32];
-  if key.len() != 32 {
-    return Err(Error::InvalidKeySize);
-  }
-  out.copy_from_slice(&key);
-  Ok(out)
-}
-
 #[wasm_bindgen]
 pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
-  let key = parse_key(key)?;
+  let key = crate::parse_key(key)
+      .map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let msg = Message::from_str(&msg);
 
@@ -61,7 +53,7 @@ pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
 
 #[wasm_bindgen]
 pub fn decrypt_message(key: Vec<u8>, data: Vec<u8>, nonce: Vec<u8>) -> Result<Vec<u8>, Error> {
-  let key = parse_key(key)?;
+  let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let msg = icod_crypto::encryption::EncryptedMessage::new(data, nonce);
 

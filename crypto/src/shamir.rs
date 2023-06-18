@@ -14,7 +14,7 @@
 //! in case of any changes. Also we bundle a bunch of additional
 //! information with the chunk to improve User Experience.
 
-use crate::{Bytes, Hash, blake2b512, encryption};
+use crate::{Bytes, Hash, blake2b512, encryption, HASH_SIZE};
 use crate::encryption::MessageEncryptionKey;
 
 /// A configuration of the Shamir Secret Sharing split.
@@ -115,6 +115,39 @@ impl Chunk {
         }
     }
 
+    /// Attempt to decode a [Chunk] from given bytes slice.
+    pub fn decode(data: &[u8]) -> Result<Self, ChunkDecodingError> {
+        fn split_at(s: &[u8], at: usize) -> Result<(&[u8], &[u8]), ChunkDecodingError> {
+            if s.len() < at {
+                Err(ChunkDecodingError::NotEnoughData)
+            } else {
+                Ok(s.split_at(at))
+            }
+        }
+
+      let data = data.strip_prefix(CHUNK_ENCODING_MAGIC_SEQUENCE).ok_or(ChunkDecodingError::MissingMagicBytes)?;
+      let version = [0u8];
+      let data = data.strip_prefix(&version).ok_or(ChunkDecodingError::InvalidVersion)?;
+      let (key, data) = split_at(&data, HASH_SIZE)?;
+      let key_hash = Hash::from_slice(&key).map_err(|_| ChunkDecodingError::NotEnoughData)?;
+      let (conf, data) = split_at(data, 2)?;
+      let chunks_configuration = ChunksConfiguration::new(conf[0], conf[1]).map_err(|_| ChunkDecodingError::InvalidConfiguration)?;
+
+      let (&chunk_index, data) = data.split_first().ok_or(ChunkDecodingError::NotEnoughData)?;
+      let chunk_data = Bytes::from_slice(data);
+      if chunk_data.is_empty() {
+        return Err(ChunkDecodingError::NotEnoughData);
+      }
+
+      Ok(Self {
+        version: ChunkVersion::V0,
+        key_hash,
+        chunk_index,
+        chunk_data,
+        chunks_configuration,
+      })
+    }
+
     /// Encode the key into a vector of bytes.
     ///
     /// The encoding has a magic sequence prepended for identification.
@@ -197,7 +230,7 @@ pub fn split_into_chunks(
 
 /// The error which may occur during key restoration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum KeyRestorationError {
+pub enum KeyRecoveryError {
     /// The chunks are does not have the same `key_hash`.
     #[error("The chunks can't be used to recover one key.")]
     InconsistentChunks,
@@ -226,7 +259,7 @@ pub enum KeyRestorationError {
     KeyDecodingError,
 }
 
-impl From<encryption::KeyDecodingError> for KeyRestorationError {
+impl From<encryption::KeyDecodingError> for KeyRecoveryError {
     fn from(_value: encryption::KeyDecodingError) -> Self {
         #[cfg(feature = "tracing")]
         tracing::error!("Cannot decode recovered key: {:?}", _value);
@@ -234,25 +267,56 @@ impl From<encryption::KeyDecodingError> for KeyRestorationError {
     }
 }
 
+/// The error which may occur during chunk restoration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum ChunkDecodingError {
+    /// The byte input is missing [CHUNK_ENCODING_MAGIC_SEQUENCE] prefix.
+    #[error("Given data does not look like a chunk.")]
+    MissingMagicBytes,
+
+    /// The byte input has invalid version identifier.
+    #[error("The version of the chunk is invalid.")]
+    InvalidVersion,
+
+    /// The chunk does not have enough bytes to complete decoding.
+    #[error("The chunk has not enough data.")]
+    NotEnoughData,
+
+    /// The configuration stored in the chunk is not correct.
+    #[error("The chunk configuration is incorrect.")]
+    InvalidConfiguration,
+}
+
+
+/// Given a slice of [Chunk]s recover the original key.
+///
+/// Note that it's enough to provide at least `required` number of chunks
+/// to recover the key. The chunks order also does not matter.
+///
+/// We do check however if all of the chunks have the same configuration
+/// and claim to be part of the same key recovery chunks (via `key_hash`).
+///
+/// Obviously these [Chunk]s are easy to spoof (via decoding mechanism),
+/// but the checks are there mostly to improve the user experience in the happy case.
 pub fn recover_key(
     chunks: &[Chunk]
-) -> Result<MessageEncryptionKey, KeyRestorationError> {
-    let first = chunks.first().ok_or(KeyRestorationError::NotEnoughChunks)?;
+) -> Result<MessageEncryptionKey, KeyRecoveryError> {
+    let first = chunks.first().ok_or(KeyRecoveryError::NotEnoughChunks)?;
     let configuration = first.configuration();
 
     // First let's make sure that the chunks are coming from the same set
     // and we have enough of them.
     for chunk in &chunks[1..] {
         if configuration != chunk.configuration() {
-            return Err(KeyRestorationError::InconsistentConfiguration);
+            return Err(KeyRecoveryError::InconsistentConfiguration);
         }
         if first.key_hash() != chunk.key_hash() {
-            return Err(KeyRestorationError::InconsistentChunks);
+            return Err(KeyRecoveryError::InconsistentChunks);
         }
     }
 
     if chunks.len() < configuration.required() {
-        return Err(KeyRestorationError::NotEnoughChunks);
+        return Err(KeyRecoveryError::NotEnoughChunks);
     }
 
     let raw_chunks = {
@@ -269,7 +333,7 @@ pub fn recover_key(
     let key_hash = blake2b512(&*key);
     
     if &key_hash != first.key_hash() {
-        return Err(KeyRestorationError::UnexpectedKey);
+        return Err(KeyRecoveryError::UnexpectedKey);
     }
 
     Ok(MessageEncryptionKey::decode(&key)?)
@@ -389,7 +453,7 @@ mod tests {
 
     #[test]
     fn should_fail_restoring_if_no_chunks() {
-        assert_eq!(recover_key(&[]).unwrap_err(), KeyRestorationError::NotEnoughChunks);
+        assert_eq!(recover_key(&[]).unwrap_err(), KeyRecoveryError::NotEnoughChunks);
     }
 
     #[test]
@@ -409,7 +473,7 @@ mod tests {
         ]);
 
         // then
-        assert_eq!(recovered, Err(KeyRestorationError::InconsistentConfiguration));
+        assert_eq!(recovered, Err(KeyRecoveryError::InconsistentConfiguration));
     }
 
     #[test]
@@ -429,7 +493,7 @@ mod tests {
         ]);
 
         // then
-        assert_eq!(recovered, Err(KeyRestorationError::InconsistentChunks));
+        assert_eq!(recovered, Err(KeyRecoveryError::InconsistentChunks));
     }
 
     #[test]
@@ -448,7 +512,7 @@ mod tests {
         let recovered = recover_key(&[chunk_a, chunk_b]);
 
         // then
-        assert_eq!(recovered, Err(KeyRestorationError::UnexpectedKey));
+        assert_eq!(recovered, Err(KeyRecoveryError::UnexpectedKey));
     }
 
     #[test]
@@ -465,6 +529,59 @@ mod tests {
         let recovered = recover_key(&[chunk_a, chunk_b]);
 
         // then
-        assert_eq!(recovered, Err(KeyRestorationError::KeyDecodingError));
+        assert_eq!(recovered, Err(KeyRecoveryError::KeyDecodingError));
+    }
+
+    #[test]
+    fn should_decode_chunk() {
+        let err = Chunk::decode(&[]).unwrap_err();
+        assert_eq!(err, ChunkDecodingError::MissingMagicBytes);
+
+        let mut out = CHUNK_ENCODING_MAGIC_SEQUENCE.to_vec();
+        {
+            let mut out = out.clone();
+            let err = Chunk::decode(&out).unwrap_err();
+            assert_eq!(err, ChunkDecodingError::InvalidVersion);
+            out.push(1);
+            let err = Chunk::decode(&out).unwrap_err();
+            assert_eq!(err, ChunkDecodingError::InvalidVersion);
+        }
+        // version
+        out.push(0);
+        {
+            // missing hash
+            let err = Chunk::decode(&out).unwrap_err();
+            assert_eq!(err, ChunkDecodingError::NotEnoughData);
+        }
+        // hash
+        out.extend_from_slice(&[1u8; HASH_SIZE]);
+        {
+            let mut out = out.clone();
+            out.push(0);
+            out.push(1);
+            let err = Chunk::decode(&out).unwrap_err();
+            assert_eq!(err, ChunkDecodingError::InvalidConfiguration);
+        }
+        // configuration
+        out.push(2);
+        out.push(0);
+        {
+            // missing index
+            let err = Chunk::decode(&out).unwrap_err();
+            assert_eq!(err, ChunkDecodingError::NotEnoughData);
+        }
+        // chunk_index
+        out.push(0);
+        {
+            // missing data
+            let err = Chunk::decode(&out).unwrap_err();
+            assert_eq!(err, ChunkDecodingError::NotEnoughData);
+        }
+        out.extend_from_slice(&[1, 2, 3, 4]);
+        let ok = Chunk::decode(&out).unwrap();
+        assert_eq!(
+            format!("{:?}", ok),
+            "Chunk { version: V0, key_hash: Hash(\"01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101\"), chunks_configuration: ChunksConfiguration { required: 2, spare: 0 }, chunk_index: 0, chunk_data: String(\"\\u{1}\\u{2}\\u{3}\\u{4}\") == Bytes(\"01020304\") }",
+        );
     }
 }
