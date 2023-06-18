@@ -1,9 +1,4 @@
 //! A set of crypto primitives to be used as a library in the frontend.
-//!
-//! # TODO
-//! 1. Avoid leaking secure data between JS<>WASM (avoiding intermediary results?)
-//! 2. More docs & examples.
-//! 3. Tests & fuzzing.
 
 #![warn(missing_docs)]
 

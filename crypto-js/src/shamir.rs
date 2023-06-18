@@ -100,9 +100,6 @@ mod conv {
   }
 }
 
-// TODO [ToDr] Add a method to simply decode a chunk for verification
-// purposes.
-
 #[wasm_bindgen]
 pub fn recover_key(chunks: Vec<JsValue>) -> Result<Vec<u8>, RecoveryError> {
   let chunks = chunks
