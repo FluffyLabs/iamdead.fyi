@@ -7,7 +7,7 @@
 //! The `V0` version is using `AES-GCM-SIV` with `256b` key size.
 
 use aes_gcm_siv::{
-  aead::{Aead, Payload},
+  aead::{Aead, Payload, OsRng},
   Aes256GcmSiv, KeyInit, Nonce,
 };
 
@@ -92,6 +92,14 @@ impl MessageEncryptionKey {
       version: EncryptionKeyVersion::V0,
       key,
     }
+  }
+
+  /// Generate a new encryption key using default entropy source (`OsRng`).
+  pub fn generate() -> Self {
+      let key = Aes256GcmSiv::generate_key(&mut OsRng);
+      let key = <[u8;KEY_SIZE]>::try_from(key.as_slice())
+          .expect("The key generate by `Aes256GcmSiv` has the correct size");
+      Self::new(key)
   }
 
   /// Clear out the data of the key from stack.
@@ -377,5 +385,10 @@ mod tests {
     out.extend_from_slice(&[2u8; KEY_SIZE]);
 
     let _ok = MessageEncryptionKey::decode(&out).unwrap();
+  }
+
+  #[test]
+  fn should_generate_a_random_key() {
+    let _key = MessageEncryptionKey::generate();
   }
 }
