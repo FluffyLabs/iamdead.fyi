@@ -7,7 +7,7 @@
 //! The `V0` version is using `AES-GCM-SIV` with `256b` key size.
 
 use aes_gcm_siv::{
-  aead::{Aead, Payload, OsRng},
+  aead::{Aead, OsRng, Payload},
   Aes256GcmSiv, KeyInit, Nonce,
 };
 
@@ -96,20 +96,18 @@ impl MessageEncryptionKey {
 
   /// Generate a new encryption key using default entropy source (`OsRng`).
   pub fn generate() -> Self {
-      let key = Aes256GcmSiv::generate_key(&mut OsRng);
-      let key = <[u8;KEY_SIZE]>::try_from(key.as_slice())
-          .expect("The key generate by `Aes256GcmSiv` has the correct size");
-      Self::new(key)
+    let key = Aes256GcmSiv::generate_key(&mut OsRng);
+    let key = <[u8; KEY_SIZE]>::try_from(key.as_slice())
+      .expect("The key generate by `Aes256GcmSiv` has the correct size");
+    Self::new(key)
   }
 
   /// Clear out the data of the key from stack.
   ///
   /// Note this method is best-effort prevention of leaking the key
   /// on stack or in memory.
-  ///
-  /// TODO [ToDr] use zeroize crate and copy the notes from there.
   pub fn wipe(&mut self) {
-    self.key.copy_from_slice(&[0u8; KEY_SIZE]);
+    crate::wipe(&mut self.key);
   }
 
   /// Encode the key into a vector of bytes.
@@ -165,6 +163,7 @@ impl Drop for MessageEncryptionKey {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Message {
   data: Bytes,
+  /// The nonce must be [NONCE_SIZE] bytes!
   nonce: Bytes,
 }
 
@@ -172,24 +171,24 @@ impl Message {
   /// Wrap a pre-generated `data` and `nonce` into [Message] type.
   ///
   /// The `nonce` must be unique for every `data`.
-  pub fn new<A, B>(data: A, nonce: B) -> Self
+  pub fn new<A>(data: A, nonce: [u8; NONCE_SIZE]) -> Self
   where
     A: Into<Bytes>,
-    B: Into<Bytes>,
   {
     Self {
       data: data.into(),
-      nonce: nonce.into(),
+      nonce: Bytes::from_slice(nonce.as_slice()),
     }
   }
 
   /// Copy given string into the `Message` type and compute nonce on the flight.
   ///
-  /// The nonce is derived from the message using BLAKE2b512 hash function.
+  /// The nonce is derived from the message using BLAKE2b512 hash function
   pub fn from_str(message: &str) -> Self {
+    let hash = crate::blake2b512(message.as_bytes());
     Self {
       data: Bytes::from_slice(message.as_bytes()),
-      nonce: crate::blake2b512(message.as_bytes()).to_bytes(),
+      nonce: Bytes::from_slice(&hash.as_slice()[0..NONCE_SIZE]),
     }
   }
 
@@ -197,25 +196,34 @@ impl Message {
   pub fn into_tuple(self) -> (Bytes, Bytes) {
     (self.data, self.nonce)
   }
+
+  /// Clear out the message to prevent it from leaking the values on the heap.
+  pub fn wipe(&mut self) {
+    self.data.wipe();
+    self.nonce.wipe();
+  }
 }
+
+/// The size of the required nonce.
+pub const NONCE_SIZE: usize = 12;
 
 /// An encrypted payload of the message and the `nonce` which was used.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EncryptedMessage {
   data: Bytes,
+  /// The nonce must be [NONCE_SIZE] bytes!
   nonce: Bytes,
 }
 
 impl EncryptedMessage {
   /// Wrap externally received `data` and `nonce` into [EncryptedMessage] type.
-  pub fn new<A, B>(data: A, nonce: B) -> Self
+  pub fn new<A>(data: A, nonce: [u8; NONCE_SIZE]) -> Self
   where
     A: Into<Bytes>,
-    B: Into<Bytes>,
   {
     Self {
       data: data.into(),
-      nonce: nonce.into(),
+      nonce: Bytes::from_slice(nonce.as_slice()),
     }
   }
 
@@ -286,14 +294,16 @@ mod tests {
 
   #[test]
   fn should_format_message() {
-    let msg = Message::new(
-      Bytes::from_slice(b"This is a message to encrypt."),
-      Bytes::from_slice(b"This is a unique nonce"),
-    );
+    let nonce = {
+      let mut nonce = [0u8; 12];
+      nonce.copy_from_slice(b"unique nonce");
+      nonce
+    };
+    let msg = Message::new(Bytes::from_slice(b"This is a message to encrypt."), nonce);
 
     assert_eq!(
       &format!("{:?}", msg),
-      r#"Message { data: String("This is a message to encrypt.") == Bytes("546869732069732061206d65737361676520746f20656e63727970742e"), nonce: String("This is a unique nonce") == Bytes("54686973206973206120756e69717565206e6f6e6365") }"#,
+      r#"Message { data: String("This is a message to encrypt.") == Bytes("546869732069732061206d65737361676520746f20656e63727970742e"), nonce: String("unique nonce") == Bytes("756e69717565206e6f6e6365") }"#,
     );
   }
 
@@ -303,7 +313,7 @@ mod tests {
 
     assert_eq!(
       &format!("{:?}", msg),
-      r#"Message { data: String("This is a message to encrypt.") == Bytes("546869732069732061206d65737361676520746f20656e63727970742e"), nonce: Bytes("b058b8dcc94c1828d5e47d7d3a089d99f1d02a55ca40d5cc818c083e74595d65ac5df326718a8ff3583bb1f50a454611757aa9f0c4b8398905d4b1e842289370") }"#,
+      r#"Message { data: String("This is a message to encrypt.") == Bytes("546869732069732061206d65737361676520746f20656e63727970742e"), nonce: Bytes("b058b8dcc94c1828d5e47d7d") }"#,
     );
   }
 
@@ -326,7 +336,12 @@ mod tests {
     let message = "Hello World!";
     let key = [0u8; 32];
     let key = MessageEncryptionKey::new(key);
-    let message = Message::new(message.as_bytes().to_vec(), b"unique nonce".to_vec());
+    let nonce = {
+      let mut nonce = [0u8; 12];
+      nonce.copy_from_slice(b"unique nonce");
+      nonce
+    };
+    let message = Message::new(message.as_bytes().to_vec(), nonce);
 
     // when
     let encrypted = encrypt_message(&key, &message).unwrap();

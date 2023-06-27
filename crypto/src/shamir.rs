@@ -209,9 +209,10 @@ pub fn split_into_chunks(
     panic!("Invalid number of required shares!");
   }
 
-  let payload = key.encode();
+  let mut payload = key.encode();
   let key_hash = crate::blake2b512(&payload);
   let chunks = gf256::shamir::shamir::generate(&payload, shares, required);
+  payload.wipe();
 
   chunks
     .into_iter()

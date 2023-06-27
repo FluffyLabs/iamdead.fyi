@@ -54,6 +54,12 @@ pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
 pub fn decrypt_message(key: Vec<u8>, data: Vec<u8>, nonce: Vec<u8>) -> Result<Vec<u8>, Error> {
   let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
+  let nonce = {
+    let mut n = [0u8; 12];
+    // TODO [ToDr] don't panic here!!!
+    n.copy_from_slice(&nonce);
+    n
+  };
   let msg = icod_crypto::encryption::EncryptedMessage::new(data, nonce);
 
   let decrypted = icod_crypto::encryption::decrypt_message(&key, &msg)?;
