@@ -57,6 +57,18 @@ pub struct ChunksConfiguration {
   pub spare: u8,
 }
 
+impl ChunksConfiguration {
+    pub(crate) fn to_icod(self) -> Result<
+        icod_crypto::shamir::ChunksConfiguration,
+        SplittingError,
+    > {
+        icod_crypto::shamir::ChunksConfiguration::new(
+            self.required,
+            self.spare,
+        ).map_err(|_| SplittingError::ConfigurationError)
+    }
+}
+
 #[wasm_bindgen]
 pub fn split_into_chunks(
   key: Vec<u8>,
@@ -64,22 +76,39 @@ pub fn split_into_chunks(
 ) -> Result<Vec<JsValue>, SplittingError> {
   let key = crate::parse_key(key).map_err(|_| SplittingError::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
-  let chunks_configuration =
-    icod_crypto::shamir::ChunksConfiguration::new(configuration.required, configuration.spare)
-      .map_err(|_| SplittingError::ConfigurationError)?;
+  let chunks_configuration = configuration.to_icod()?;
   let chunks = icod_crypto::shamir::split_into_chunks(key, chunks_configuration);
 
-  Ok(
-    chunks
-      .into_iter()
-      .map(|chunk| conv::bytes_to_js(CHUNK_PREFIX, chunk.encode().into()))
-      .collect(),
-  )
+  Ok(chunks_to_js(chunks))
 }
 
 pub const CHUNK_PREFIX: &'static str = "icod-chunk:";
 
-mod conv {
+// TODO [ToDr] move to mod conv;
+pub(crate) fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValue> {
+    chunks
+        .into_iter()
+        .map(|chunk| conv::bytes_to_js(CHUNK_PREFIX, chunk.encode().into()))
+        .collect()
+}
+
+pub(crate) fn js_to_chunks(chunks: Vec<JsValue>) -> Result<
+    Vec<icod_crypto::shamir::Chunk>,
+    RecoveryError,
+> {
+    chunks
+    .into_iter()
+    .map(|val| {
+      conv::js_to_bytes(CHUNK_PREFIX, val)
+        .map_err(RecoveryError::from)
+        .and_then(|v| {
+          icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)
+        })
+    })
+    .collect()
+}
+
+pub(crate) mod conv {
   #[derive(Debug)]
   pub enum Error {
     ValueError,
@@ -89,8 +118,12 @@ mod conv {
 
   use super::JsValue;
 
+  pub fn bytes_to_str(prefix: &'static str, b: Vec<u8>) -> String {
+      format!("{}{}", prefix, hex::encode(b))
+  }
+
   pub fn bytes_to_js(prefix: &'static str, b: Vec<u8>) -> JsValue {
-    JsValue::from_str(&format!("{}{}", prefix, hex::encode(b)))
+    JsValue::from_str(&bytes_to_str(prefix, b))
   }
 
   pub fn js_to_bytes(prefix: &'static str, v: JsValue) -> Result<Vec<u8>, Error> {
@@ -102,17 +135,7 @@ mod conv {
 
 #[wasm_bindgen]
 pub fn recover_key(chunks: Vec<JsValue>) -> Result<Vec<u8>, RecoveryError> {
-  let chunks = chunks
-    .into_iter()
-    .map(|val| {
-      conv::js_to_bytes(CHUNK_PREFIX, val)
-        .map_err(RecoveryError::from)
-        .and_then(|v| {
-          icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)
-        })
-    })
-    .collect::<Result<Vec<_>, RecoveryError>>()?;
-
+  let chunks = js_to_chunks(chunks)?;
   let key = icod_crypto::shamir::recover_key(&chunks)?;
 
   Ok(key.encode().into())
