@@ -1,4 +1,4 @@
-use icod_crypto::encryption::{Message, MessageEncryptionKey, NONCE_SIZE};
+use icod_crypto::encryption::{Message, MessageEncryptionKey};
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
@@ -53,16 +53,9 @@ pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
 
 #[wasm_bindgen]
 pub fn decrypt_message(key: Vec<u8>, data: Vec<u8>, nonce: Vec<u8>) -> Result<Vec<u8>, Error> {
-  let nonce = {
-    let mut n = [0u8; NONCE_SIZE];
-    if nonce.len() != NONCE_SIZE {
-        return Err(Error::InvalidNonceSize);
-    }
-    n.copy_from_slice(&nonce);
-    n
-  };
   let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
+  let nonce = crate::parse_nonce(nonce).map_err(|_| Error::InvalidNonceSize)?;
   let msg = icod_crypto::encryption::EncryptedMessage::new(data, nonce);
 
   let decrypted = icod_crypto::encryption::decrypt_message(&key, &msg)?;

@@ -57,7 +57,9 @@ pub(crate) enum EncryptionKeyVersion {
   V0,
 }
 
-const KEY_SIZE: usize = 32;
+/// The byte size of the current version key.
+pub const KEY_SIZE: usize = 32;
+
 /// A key to encrypt/decrypt the message.
 ///
 /// The key is versioned in case there is a need to change
