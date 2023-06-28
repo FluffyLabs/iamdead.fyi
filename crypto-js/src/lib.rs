@@ -28,16 +28,34 @@ pub struct MessageAndChunks {
     pub chunks: Vec<String>,
 }
 
+#[derive(Debug)]
+pub enum SecuringError {
+    InvalidChunksConfiguration,
+    Encryption(encryption::Error),
+}
+
+impl From<encryption::Error> for SecuringError {
+    fn from(value: encryption::Error) -> Self {
+        Self::Encryption(value)
+    }
+}
+
+impl From<SecuringError> for JsValue {
+  fn from(value: SecuringError) -> Self {
+    JsValue::from_str(&format!("{:?}", value))
+  }
+}
+
+
 #[wasm_bindgen]
 pub fn secure_message(
     msg: String,
     chunks_configuration: shamir::ChunksConfiguration,
-) -> Result<JsValue, encryption::Error> {
+) -> Result<JsValue, SecuringError> {
     let msg = icod_crypto::encryption::Message::from_str(&msg);
     let chunks_configuration = chunks_configuration.to_icod()
-        // TODO [ToDr] PRoper error here
-        .map_err(|_| encryption::Error::CryptoError)?;
-    let (encrypted_message, chunks) = icod_crypto::secure_message(msg, chunks_configuration)?;
+        .map_err(|_| SecuringError::InvalidChunksConfiguration)?;
+    let (encrypted_message, chunks) = icod_crypto::secure_message(msg, chunks_configuration).map_err(encryption::Error::from)?;
 
     let chunks = chunks
         .into_iter()
@@ -49,23 +67,48 @@ pub fn secure_message(
     }).expect("MessageAndChunks serialization is infallible"))
 }
 
+#[derive(Debug)]
+pub enum RestorationError {
+    InvalidNonceSize,
+    Recovery(shamir::RecoveryError),
+    Decryption(encryption::Error),
+}
+
+impl From<shamir::RecoveryError> for RestorationError {
+    fn from(value: shamir::RecoveryError) -> Self {
+        Self::Recovery(value)
+    }
+}
+
+impl From<icod_crypto::RestorationError> for RestorationError {
+    fn from(value: icod_crypto::RestorationError) -> Self {
+        match value {
+            icod_crypto::RestorationError::Recovery(err) => Self::Recovery(err.into()),
+            icod_crypto::RestorationError::Decryption(err) => Self::Decryption(err.into()),
+        }
+    }
+}
+
+impl From<RestorationError> for JsValue {
+  fn from(value: RestorationError) -> Self {
+    JsValue::from_str(&format!("{:?}", value))
+  }
+}
+
 #[wasm_bindgen]
 pub fn restore_message(
     data: Vec<u8>,
     nonce: Vec<u8>,
     chunks: Vec<JsValue>,
-) -> Result<Vec<u8>, shamir::RecoveryError> {
+) -> Result<Vec<u8>, RestorationError> {
     let nonce = parse_nonce(nonce)
-        // TODO [ToDr] PRoper error here
-        .map_err(|_| shamir::RecoveryError::ChunkDecodingError)?;
+        .map_err(|_| RestorationError::InvalidNonceSize)?;
     let encrypted_message = icod_crypto::encryption::EncryptedMessage::new(
         data,
         nonce,
     );
-    let chunks = shamir::js_to_chunks(chunks)?;
-    let message = icod_crypto::restore_message(encrypted_message, chunks)
-        // TODO [ToDr] Proper error conversion here
-        .map_err(|_| shamir::RecoveryError::InconsistentChunks)?;
+    let chunks = shamir::conv::js_to_chunks(chunks)?;
+    let message = icod_crypto::restore_message(encrypted_message, chunks)?;
     let (message, _) = message.into_tuple();
     Ok(message.into())
 }

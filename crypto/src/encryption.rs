@@ -115,7 +115,6 @@ impl MessageEncryptionKey {
   /// Encode the key into a vector of bytes.
   ///
   /// The key encoding has a magic sequence prepended and a byte representing the version.
-  /// TODO [ToDr] The encoded type should support `wipe/zeroize` too!
   pub fn encode(mut self) -> Bytes {
     let version = match self.version {
       #[cfg(test)]
