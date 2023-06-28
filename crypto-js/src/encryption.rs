@@ -33,20 +33,20 @@ pub struct EncryptedMessage {
 }
 
 impl From<icod_crypto::encryption::EncryptedMessage> for EncryptedMessage {
-    fn from(value: icod_crypto::encryption::EncryptedMessage) -> Self {
-        let (data, nonce) = value.into_tuple();
-        Self {
-            data: data.into(),
-            nonce: nonce.into(),
-        }
+  fn from(value: icod_crypto::encryption::EncryptedMessage) -> Self {
+    let (data, nonce) = value.into_tuple();
+    Self {
+      data: data.into(),
+      nonce: nonce.into(),
     }
+  }
 }
 
 pub(crate) fn encrypted_message_to_js(
-    encrypted: icod_crypto::encryption::EncryptedMessage,
+  encrypted: icod_crypto::encryption::EncryptedMessage,
 ) -> JsValue {
-    serde_wasm_bindgen::to_value(&EncryptedMessage::from(encrypted))
-        .expect("EncryptedMessage serialization is infallible")
+  serde_wasm_bindgen::to_value(&EncryptedMessage::from(encrypted))
+    .expect("EncryptedMessage serialization is infallible")
 }
 
 #[wasm_bindgen]

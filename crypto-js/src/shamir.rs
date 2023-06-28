@@ -58,15 +58,9 @@ pub struct ChunksConfiguration {
 }
 
 impl ChunksConfiguration {
-    pub(crate) fn to_icod(self) -> Result<
-        icod_crypto::shamir::ChunksConfiguration,
-        (),
-    > {
-        icod_crypto::shamir::ChunksConfiguration::new(
-            self.required,
-            self.spare,
-        )
-    }
+  pub(crate) fn to_icod(self) -> Result<icod_crypto::shamir::ChunksConfiguration, ()> {
+    icod_crypto::shamir::ChunksConfiguration::new(self.required, self.spare)
+  }
 }
 
 #[wasm_bindgen]
@@ -74,11 +68,11 @@ pub fn split_into_chunks(
   key: Vec<u8>,
   configuration: ChunksConfiguration,
 ) -> Result<Vec<JsValue>, SplittingError> {
-  let key = crate::parse_key(key)
-      .map_err(|_| SplittingError::InvalidKeySize)?;
+  let key = crate::parse_key(key).map_err(|_| SplittingError::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
-  let chunks_configuration = configuration.to_icod()
-      .map_err(|_| SplittingError::ConfigurationError)?;
+  let chunks_configuration = configuration
+    .to_icod()
+    .map_err(|_| SplittingError::ConfigurationError)?;
   let chunks = icod_crypto::shamir::split_into_chunks(key, chunks_configuration);
 
   Ok(conv::chunks_to_js(chunks))
@@ -94,10 +88,10 @@ pub(crate) mod conv {
     PrefixError,
   }
 
-  use super::{JsValue, CHUNK_PREFIX, RecoveryError};
+  use super::{JsValue, RecoveryError, CHUNK_PREFIX};
 
   pub fn bytes_to_str(prefix: &'static str, b: Vec<u8>) -> String {
-      format!("{}{}", prefix, hex::encode(b))
+    format!("{}{}", prefix, hex::encode(b))
   }
 
   pub fn bytes_to_js(prefix: &'static str, b: Vec<u8>) -> JsValue {
@@ -110,29 +104,27 @@ pub(crate) mod conv {
     hex::decode(&rest).map_err(|_| Error::HexError)
   }
 
-    pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValue> {
-        chunks
-            .into_iter()
-            .map(|chunk| bytes_to_js(CHUNK_PREFIX, chunk.encode().into()))
-            .collect()
-    }
+  pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValue> {
+    chunks
+      .into_iter()
+      .map(|chunk| bytes_to_js(CHUNK_PREFIX, chunk.encode().into()))
+      .collect()
+  }
 
-    pub fn js_to_chunks(chunks: Vec<JsValue>) -> Result<
-        Vec<icod_crypto::shamir::Chunk>,
-        RecoveryError,
-    > {
-        chunks
-        .into_iter()
-        .map(|val| {
-          js_to_bytes(CHUNK_PREFIX, val)
-            .map_err(RecoveryError::from)
-            .and_then(|v| {
-              icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)
-            })
-        })
-        .collect()
-    }
-
+  pub fn js_to_chunks(
+    chunks: Vec<JsValue>,
+  ) -> Result<Vec<icod_crypto::shamir::Chunk>, RecoveryError> {
+    chunks
+      .into_iter()
+      .map(|val| {
+        js_to_bytes(CHUNK_PREFIX, val)
+          .map_err(RecoveryError::from)
+          .and_then(|v| {
+            icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)
+          })
+      })
+      .collect()
+  }
 }
 
 #[wasm_bindgen]
