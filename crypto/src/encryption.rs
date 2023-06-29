@@ -16,7 +16,7 @@ use crate::Bytes;
 /// An error that may occur during encryption.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum Error {
-  /// The [EncryptionKey] given has unsupported version.
+  /// The [MessageEncryptionKey] given has unsupported version.
   #[error("Given encryption version is unsupported.")]
   UnsupportedVersion,
   /// Opaque encryption error.
@@ -30,31 +30,122 @@ impl From<aes_gcm_siv::Error> for Error {
   }
 }
 
+/// An error which may occur during decoding of the [MessageEncryptionKey].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum KeyDecodingError {
+  /// The byte input is missing [KEY_ENCODING_MAGIC_SEQUENCE] prefix.
+  #[error("Given data does not look like a key.")]
+  MissingMagicBytes,
+  /// The byte input has invalid version identifier.
+  #[error("The version of the key is invalid.")]
+  InvalidVersion,
+  /// The remaining byte data has invalid length.
+  #[error("The key length is invalid.")]
+  InvalidKeySize,
+}
+
 /// Encryption key version.
 ///
 /// The version describes the scheme used for encryption
 /// and may be changed at any point in time.
-enum EncryptionKeyVersion {
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum EncryptionKeyVersion {
+  /// A version only used for testing. It will never decode.
+  #[cfg(test)]
+  Test,
   /// AES-GCM-SIV with 256b key.
   V0,
 }
 
+const KEY_SIZE: usize = 32;
 /// A key to encrypt/decrypt the message.
 ///
-/// - The key is versioned in case there is a need to change
-///   the encryption scheme at some point.
+/// The key is versioned in case there is a need to change
+/// the encryption scheme at some point.
+///
+/// Note the key should NEVER be used twice. Instead of re-using
+/// the key, we should be generating a new one and using to encrypt
+/// the message.
+#[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct MessageEncryptionKey {
+  #[cfg(test)]
+  pub(crate) version: EncryptionKeyVersion,
+  #[cfg(not(test))]
   version: EncryptionKeyVersion,
-  key: [u8; 32],
+  key: [u8; KEY_SIZE],
 }
 
+/// A specific byte sequence used to identify the encoding of [MessageEncryptionKey].
+///
+/// The encoding of [MessageEncryptionKey] is simply a concatenation of:
+/// 1. The magic sequence.
+/// 2. The version byte.
+/// 3. The 32-bytes of the key.
+///
+/// The key size might change with versions, but currently it's fixed-size with version `V0`.
+pub const KEY_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-key:";
+
 impl MessageEncryptionKey {
-  /// Wrap an externally-generated 32 bytes encryption key.
-  pub fn new(key: [u8; 32]) -> Self {
+  /// Wrap an externally-generated 32-bytes encryption key.
+  pub fn new(key: [u8; KEY_SIZE]) -> Self {
     Self {
       version: EncryptionKeyVersion::V0,
       key,
     }
+  }
+
+  /// Clear out the data of the key from stack.
+  ///
+  /// Note this method is best-effort prevention of leaking the key
+  /// on stack or in memory.
+  ///
+  /// TODO [ToDr] use zeroize crate and copy the notes from there.
+  pub fn wipe(&mut self) {
+    self.key.copy_from_slice(&[0u8; KEY_SIZE]);
+  }
+
+  /// Encode the key into a vector of bytes.
+  ///
+  /// The key encoding has a magic sequence prepended and a byte representing the version.
+  /// TODO [ToDr] The encoded type should support `wipe/zeroize` too!
+  pub fn encode(mut self) -> Bytes {
+    let version = match self.version {
+      #[cfg(test)]
+      EncryptionKeyVersion::Test => 255u8,
+      EncryptionKeyVersion::V0 => 0u8,
+    };
+    let mut out = vec![];
+    out.extend_from_slice(KEY_ENCODING_MAGIC_SEQUENCE);
+    out.push(version);
+    out.extend_from_slice(&self.key);
+    self.wipe();
+
+    Bytes::from(out)
+  }
+
+  /// Attempt to decode the [MessageEncryptionKey] from given byte slices.
+  pub fn decode(data: &[u8]) -> Result<Self, KeyDecodingError> {
+    let data = data
+      .strip_prefix(KEY_ENCODING_MAGIC_SEQUENCE)
+      .ok_or(KeyDecodingError::MissingMagicBytes)?;
+    let version = [0u8];
+    let key = data
+      .strip_prefix(&version)
+      .ok_or(KeyDecodingError::InvalidVersion)?;
+
+    if key.len() != KEY_SIZE {
+      return Err(KeyDecodingError::InvalidKeySize);
+    }
+
+    let mut out = [0u8; KEY_SIZE];
+    out.copy_from_slice(key);
+    Ok(MessageEncryptionKey::new(out))
+  }
+}
+
+impl Drop for MessageEncryptionKey {
+  fn drop(&mut self) {
+    self.wipe()
   }
 }
 
@@ -90,7 +181,7 @@ impl Message {
   pub fn from_str(message: &str) -> Self {
     Self {
       data: Bytes::from_slice(message.as_bytes()),
-      nonce: blake2b512(message.as_bytes()),
+      nonce: crate::blake2b512(message.as_bytes()).to_bytes(),
     }
   }
 
@@ -98,13 +189,6 @@ impl Message {
   pub fn into_tuple(self) -> (Bytes, Bytes) {
     (self.data, self.nonce)
   }
-}
-
-fn blake2b512(input: &[u8]) -> Bytes {
-  use blake2::{Blake2b512, Digest};
-  let mut hasher = Blake2b512::new();
-  hasher.update(input);
-  Bytes::from_slice(hasher.finalize().as_slice())
 }
 
 /// An encrypted payload of the message and the `nonce` which was used.
@@ -246,5 +330,52 @@ mod tests {
       r#"EncryptedMessage { data: Bytes("2a1ca7857f89ad9fbc02dadff3e9dddd174e85777a478fe316e361ff"), nonce: String("unique nonce") == Bytes("756e69717565206e6f6e6365") }"#
     );
     assert_eq!(decrypted, message);
+  }
+
+  #[test]
+  fn should_encode_and_decode_the_key() {
+    // given
+    let raw_key = [1u8; KEY_SIZE];
+    let key = MessageEncryptionKey::new(raw_key.clone());
+
+    let encoded = key.encode();
+
+    assert_eq!(
+      format!("{:?}", encoded),
+      r#"String("icod-key:\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("69636f642d6b65793a000101010101010101010101010101010101010101010101010101010101010101")"#
+    );
+
+    let key = MessageEncryptionKey::new(raw_key);
+    let decoded = MessageEncryptionKey::decode(&*encoded).unwrap();
+
+    assert_eq!(key, decoded);
+  }
+
+  #[test]
+  fn should_validate_what_it_decodes() {
+    let too_short = MessageEncryptionKey::decode(&[]).unwrap_err();
+    assert_eq!(too_short, KeyDecodingError::MissingMagicBytes);
+    let no_prefix = MessageEncryptionKey::decode(&[1, 2, 3, 4, 5, 6]).unwrap_err();
+    assert_eq!(no_prefix, KeyDecodingError::MissingMagicBytes);
+    let mut out = vec![];
+    out.extend_from_slice(KEY_ENCODING_MAGIC_SEQUENCE);
+    {
+      let mut o = out.clone();
+      o.push(1);
+      let invalid_version = MessageEncryptionKey::decode(&o).unwrap_err();
+      assert_eq!(invalid_version, KeyDecodingError::InvalidVersion);
+    }
+
+    out.push(0);
+    {
+      let mut o = out.clone();
+      o.extend_from_slice(&[1, 2, 3, 4]);
+      let key_to_short = MessageEncryptionKey::decode(&o).unwrap_err();
+      assert_eq!(key_to_short, KeyDecodingError::InvalidKeySize);
+    }
+
+    out.extend_from_slice(&[2u8; KEY_SIZE]);
+
+    let _ok = MessageEncryptionKey::decode(&out).unwrap();
   }
 }
