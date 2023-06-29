@@ -1,6 +1,5 @@
 export enum Steps {
   Security = 'security',
-  Recipients = 'recipients',
   ProofOfLife = 'proof-of-life',
   Message = 'message',
 }

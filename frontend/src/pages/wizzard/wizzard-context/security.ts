@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Recipient, Recipients } from '../common/types';
 
 const DEFAULT_NUMBER_OF_RECIPIENTS = 4;
 const DEFAULT_NUMBER_OF_ADDITIONAL_PIECES = 1;
 
-type KeyPiece = {};
+type KeyPiece = {recipient?: Recipient; note?: string};
 
 type KeyPieces = Array<KeyPiece>;
 
@@ -44,6 +45,51 @@ export function useSecurityStep() {
     createKeyPieces(noOfAdditionalPieces),
   );
 
+  const keyPieces = useMemo(
+    () => [...mainKeyPieces, ...additionalKeyPieces],
+    [mainKeyPieces, additionalKeyPieces],
+  );
+  
+  const [recipients, setRecipients] = useState<Recipients>([]);
+
+  const createRecipient = useCallback(
+    (newRecipient: Recipient) => {
+      setRecipients((currentRecipients) => [
+        ...currentRecipients,
+        newRecipient,
+      ]);
+    },
+    [setRecipients],
+  );
+
+  const updateKeyPieces = useCallback(
+    function <T extends keyof KeyPiece>(
+      cardId: number,
+      key: T,
+      value: KeyPiece[T],
+    ) {
+      const keyPieciesCopy = [...keyPieces];
+      keyPieciesCopy[cardId][key] = value;
+      setMainKeyPieces(keyPieciesCopy.slice(0, mainKeyPieces.length));
+      setAdditionalKeyPieces(keyPieciesCopy.slice(mainKeyPieces.length));
+    },
+    [setMainKeyPieces, setAdditionalKeyPieces, keyPieces, mainKeyPieces],
+  );
+
+  const addRecipient = useCallback(
+    (newRecipient: Recipient, cardId: number) => {
+      updateKeyPieces(cardId, 'recipient', newRecipient);
+    },
+    [updateKeyPieces],
+  );
+
+  const addNote = useCallback(
+    (note: string, cardId: number) => {
+      updateKeyPieces(cardId, 'note', note);
+    },
+    [updateKeyPieces],
+  );
+
   useEffect(() => {
     if (noOfRecipients !== mainKeyPieces.length) {
       const newPieces = changeNoOfKeyPieces(noOfRecipients, mainKeyPieces);
@@ -61,11 +107,6 @@ export function useSecurityStep() {
     }
   }, [noOfAdditionalPieces, additionalKeyPieces]);
 
-  const keyPieces = useMemo(
-    () => [...mainKeyPieces, ...additionalKeyPieces],
-    [mainKeyPieces, additionalKeyPieces],
-  );
-
   return useMemo(
     () => ({
       noOfRecipients: {
@@ -77,6 +118,10 @@ export function useSecurityStep() {
         setValue: setNoOfAdditionalPieces,
       },
       keyPieces,
+      recipients,
+      addRecipient,
+      addNote,
+      createRecipient,
     }),
     [
       noOfRecipients,
@@ -84,6 +129,10 @@ export function useSecurityStep() {
       noOfAdditionalPieces,
       setNoOfAdditionalPieces,
       keyPieces,
+      recipients,
+      addRecipient,
+      addNote,
+      createRecipient,
     ],
   );
 }

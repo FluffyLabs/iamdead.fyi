@@ -7,7 +7,6 @@ import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Wizzard } from './pages/wizzard';
 import { Security } from './pages/wizzard/security';
-import { Recipients } from './pages/wizzard/recipients';
 import { ProofOfLife } from './pages/wizzard/proof-of-life';
 import { Steps } from './pages/wizzard/consts';
 import { Message } from './pages/wizzard/message';
@@ -27,7 +26,6 @@ export function Routes() {
 
         <Route element={<Wizzard />} path="wizzard">
           <Route index element={<Security />} path={Steps.Security} />
-          <Route element={<Recipients />} path={Steps.Recipients} />
           <Route element={<ProofOfLife />} path={Steps.ProofOfLife} />
           <Route element={<Message />} path={Steps.Message} />
         </Route>

@@ -15,26 +15,20 @@ const STEPS_CONFIG = {
   [Steps.Security]: createStepConfig(
     'STEP 1: Configure Security',
     null,
-    Steps.Recipients,
-    '20%',
-  ),
-  [Steps.Recipients]: createStepConfig(
-    'STEP 2: Configure Recipients',
-    Steps.Security,
     Steps.ProofOfLife,
-    '40%',
+    '25%',
   ),
   [Steps.ProofOfLife]: createStepConfig(
-    'STEP 3: Configure Proof of Life',
-    Steps.Recipients,
+    'STEP 2: Configure Proof of Life',
+    Steps.Security,
     Steps.Message,
-    '60%',
+    '50%',
   ),
   [Steps.Message]: createStepConfig(
-    'STEP 4: Create Message',
+    'STEP 3: Create Message',
     Steps.ProofOfLife,
     null,
-    '80%',
+    '75%',
   ),
 };
 export const Wizzard = () => {
@@ -48,7 +42,7 @@ export const Wizzard = () => {
       <h1 className="text-xl mt-5">{stepConfig.title}</h1>
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-4 dark:bg-gray-700">
         <div
-          className="my-5 h-1.5 rounded-full dark:bg-primary transition-width transition-slowest ease"
+          className="my-5 h-1.5 rounded-full bg-primary transition-width transition-slowest ease"
           style={{ width: stepConfig.progress }}
         ></div>
       </div>
