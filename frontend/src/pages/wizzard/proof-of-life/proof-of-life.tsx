@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import React, { useState } from 'react';
 
 import styles from './styles.module.scss';
+import { DraggableNumberInput } from '../../../components/draggable-number-input';
 
 type ConfiguredAdapter = {
   adapter: Adapters;
@@ -18,13 +19,14 @@ enum Adapters {
 const availableAdapters = Object.values(Adapters);
 
 const socialMediaAdapters: typeof availableAdapters = [Adapters.Twitter];
+
 const messageAdapters: typeof availableAdapters = [
   Adapters.Email,
   Adapters.Telegram,
   Adapters.Whatsapp,
 ];
 
-const isMessageAdapter = (adapter : Adapters) =>
+const isMessageAdapter = (adapter: Adapters) =>
   messageAdapters.includes(adapter);
 const isSocialAdapter = (adapter: Adapters) =>
   socialMediaAdapters.includes(adapter);
@@ -70,10 +72,10 @@ const POLList = () => {
   return (
     <ul className={styles.mainList}>
       {list.map((listOfAdapters, i) => (
-        <>
-          <POLSubList items={listOfAdapters} key={i} />
+        <React.Fragment key={i}>
+          <POLSubList items={listOfAdapters} />
           {i < listOfAdapters.length && <li>and</li>}
-        </>
+        </React.Fragment>
       ))}
       <li>+ and</li>
     </ul>
@@ -92,9 +94,18 @@ const POLSubList = ({ items }: { items: Array<ConfiguredAdapter> }) => {
 };
 
 const POLSubListItme = ({ adapter }: { adapter: ConfiguredAdapter }) => {
-  const text = useMemo(
-    () => `${getText(adapter)} ${adapter.time} ${adapter.unit}`,
-    [adapter],
+  const [value, setValue] = useState(adapter.time);
+
+  return (
+    <li>
+      {getText(adapter)}{' '}
+      <DraggableNumberInput
+        value={value}
+        onChange={setValue}
+        max={60}
+        min={1}
+      />
+      {adapter.unit}
+    </li>
   );
-  return <li>{text}</li>;
 };
