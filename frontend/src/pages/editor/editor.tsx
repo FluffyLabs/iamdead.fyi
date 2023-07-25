@@ -84,7 +84,7 @@ function IsLoading({ isLoading }: { isLoading: boolean }) {
   if (!isLoading) {
     return null;
   }
-  return <p>Encoding...</p>;
+  return <p>Encrypting...</p>;
 }
 
 function DisplayResult({
@@ -108,7 +108,7 @@ function DisplayResult({
 
   return (
     <div>
-      <h3>Encoded message</h3>
+      <h3>Encrypted message</h3>
       <pre>{result.encryptedMessage.data}</pre>
       <pre>{result.encryptedMessage.nonce}</pre>
       <h4>Recovery chunks</h4>
