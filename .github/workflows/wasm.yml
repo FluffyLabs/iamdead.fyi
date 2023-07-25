@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    paths: ['crypto/**', 'crypto-js/**', 'Cargo.lock']
+    paths: ['.github/**', 'crypto/**', 'crypto-js/**', 'Cargo.lock']
 
 env:
   CARGO_TERM_COLOR: always
