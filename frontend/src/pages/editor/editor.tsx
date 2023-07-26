@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import ReactQuill from 'react-quill';
+import { Crypto, SecureMessageResult } from './crypto';
 import 'react-quill/dist/quill.snow.css';
 
 const modules = {
@@ -18,15 +19,44 @@ const modules = {
 };
 
 export const Editor = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [value, setValue] = useState('');
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState<SecureMessageResult | null>(null);
   const [configuration, setConfiguration] = useState({
     required: 2,
     spare: 1,
   });
 
   const handleSecureMessage = useCallback(() => {
+    setError(null);
+    setIsLoading(true);
     console.log('Call into Rust with', value, configuration);
-  }, [value, configuration]);
+    Crypto.initialize()
+      .then((crypto) => {
+        return crypto.secureMessage(value, configuration);
+      })
+      .then((result) => {
+        setResult(result);
+        console.log(result.chunks);
+        console.log(result.encryptedMessage);
+      })
+      .catch((e) => {
+        setError(e);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [value, configuration, setIsLoading, setResult, setError]);
+
+  const handleChange = useCallback(
+    (value: string) => {
+      setValue(value);
+      setResult(null);
+      setError(null);
+    },
+    [setValue, setResult, setError],
+  );
 
   return (
     <div>
@@ -41,12 +71,53 @@ export const Editor = () => {
           theme="snow"
           value={value}
           modules={modules}
-          onChange={setValue}
+          onChange={handleChange}
         />
       </div>
+      <IsLoading isLoading={isLoading} />
+      <DisplayResult result={result} error={error} />
     </div>
   );
 };
+
+function IsLoading({ isLoading }: { isLoading: boolean }) {
+  if (!isLoading) {
+    return null;
+  }
+  return <p>Encrypting...</p>;
+}
+
+function DisplayResult({
+  result,
+  error,
+}: {
+  result: SecureMessageResult | null;
+  error: string | null;
+}) {
+  if (error) {
+    return (
+      <div>
+        <strong>{error}</strong>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return null;
+  }
+
+  return (
+    <div>
+      <h3>Encrypted message</h3>
+      <pre>{result.encryptedMessage.data}</pre>
+      <pre>{result.encryptedMessage.nonce}</pre>
+      <h4>Recovery chunks</h4>
+      {result.chunks.map((x: string) => (
+        <pre key={x}>{x}</pre>
+      ))}
+    </div>
+  );
+}
 
 type Config = {
   required: number;

@@ -57,6 +57,14 @@ pub struct ChunksConfiguration {
   pub spare: u8,
 }
 
+#[wasm_bindgen]
+impl ChunksConfiguration {
+  #[wasm_bindgen(constructor)]
+  pub fn new(required: u8, spare: u8) -> Self {
+    Self { required, spare }
+  }
+}
+
 impl ChunksConfiguration {
   pub(crate) fn to_icod(self) -> Result<icod_crypto::shamir::ChunksConfiguration, ()> {
     icod_crypto::shamir::ChunksConfiguration::new(self.required, self.spare)

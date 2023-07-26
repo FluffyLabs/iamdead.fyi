@@ -15,7 +15,7 @@ $ wasm-pack build --target web
 ## Building for NPM
 
 ```
-$ wasm-pack build --target web
+$ wasm-pack build --target nodejs
 ```
 
 
