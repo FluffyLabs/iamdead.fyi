@@ -5,7 +5,7 @@ export type SecureMessageResult = {
     data: string;
     nonce: string;
   };
-  chunks: [string];
+  chunks: string[];
 };
 
 export class Crypto {
