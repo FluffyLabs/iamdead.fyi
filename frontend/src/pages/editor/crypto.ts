@@ -18,8 +18,7 @@ export class Crypto {
     { required, spare }: { required: number; spare: number },
   ): Promise<SecureMessageResult> {
     const chunks = new ChunksConfiguration(required, spare);
-    const response = secure_message(message, chunks);
-    const res = await response;
+    const res = await secure_message(message, chunks);
 
     return {
       chunks: res.chunks as [string],
