@@ -5,8 +5,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
-    paths: ['frontend/**', 'crypto-js/pkg/**']
+    paths: ['.github/**', 'frontend/**', 'crypto-js/pkg/**']
 
 jobs:
   build:
