@@ -21,7 +21,7 @@ export class Crypto {
     const res = await secure_message(message, chunks);
 
     return {
-      chunks: res.chunks as [string],
+      chunks: res.chunks as string[],
       encryptedMessage: {
         data: u8ArrayToHex(res.encrypted_message.data),
         nonce: u8ArrayToHex(res.encrypted_message.nonce),
@@ -30,7 +30,7 @@ export class Crypto {
   }
 }
 
-function u8ArrayToHex(arr: [number]) {
+function u8ArrayToHex(arr: number[]) {
   return arr.map((x) => decimalToHex(x, 2)).join('');
 }
 
