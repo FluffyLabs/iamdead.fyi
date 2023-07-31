@@ -128,13 +128,14 @@ function DisplayResult({
 }
 
 function EncryptedMessage({ data }: { data: string }) {
+  // TODO [ToDr] We use upper case now to switch to alphanumeric mode of QR
   const parts = splitMessage(data);
   return (
     <Fragment>
       {parts.map((part: string, idx) => (
         <div style={{ margin: 50 }} title={part}>
           <h3>Message Part {idx + 1}</h3>
-          <QRCodeSVG value={part} />
+          <QRCodeSVG value={part.toUpperCase()} />
         </div>
       ))}
     </Fragment>
@@ -157,10 +158,11 @@ function splitMessage(message: string) {
 
 function Chunk({ id, chunk }: { id: number; chunk: string }) {
   // TODO [ToDr] QR code value should rather be a link.
+  // TODO [ToDr] We use upper case now to switch to alphanumeric mode of QR
   return (
     <div style={{ margin: 20 }} title={chunk}>
       <h3>Chunk {id}</h3>
-      <QRCodeSVG value={chunk} />
+      <QRCodeSVG value={chunk.toUpperCase()} />
     </div>
   );
 }
