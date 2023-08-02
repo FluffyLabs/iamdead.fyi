@@ -1,20 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
 import styles from './styles.module.scss';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
-
-type ConfiguredAdapter = {
-  adapter: Adapters;
-  time: number;
-  unit: Units;
-};
-
-enum Adapters {
-  Email = 'email',
-  Telegram = 'telegram',
-  Twitter = 'twitter',
-  Whatsapp = 'whatsapp',
-}
+import { Adapters, ConfiguredAdapter, createAdapter } from '../wizzard-context/proof-of-life';
+import { useWizzard } from '../wizzard-context';
 
 const availableAdapters = Object.values(Adapters);
 
@@ -43,22 +32,6 @@ const getText = ({ adapter }: ConfiguredAdapter) => {
   return '';
 };
 
-enum Units {
-  Months = 'months',
-}
-
-const createItem = (adapter: Adapters, time: number, unit = Units.Months) => ({
-  adapter,
-  time,
-  unit,
-});
-
-const list = [
-  [createItem(Adapters.Email, 2), createItem(Adapters.Telegram, 2)],
-  [createItem(Adapters.Twitter, 2), createItem(Adapters.Whatsapp, 2)],
-  [createItem(Adapters.Twitter, 2), createItem(Adapters.Email, 2)],
-];
-
 export const ProofOfLife = () => {
   return (
     <div>
@@ -69,11 +42,12 @@ export const ProofOfLife = () => {
 };
 
 const POLList = () => {
+  const { proofOfLife } = useWizzard();
   return (
     <ul className={styles.mainList}>
-      {list.map((listOfAdapters, i) => (
+      {proofOfLife.listOfAdapters.map((listOfAdapters, i) => (
         <React.Fragment key={i}>
-          <POLSubList items={listOfAdapters} />
+          <POLSubList items={listOfAdapters} groupIndex={i} />
           {i < listOfAdapters.length && <li>and</li>}
         </React.Fragment>
       ))}
@@ -82,26 +56,34 @@ const POLList = () => {
   );
 };
 
-const POLSubList = ({ items }: { items: Array<ConfiguredAdapter> }) => {
+const POLSubList = ({ items, groupIndex }: { items: Array<ConfiguredAdapter>, groupIndex: number }) => {
   return (
     <ul className={styles.subList}>
       {items.map((adapter, i) => (
-        <POLSubListItme adapter={adapter} key={i} />
+        <POLSubListItme adapter={adapter} itemIndex={i} groupIndex={groupIndex} key={i} />
       ))}
       <li>+ or</li>
     </ul>
   );
 };
 
-const POLSubListItme = ({ adapter }: { adapter: ConfiguredAdapter }) => {
-  const [value, setValue] = useState(adapter.time);
+const POLSubListItme = ({ adapter, itemIndex, groupIndex }: { adapter: ConfiguredAdapter, itemIndex: number, groupIndex: number }) => {
+  const { proofOfLife } = useWizzard();
+
+  const item = proofOfLife.listOfAdapters[groupIndex][itemIndex];
+
+  const handleChange = useCallback((newValue: number) => {
+      const newItem = createAdapter(item.adapter, newValue, item.unit);
+      proofOfLife.updateGroupItem(newItem, groupIndex, itemIndex);
+  }, [proofOfLife, item, groupIndex, itemIndex]);
 
   return (
     <li>
+      {itemIndex > 0 && 'or '}
       {getText(adapter)}{' '}
       <DraggableNumberInput
-        value={value}
-        onChange={setValue}
+        value={item.time}
+        onChange={handleChange}
         max={60}
         min={1}
       />

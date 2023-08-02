@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from 'react';
 import { useSecurityStep } from './security';
+import { useProofOfLifeStep } from './proof-of-life';
 
 type WizzardContext = ReturnType<typeof useWizzard>;
 
@@ -15,11 +16,12 @@ export function useWizzardContext() {
 
 export function useWizzard() {
   const security = useSecurityStep();
-
+  const proofOfLife = useProofOfLifeStep();
   return useMemo(
     () => ({
       security,
+      proofOfLife,
     }),
-    [security],
+    [security, proofOfLife],
   );
 }
