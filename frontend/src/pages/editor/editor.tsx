@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import ReactQuill from 'react-quill';
 import { Crypto, SecureMessageResult } from './crypto';
 import 'react-quill/dist/quill.snow.css';
+import { QRCodeSVG } from 'qrcode.react';
 
 const modules = {
   toolbar: [
@@ -109,12 +110,59 @@ function DisplayResult({
   return (
     <div>
       <h3>Encrypted message</h3>
-      <pre>{result.encryptedMessage.data}</pre>
-      <pre>{result.encryptedMessage.nonce}</pre>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}
+      >
+        <EncryptedMessage
+          data={result.encryptedMessage.data + result.encryptedMessage.nonce}
+        />
+      </div>
       <h4>Recovery chunks</h4>
-      {result.chunks.map((x: string) => (
-        <pre key={x}>{x}</pre>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        {result.chunks.map((x, idx) => (
+          <Chunk key={x} chunk={x} id={idx + 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EncryptedMessage({ data }: { data: string }) {
+  // TODO [ToDr] We use upper case now to switch to alphanumeric mode of QR
+  const parts = splitMessage(data);
+  return (
+    <Fragment>
+      {parts.map((part: string, idx) => (
+        <div style={{ margin: 50 }} title={part}>
+          <h3>Message Part {idx + 1}</h3>
+          <QRCodeSVG value={part.toUpperCase()} />
+        </div>
       ))}
+    </Fragment>
+  );
+}
+
+function splitMessage(message: string) {
+  const THRESHOLD = 250;
+  if (message.length <= THRESHOLD) {
+    return [message];
+  }
+  const noOfParts = message.length / THRESHOLD;
+  const msg = message.split('');
+  const parts = [];
+  for (let i = 0; i < noOfParts; i += 1) {
+    parts.push(msg.splice(0, THRESHOLD).join(''));
+  }
+  return parts;
+}
+
+function Chunk({ id, chunk }: { id: number; chunk: string }) {
+  // TODO [ToDr] QR code value should rather be a link.
+  // TODO [ToDr] We use upper case now to switch to alphanumeric mode of QR
+  return (
+    <div style={{ margin: 20 }} title={chunk}>
+      <h3>Chunk {id}</h3>
+      <QRCodeSVG value={chunk.toUpperCase()} />
     </div>
   );
 }
