@@ -144,6 +144,7 @@ function EncryptedMessage({ data }: { data: string }) {
 
 function splitMessage(message: string) {
   const THRESHOLD = 250;
+  // TODO [ToDr] The whole function should be in Rust, so that we can have a common place that is able to identify any `icod-` prefixed string.
   const PREFIX = 'icod-msg:';
   if (message.length <= THRESHOLD) {
     return [PREFIX + `1/1:` + message];
