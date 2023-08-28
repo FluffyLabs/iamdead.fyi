@@ -144,14 +144,17 @@ function EncryptedMessage({ data }: { data: string }) {
 
 function splitMessage(message: string) {
   const THRESHOLD = 250;
+  const PREFIX = 'icod-msg:';
   if (message.length <= THRESHOLD) {
-    return [message];
+    return [PREFIX + `1/1:` + message];
   }
   const noOfParts = message.length / THRESHOLD;
   const msg = message.split('');
   const parts = [];
   for (let i = 0; i < noOfParts; i += 1) {
-    parts.push(msg.splice(0, THRESHOLD).join(''));
+    const m = msg.splice(0, THRESHOLD).join('');
+    const id = `${i}/${noOfParts}:`;
+    parts.push(PREFIX + id + m);
   }
   return parts;
 }
