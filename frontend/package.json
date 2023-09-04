@@ -14,7 +14,7 @@
     "axios": "^1.5.0",
     "http-proxy-middleware": "^2.0.6",
     "icod-crypto-js": "../crypto-js/pkg",
-    "prettier": "^3.0.2",
+    "prettier": "^3.0.3",
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
