@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 import styles from './styles.module.scss';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
