@@ -280,7 +280,7 @@ const EditKeyModal = ({
   }, [note, currentRecipient, cardId, isNewRecipient, onConfirm]);
 
   return (
-    <Modal {...modalProps} title={`Edit key ${cardId}`} onConfirm={handleSave}>
+    <Modal {...modalProps} title={`Edit key ${cardId + 1}`} onConfirm={handleSave}>
       <div>
         <div className={styles.inputRow}>
           <label>Recipient: </label>
