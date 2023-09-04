@@ -43,6 +43,7 @@ export const ProofOfLife = () => {
 
 const POLList = () => {
   const { proofOfLife } = useWizzard();
+  
   return (
     <ul className={styles.mainList}>
       {proofOfLife.listOfAdapters.map((listOfAdapters, i) => (
@@ -51,7 +52,7 @@ const POLList = () => {
           {i < listOfAdapters.length && <li>and</li>}
         </React.Fragment>
       ))}
-      <li>+ and</li>
+      <li><button className={styles.button}>+ and</button></li>
     </ul>
   );
 };
@@ -62,7 +63,7 @@ const POLSubList = ({ items, groupIndex }: { items: Array<ConfiguredAdapter>, gr
       {items.map((adapter, i) => (
         <POLSubListItme adapter={adapter} itemIndex={i} groupIndex={groupIndex} key={i} />
       ))}
-      <li>+ or</li>
+      <li><button className={styles.button}>+ or</button></li>
     </ul>
   );
 };

@@ -29,3 +29,7 @@
 .subList li:last-child:before {
   content: '';
 }
+
+.button {
+  border-bottom: 1px dashed #000 !important
+}
