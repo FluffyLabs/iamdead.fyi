@@ -35,8 +35,5 @@ function u8ArrayToHex(arr: number[]) {
 }
 
 function decimalToHex(decimal: number, chars: number) {
-  return (decimal + Math.pow(16, chars))
-    .toString(16)
-    .slice(-chars)
-    .toUpperCase();
+  return (decimal + Math.pow(16, chars)).toString(16).slice(-chars).toUpperCase();
 }
