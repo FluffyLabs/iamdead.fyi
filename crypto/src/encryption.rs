@@ -115,6 +115,17 @@ impl MessageEncryptionKey {
   /// Encode the key into a vector of bytes.
   ///
   /// The key encoding has a magic sequence prepended and a byte representing the version.
+  ///
+  /// ```markdown
+  /// +--------------------------------+
+  /// | magic byte sequence (9 bytes)  |
+  /// | (b"icod-key:")                 |
+  /// +--------------------------------+
+  /// | version (1 byte)               |
+  /// +--------------------------------+
+  /// | key (32 bytes for version 0)   |
+  /// +--------------------------------+
+  /// ```
   pub fn encode(mut self) -> Bytes {
     let version = match self.version {
       #[cfg(test)]
@@ -221,11 +232,8 @@ pub struct EncryptedMessage {
 
 /// A specific byte sequence used to identify the encoding of [EncryptedMessage].
 ///
-/// The encoding of [EncryptedMessage] is simply a concatenation of:
-/// 1. The magic sequence.
-/// 2. The version byte.
-/// 3. The 12-bytes message nonce.
-/// 4. The arbitrary length encrypted data.
+/// See [EncryptedMessage::encode] description for details about the encoding
+/// format.
 pub const MSG_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-msg:";
 
 impl EncryptedMessage {
@@ -234,8 +242,9 @@ impl EncryptedMessage {
   where
     A: Into<Bytes>,
   {
-      // TODO [ToDr] Validate that data len does not exceed 3 bytes.
-  Self {
+    // TODO [ToDr] Validate that data len does not exceed 3 bytes.
+    // (it must fit into part_id which is encoded as 3 bytes)
+    Self {
       version: EncryptionKeyVersion::V0,
       data: data.into(),
       nonce: Bytes::from_slice(nonce.as_slice()),
@@ -290,35 +299,35 @@ impl EncryptedMessage {
 
     let mut data = &self.data[..];
     let mut part_id = EncryptedMessagePartId {
-        cur: 0,
-        all: capacity as u32,
+      cur: 0,
+      all: capacity as u32,
     };
     loop {
-        let mut out = vec![];
-        out.extend_from_slice(MSG_ENCODING_MAGIC_SEQUENCE);
-        out.push(version);
-        out.extend_from_slice(&part_id.current_bytes());
-        out.extend_from_slice(&part_id.all_bytes());
+      let mut out = vec![];
+      out.extend_from_slice(MSG_ENCODING_MAGIC_SEQUENCE);
+      out.push(version);
+      out.extend_from_slice(&part_id.current_bytes());
+      out.extend_from_slice(&part_id.all_bytes());
 
-        let mut split_point = data.len().min(split);
-        // The first chunk always contains the nonce.
-        if part_id.cur == 0 {
-            out.extend_from_slice(&self.nonce);
-            // we subtract the nonce size from the chunk size
-            // to keep the chunks consistent
-            if capacity > 1 {
-              split_point = split_point.saturating_sub(NONCE_SIZE);
-            }
+      let mut split_point = data.len().min(split);
+      // The first chunk always contains the nonce.
+      if part_id.cur == 0 {
+        out.extend_from_slice(&self.nonce);
+        // we subtract the nonce size from the chunk size
+        // to keep the chunks consistent
+        if capacity > 1 {
+          split_point = split_point.saturating_sub(NONCE_SIZE);
         }
-        let (slice, rest) = data.split_at(split_point);
-        data = rest;
-        out.extend_from_slice(&slice);
-        output.push(Bytes::from(out));
-        part_id.cur += 1;
+      }
+      let (slice, rest) = data.split_at(split_point);
+      data = rest;
+      out.extend_from_slice(&slice);
+      output.push(Bytes::from(out));
+      part_id.cur += 1;
 
-        if data.is_empty() || part_id.cur > part_id.all {
-            break;
-        }
+      if data.is_empty() || part_id.cur > part_id.all {
+        break;
+      }
     }
 
     output
@@ -328,30 +337,29 @@ impl EncryptedMessage {
 pub const BYTES_PER_ID_PART: usize = 3;
 
 pub struct EncryptedMessagePartId {
-    cur: u32,
-    all: u32,
+  cur: u32,
+  all: u32,
 }
 
 impl EncryptedMessagePartId {
-    pub fn new(cur: u32, all: u32) -> Self {
-        // TODO [ToDr] validate it fits into 3 bytes!
-        unimplemented!()
-    }
+  pub fn new(cur: u32, all: u32) -> Self {
+    // TODO [ToDr] validate it fits into 3 bytes!
+    unimplemented!()
+  }
 }
 
 impl EncryptedMessagePartId {
-    pub fn current_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
-        let mut out = [0u8; BYTES_PER_ID_PART];
-        out.copy_from_slice(&self.cur.to_be_bytes()[1..]);
-        out
-    }
+  pub fn current_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
+    let mut out = [0u8; BYTES_PER_ID_PART];
+    out.copy_from_slice(&self.cur.to_be_bytes()[1..]);
+    out
+  }
 
-    pub fn all_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
-        let mut out = [0u8; BYTES_PER_ID_PART];
-        out.copy_from_slice(&self.all.to_be_bytes()[1..]);
-        out
-    }
-
+  pub fn all_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
+    let mut out = [0u8; BYTES_PER_ID_PART];
+    out.copy_from_slice(&self.all.to_be_bytes()[1..]);
+    out
+  }
 }
 
 /// This is AEAD "Additional Authenticated Data".
@@ -500,10 +508,7 @@ mod tests {
   #[test]
   fn should_encode_encrypted_message() {
     // given
-    let message = EncryptedMessage::new(
-        b"Test Data".to_vec(),
-        b"test nonce x".to_owned(),
-    );
+    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned());
 
     // when
     let encoded = message.encode(Some(4));
@@ -514,15 +519,15 @@ mod tests {
         format!("{:?}", encoded[0]),
         "String(\"icod-msg:\\0\\0\\0\\0\\0\\0\\u{5}test nonce x\") == Bytes(\"69636f642d6d73673a0000000000000574657374206e6f6e63652078\")"
     );
- assert_eq!(
+    assert_eq!(
         format!("{:?}", encoded[1]),
         "String(\"icod-msg:\\0\\0\\0\\u{1}\\0\\0\\u{5}Test\") == Bytes(\"69636f642d6d73673a0000000100000554657374\")"
     );
-assert_eq!(
+    assert_eq!(
         format!("{:?}", encoded[2]),
         "String(\"icod-msg:\\0\\0\\0\\u{2}\\0\\0\\u{5} Dat\") == Bytes(\"69636f642d6d73673a0000000200000520446174\")"
     );
-assert_eq!(
+    assert_eq!(
         format!("{:?}", encoded[3]),
         "String(\"icod-msg:\\0\\0\\0\\u{3}\\0\\0\\u{5}a\") == Bytes(\"69636f642d6d73673a0000000300000561\")"
     );
@@ -531,17 +536,14 @@ assert_eq!(
   #[test]
   fn should_encode_when_split_is_none() {
     // given
-    let message = EncryptedMessage::new(
-      b"Test Data".to_vec(),
-      b"test nonce x".to_owned(),
-    );
+    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned());
 
     // when
     let encoded = message.encode(None);
 
     // then
     assert_eq!(encoded.len(), 1);
-assert_eq!(
+    assert_eq!(
         format!("{:?}", encoded[0]),
         "String(\"icod-msg:\\0\\0\\0\\0\\0\\0\\u{1}test nonce xTest Data\") == Bytes(\"69636f642d6d73673a0000000000000174657374206e6f6e63652078546573742044617461\")"
     );
@@ -550,10 +552,7 @@ assert_eq!(
   #[test]
   fn should_encode_when_split_is_zero() {
     // given
-    let message = EncryptedMessage::new(
-      b"Test Data".to_vec(),
-      b"test nonce x".to_owned(),
-    );
+    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned());
 
     // when
     let encoded = message.encode(Some(0));
@@ -566,18 +565,15 @@ assert_eq!(
 
   #[test]
   fn should_encode_large_data() {
-      // given
-      let large_data: Vec<u8> = (0..1000).map(|x| (x % 256) as u8).collect();
-      let message = EncryptedMessage::new(
-          large_data,
-          b"test nonce x".to_owned(),
-      );
+    // given
+    let large_data: Vec<u8> = (0..1000).map(|x| (x % 256) as u8).collect();
+    let message = EncryptedMessage::new(large_data, b"test nonce x".to_owned());
 
-      // when
-      let encoded = message.encode(Some(200));
+    // when
+    let encoded = message.encode(Some(200));
 
-      // then
-      assert_eq!(encoded.len(), 1 + 5);  // The large_data with size 1000 will be split into 5 parts each of size 200.
+    // then
+    assert_eq!(encoded.len(), 1 + 5); // The large_data with size 1000 will be split into 5 parts each of size 200.
   }
 
   #[test]

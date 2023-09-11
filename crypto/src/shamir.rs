@@ -153,6 +153,23 @@ impl Chunk {
   /// Encode the chunk into a vector of bytes.
   ///
   /// The encoding has a magic sequence prepended for identification.
+  ///
+  /// /// ```markdown
+  /// +--------------------------------+
+  /// | magic byte sequence (11 bytes) |
+  /// | (b"icod-chunk:")               |
+  /// +--------------------------------+
+  /// | version (1 byte)               |
+  /// +--------------------------------+
+  /// | key_hash (64 bytes)            |
+  /// +--------------------------------+
+  /// | chunks configuration (2 bytes) | // required & spare chunks
+  /// +--------------------------------+
+  /// | chunk index (1 byte)           |
+  /// +--------------------------------+
+  /// | data (variable length)         |
+  /// +--------------------------------+
+  /// ```
   pub fn encode(&self) -> Bytes {
     let version = match self.version {
       ChunkVersion::V0 => 0u8,
