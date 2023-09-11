@@ -147,7 +147,7 @@ function splitMessage(message: string) {
   // TODO [ToDr] The whole function should be in Rust, so that we can have a common place that is able to identify any `icod-` prefixed string.
   const PREFIX = 'icod-msg:';
   if (message.length <= THRESHOLD) {
-    return [PREFIX + `1/1:` + message];
+    return [PREFIX + `0/1:` + message];
   }
   const noOfParts = message.length / THRESHOLD;
   const msg = message.split('');
