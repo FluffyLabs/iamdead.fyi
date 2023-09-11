@@ -8,12 +8,7 @@ const modules = {
   toolbar: [
     [{ header: [1, 2, false] }],
     ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [
-      { list: 'ordered' },
-      { list: 'bullet' },
-      { indent: '-1' },
-      { indent: '+1' },
-    ],
+    [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
     ['link', 'image'],
     ['clean'],
   ],
@@ -62,18 +57,9 @@ export const Editor = () => {
   return (
     <div>
       <h1>ICOD Editor</h1>
-      <Configuration
-        value={configuration}
-        onChange={setConfiguration}
-        onSecureMessage={handleSecureMessage}
-      />
+      <Configuration value={configuration} onChange={setConfiguration} onSecureMessage={handleSecureMessage} />
       <div style={{ maxWidth: '75%', margin: 'auto' }}>
-        <ReactQuill
-          theme="snow"
-          value={value}
-          modules={modules}
-          onChange={handleChange}
-        />
+        <ReactQuill theme="snow" value={value} modules={modules} onChange={handleChange} />
       </div>
       <IsLoading isLoading={isLoading} />
       <DisplayResult result={result} error={error} />
@@ -88,13 +74,7 @@ function IsLoading({ isLoading }: { isLoading: boolean }) {
   return <p>Encrypting...</p>;
 }
 
-function DisplayResult({
-  result,
-  error,
-}: {
-  result: SecureMessageResult | null;
-  error: string | null;
-}) {
+function DisplayResult({ result, error }: { result: SecureMessageResult | null; error: string | null }) {
   if (error) {
     return (
       <div>
@@ -110,12 +90,8 @@ function DisplayResult({
   return (
     <div>
       <h3>Encrypted message</h3>
-      <div
-        style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}
-      >
-        <EncryptedMessage
-          data={result.encryptedMessage.data + result.encryptedMessage.nonce}
-        />
+      <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <EncryptedMessage data={result.encryptedMessage.data + result.encryptedMessage.nonce} />
       </div>
       <h4>Recovery chunks</h4>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
