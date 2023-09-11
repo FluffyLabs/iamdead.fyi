@@ -38,8 +38,7 @@ export function useIndieAuthAuthorization() {
 
   const { isLoading, error, isSuccess, isError } = useQuery(
     [],
-    ({ signal }) =>
-      axios.post('/auth/indie-auth/authorize', profileParams, { signal }),
+    ({ signal }) => axios.post('/auth/indie-auth/authorize', profileParams, { signal }),
     {
       enabled: hasProfileParams,
     },
