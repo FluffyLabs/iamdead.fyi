@@ -219,6 +219,14 @@ impl Message {
 /// The size of the required nonce.
 pub const NONCE_SIZE: usize = 12;
 
+/// Error which can occur during [EncryptedMessage] instantiation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum EncryptedMessageError {
+  /// The `data` length can't be encoded into 3 bytes.
+  #[error("Given data exceeds maximum of 16MBs.")]
+  DataTooBig,
+}
+
 /// An encrypted payload of the message and the `nonce` which was used.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EncryptedMessage {
@@ -238,17 +246,21 @@ pub const MSG_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-msg:";
 
 impl EncryptedMessage {
   /// Wrap externally received `data` and `nonce` into [EncryptedMessage] type.
-  pub fn new<A>(data: A, nonce: [u8; NONCE_SIZE]) -> Self
+  pub fn new<A>(data: A, nonce: [u8; NONCE_SIZE]) -> Result<Self, EncryptedMessageError>
   where
     A: Into<Bytes>,
   {
-    // TODO [ToDr] Validate that data len does not exceed 3 bytes.
-    // (it must fit into part_id which is encoded as 3 bytes)
-    Self {
+    let data = data.into();
+    // Validate that data length can be encoded into 3-bytes.
+    if data.len() > 2usize.pow(8 * BYTES_PER_ID_PART as u32) {
+      return Err(EncryptedMessageError::DataTooBig);
+    }
+
+    Ok(Self {
       version: EncryptionKeyVersion::V0,
       data: data.into(),
       nonce: Bytes::from_slice(nonce.as_slice()),
-    }
+    })
   }
 
   /// Convert the encrypted message into the underlying `data` and `nonce`.
@@ -276,9 +288,9 @@ impl EncryptedMessage {
   /// +--------------------------------+
   /// | version (1 byte)               |
   /// +--------------------------------+
-  /// | part id (3 bytes)              |
+  /// | part id (3 bytes)              | // Big Endian
   /// +--------------------------------+
-  /// | total parts (3 bytes)          |
+  /// | total parts (3 bytes)          | // Big Endian
   /// +--------------------------------+
   /// | nonce (12 bytes)               | // only in the first part
   /// +--------------------------------+
@@ -299,19 +311,19 @@ impl EncryptedMessage {
 
     let mut data = &self.data[..];
     let mut part_id = EncryptedMessagePartId {
-      cur: 0,
+      idx: 0,
       all: capacity as u32,
     };
     loop {
       let mut out = vec![];
       out.extend_from_slice(MSG_ENCODING_MAGIC_SEQUENCE);
       out.push(version);
-      out.extend_from_slice(&part_id.current_bytes());
+      out.extend_from_slice(&part_id.index_bytes());
       out.extend_from_slice(&part_id.all_bytes());
 
       let mut split_point = data.len().min(split);
       // The first chunk always contains the nonce.
-      if part_id.cur == 0 {
+      if part_id.idx == 0 {
         out.extend_from_slice(&self.nonce);
         // we subtract the nonce size from the chunk size
         // to keep the chunks consistent
@@ -323,9 +335,9 @@ impl EncryptedMessage {
       data = rest;
       out.extend_from_slice(&slice);
       output.push(Bytes::from(out));
-      part_id.cur += 1;
+      part_id.idx += 1;
 
-      if data.is_empty() || part_id.cur > part_id.all {
+      if data.is_empty() || part_id.idx > part_id.all {
         break;
       }
     }
@@ -334,31 +346,49 @@ impl EncryptedMessage {
   }
 }
 
+/// Number of bytes used to encode each field of [EncryptedMessagePartId].
+///
+/// We use 3 bytes, which allows us to store up to: 2**24 bytes (~16MB)
 pub const BYTES_PER_ID_PART: usize = 3;
 
+/// A location of part within the original [EncryptedMessage].
 pub struct EncryptedMessagePartId {
-  cur: u32,
+  /// Current part index (0-based).
+  idx: u32,
+  /// Total number of all parts.
   all: u32,
 }
 
 impl EncryptedMessagePartId {
-  pub fn new(cur: u32, all: u32) -> Self {
-    // TODO [ToDr] validate it fits into 3 bytes!
-    unimplemented!()
+  /// Create a new [EncryptedMessagePartId] given 3-byte big endian encoding
+  /// of it's components.
+  pub fn new(idx: &[u8; BYTES_PER_ID_PART], all: &[u8; BYTES_PER_ID_PART]) -> Self {
+    Self {
+      idx: Self::bytes_to_u32(idx),
+      all: Self::bytes_to_u32(all),
+    }
   }
-}
 
-impl EncryptedMessagePartId {
-  pub fn current_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
+  fn u32_to_bytes(val: u32) -> [u8; BYTES_PER_ID_PART] {
     let mut out = [0u8; BYTES_PER_ID_PART];
-    out.copy_from_slice(&self.cur.to_be_bytes()[1..]);
+    out.copy_from_slice(&val.to_be_bytes()[1..]);
     out
   }
 
+  fn bytes_to_u32(bytes: &[u8; BYTES_PER_ID_PART]) -> u32 {
+    let mut out = [0u8; 4];
+    out[1..].copy_from_slice(bytes);
+    u32::from_be_bytes(out)
+  }
+
+  /// Return 3-byte big endian encoding of part index.
+  pub fn index_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
+    Self::u32_to_bytes(self.idx)
+  }
+
+  /// Return 3-byte big endian encoding of total number of parts.
   pub fn all_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
-    let mut out = [0u8; BYTES_PER_ID_PART];
-    out.copy_from_slice(&self.all.to_be_bytes()[1..]);
-    out
+    Self::u32_to_bytes(self.all)
   }
 }
 
@@ -508,7 +538,7 @@ mod tests {
   #[test]
   fn should_encode_encrypted_message() {
     // given
-    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned());
+    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned()).unwrap();
 
     // when
     let encoded = message.encode(Some(4));
@@ -536,7 +566,7 @@ mod tests {
   #[test]
   fn should_encode_when_split_is_none() {
     // given
-    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned());
+    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned()).unwrap();
 
     // when
     let encoded = message.encode(None);
@@ -552,7 +582,7 @@ mod tests {
   #[test]
   fn should_encode_when_split_is_zero() {
     // given
-    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned());
+    let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned()).unwrap();
 
     // when
     let encoded = message.encode(Some(0));
@@ -567,13 +597,32 @@ mod tests {
   fn should_encode_large_data() {
     // given
     let large_data: Vec<u8> = (0..1000).map(|x| (x % 256) as u8).collect();
-    let message = EncryptedMessage::new(large_data, b"test nonce x".to_owned());
+    let message = EncryptedMessage::new(large_data, b"test nonce x".to_owned()).unwrap();
 
     // when
     let encoded = message.encode(Some(200));
 
     // then
     assert_eq!(encoded.len(), 1 + 5); // The large_data with size 1000 will be split into 5 parts each of size 200.
+  }
+
+  #[test]
+  fn should_fail_encoding_too_large_message() {
+    // given
+    let mut large_data: Vec<u8> = (0..2usize.pow(8 * BYTES_PER_ID_PART as u32))
+      .map(|x| (x % 256) as u8)
+      .collect();
+    let message = EncryptedMessage::new(large_data.clone(), b"test nonce x".to_owned()).unwrap();
+    let encoded = message.encode(Some(200));
+    // with 60 QR codes a second, this would take ~23 mins to fully scan (0.o)!
+    assert_eq!(encoded.len(), 1 + 83886);
+
+    // when
+    large_data.push(1);
+    let message = EncryptedMessage::new(large_data.clone(), b"test nonce x".to_owned());
+
+    // then
+    assert_eq!(message, Err(EncryptedMessageError::DataTooBig));
   }
 
   #[test]

@@ -9,6 +9,7 @@ pub enum Error {
   InvalidNonceSize,
   VersionError,
   CryptoError,
+  DataTooBig,
 }
 
 impl From<Error> for JsValue {
@@ -23,6 +24,12 @@ impl From<icod_crypto::encryption::Error> for Error {
       icod_crypto::encryption::Error::UnsupportedVersion => Self::VersionError,
       icod_crypto::encryption::Error::EncryptionError => Self::CryptoError,
     }
+  }
+}
+
+impl From<icod_crypto::encryption::EncryptedMessageError> for Error {
+  fn from(_value: icod_crypto::encryption::EncryptedMessageError) -> Self {
+    Self::DataTooBig
   }
 }
 
@@ -65,7 +72,7 @@ pub fn decrypt_message(key: Vec<u8>, data: Vec<u8>, nonce: Vec<u8>) -> Result<Ve
   let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let nonce = crate::parse_nonce(nonce).map_err(|_| Error::InvalidNonceSize)?;
-  let msg = icod_crypto::encryption::EncryptedMessage::new(data, nonce);
+  let msg = icod_crypto::encryption::EncryptedMessage::new(data, nonce)?;
 
   let decrypted = icod_crypto::encryption::decrypt_message(&key, &msg)?;
 

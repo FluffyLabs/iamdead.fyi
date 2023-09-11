@@ -163,7 +163,7 @@ impl Chunk {
   /// +--------------------------------+
   /// | key_hash (64 bytes)            |
   /// +--------------------------------+
-  /// | chunks configuration (2 bytes) | // required & spare chunks
+  /// | chunks configuration (2 bytes) | // required & spare chunks (1B each)
   /// +--------------------------------+
   /// | chunk index (1 byte)           |
   /// +--------------------------------+
