@@ -21,10 +21,7 @@ export const Recover = () => {
 };
 
 function QRScanner({ handleChunk }: { handleChunk: (arg0: string) => void }) {
-  const handleResult = (
-    data: Result | null | undefined,
-    err: Error | null | undefined,
-  ) => {
+  const handleResult = (data: Result | null | undefined, err: Error | null | undefined) => {
     if (err) {
       console.error(err);
       return;
