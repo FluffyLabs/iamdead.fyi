@@ -24,7 +24,7 @@ pub(crate) fn parse_nonce(nonce: Vec<u8>) -> Result<[u8; NONCE_SIZE], ()> {
 
 #[derive(serde::Serialize)]
 pub struct MessageAndChunks {
-  pub encrypted_message: encryption::EncryptedMessage,
+  pub encrypted_message: Vec<String>,
   pub chunks: Vec<String>,
 }
 
@@ -60,11 +60,19 @@ pub fn secure_message(
 
   let chunks = chunks
     .into_iter()
-    .map(|chunk| shamir::conv::bytes_to_str(shamir::CHUNK_PREFIX, chunk.encode().into()))
+    .map(|chunk| conv::bytes_to_hex_str(chunk.encode().into()))
+    .collect();
+
+  // TODO [ToDr] make it a parameter.
+  let split = None;
+  let encrypted_message = encrypted_message.encode(split);
+  let encrypted_message = encrypted_message
+    .into_iter()
+    .map(|x| crate::conv::bytes_to_hex_str(x.into()))
     .collect();
   Ok(
     serde_wasm_bindgen::to_value(&MessageAndChunks {
-      encrypted_message: encrypted_message.into(),
+      encrypted_message,
       chunks,
     })
     .expect("MessageAndChunks serialization is infallible"),
@@ -118,4 +126,31 @@ pub fn restore_message(
   let message = icod_crypto::restore_message(encrypted_message, chunks)?;
   let (message, _) = message.into_tuple();
   Ok(message.into())
+}
+
+pub(crate) mod conv {
+  use super::JsValue;
+
+  #[derive(Debug)]
+  pub enum Error {
+    ValueError,
+    HexError,
+  }
+
+  // TODO [ToDr] how to keep the original byte prefix readable instead of hex-encoded?
+  // We would like all the parts to have `icod-xxx:` human-readable prefix,
+  // instead of having it attached during `encode` process.
+  // Perhaps `encode` could return a tuple?
+  pub fn bytes_to_hex_str(b: Vec<u8>) -> String {
+    hex::encode(b)
+  }
+
+  pub fn bytes_to_hex_js(b: Vec<u8>) -> JsValue {
+    JsValue::from_str(&bytes_to_hex_str(b))
+  }
+
+  pub fn hex_js_to_bytes(v: JsValue) -> Result<Vec<u8>, Error> {
+    let s = v.as_string().ok_or(Error::ValueError)?;
+    hex::decode(&s).map_err(|_| Error::HexError)
+  }
 }

@@ -45,8 +45,8 @@ impl From<KeyRecoveryError> for RecoveryError {
   }
 }
 
-impl From<conv::Error> for RecoveryError {
-  fn from(_: conv::Error) -> Self {
+impl From<crate::conv::Error> for RecoveryError {
+  fn from(_: crate::conv::Error) -> Self {
     Self::ChunkDecodingError
   }
 }
@@ -86,36 +86,13 @@ pub fn split_into_chunks(
   Ok(conv::chunks_to_js(chunks))
 }
 
-pub const CHUNK_PREFIX: &'static str = "icod-chunk:";
-
 pub(crate) mod conv {
-  #[derive(Debug)]
-  pub enum Error {
-    ValueError,
-    HexError,
-    PrefixError,
-  }
-
-  use super::{JsValue, RecoveryError, CHUNK_PREFIX};
-
-  pub fn bytes_to_str(prefix: &'static str, b: Vec<u8>) -> String {
-    format!("{}{}", prefix, hex::encode(b))
-  }
-
-  pub fn bytes_to_js(prefix: &'static str, b: Vec<u8>) -> JsValue {
-    JsValue::from_str(&bytes_to_str(prefix, b))
-  }
-
-  pub fn js_to_bytes(prefix: &'static str, v: JsValue) -> Result<Vec<u8>, Error> {
-    let s = v.as_string().ok_or(Error::ValueError)?;
-    let rest = s.strip_prefix(prefix).ok_or(Error::PrefixError)?;
-    hex::decode(&rest).map_err(|_| Error::HexError)
-  }
+  use super::{JsValue, RecoveryError};
 
   pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValue> {
     chunks
       .into_iter()
-      .map(|chunk| bytes_to_js(CHUNK_PREFIX, chunk.encode().into()))
+      .map(|chunk| crate::conv::bytes_to_hex_js(chunk.encode().into()))
       .collect()
   }
 
@@ -125,7 +102,7 @@ pub(crate) mod conv {
     chunks
       .into_iter()
       .map(|val| {
-        js_to_bytes(CHUNK_PREFIX, val)
+        crate::conv::hex_js_to_bytes(val)
           .map_err(RecoveryError::from)
           .and_then(|v| {
             icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)

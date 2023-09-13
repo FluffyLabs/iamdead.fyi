@@ -85,7 +85,7 @@ pub struct MessageEncryptionKey {
 /// 3. The 32-bytes of the key.
 ///
 /// The key size might change with versions, but currently it's fixed-size with version `V0`.
-pub const KEY_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-key:";
+pub const KEY_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icodk";
 
 impl MessageEncryptionKey {
   /// Wrap an externally-generated 32-bytes encryption key.
@@ -118,8 +118,8 @@ impl MessageEncryptionKey {
   ///
   /// ```markdown
   /// +--------------------------------+
-  /// | magic byte sequence (9 bytes)  |
-  /// | (b"icod-key:")                 |
+  /// | magic byte sequence (5 bytes)  |
+  /// | (b"icodk")                     |
   /// +--------------------------------+
   /// | version (1 byte)               |
   /// +--------------------------------+
@@ -238,12 +238,6 @@ pub struct EncryptedMessage {
   data: Bytes,
 }
 
-/// A specific byte sequence used to identify the encoding of [EncryptedMessage].
-///
-/// See [EncryptedMessage::encode] description for details about the encoding
-/// format.
-pub const MSG_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-msg:";
-
 impl EncryptedMessage {
   /// Wrap externally received `data` and `nonce` into [EncryptedMessage] type.
   pub fn new<A>(data: A, nonce: [u8; NONCE_SIZE]) -> Result<Self, EncryptedMessageError>
@@ -263,28 +257,22 @@ impl EncryptedMessage {
     })
   }
 
-  /// Convert the encrypted message into the underlying `data` and `nonce`.
-  #[deprecated]
-  pub fn into_tuple(self) -> (Bytes, Bytes) {
-    (self.data, self.nonce)
-  }
-
   /// Encode the encrypted message into multiple vectors of bytes.
   ///
   /// Since the encrypted message may be quite long, the message
   /// may be split into multiple PARTS, each part having less than
-  /// `split` bytes on top of the required bytes (magic sequence
+  /// `split` bytes on top of the required bytes (version
   /// + identification). Note that since `split` values of
   /// less than `NONCE_SIZE` are not practical, the `nonce`
   /// is never split, so the first part might be bigger than
   /// others.
   ///
-  /// Each part will have a the magic sequence prepended,
-  /// the version and the part identification.
+  /// Each part will have the version and the part identification prepended.
+  /// Unlike [MessageEncryptionKey] and [Chunk] we don't prepend any magic
+  /// sequence to save off these bytes, since message encoding may be quite
+  /// long.
+  ///
   /// ```markdown
-  /// +--------------------------------+
-  /// | magic byte sequence (9 bytes)  |
-  /// | (b"icod-msg:")                 |
   /// +--------------------------------+
   /// | version (1 byte)               |
   /// +--------------------------------+
@@ -316,7 +304,6 @@ impl EncryptedMessage {
     };
     loop {
       let mut out = vec![];
-      out.extend_from_slice(MSG_ENCODING_MAGIC_SEQUENCE);
       out.push(version);
       out.extend_from_slice(&part_id.index_bytes());
       out.extend_from_slice(&part_id.all_bytes());
@@ -451,6 +438,7 @@ pub fn decrypt_message(
 #[cfg(test)]
 mod tests {
   use super::*;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn should_format_message() {
@@ -526,7 +514,7 @@ mod tests {
 
     assert_eq!(
       format!("{:?}", encoded),
-      r#"String("icod-key:\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("69636f642d6b65793a000101010101010101010101010101010101010101010101010101010101010101")"#
+      r#"String("icodk\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("69636f646b000101010101010101010101010101010101010101010101010101010101010101")"#
     );
 
     let key = MessageEncryptionKey::new(raw_key);
@@ -547,19 +535,19 @@ mod tests {
     assert_eq!(encoded.len(), 4);
     assert_eq!(
         format!("{:?}", encoded[0]),
-        "String(\"icod-msg:\\0\\0\\0\\0\\0\\0\\u{5}test nonce x\") == Bytes(\"69636f642d6d73673a0000000000000574657374206e6f6e63652078\")"
+        "String(\"\\0\\0\\0\\0\\0\\0\\u{5}test nonce x\") == Bytes(\"0000000000000574657374206e6f6e63652078\")"
     );
     assert_eq!(
-        format!("{:?}", encoded[1]),
-        "String(\"icod-msg:\\0\\0\\0\\u{1}\\0\\0\\u{5}Test\") == Bytes(\"69636f642d6d73673a0000000100000554657374\")"
+      format!("{:?}", encoded[1]),
+      "String(\"\\0\\0\\0\\u{1}\\0\\0\\u{5}Test\") == Bytes(\"0000000100000554657374\")"
     );
     assert_eq!(
-        format!("{:?}", encoded[2]),
-        "String(\"icod-msg:\\0\\0\\0\\u{2}\\0\\0\\u{5} Dat\") == Bytes(\"69636f642d6d73673a0000000200000520446174\")"
+      format!("{:?}", encoded[2]),
+      "String(\"\\0\\0\\0\\u{2}\\0\\0\\u{5} Dat\") == Bytes(\"0000000200000520446174\")"
     );
     assert_eq!(
-        format!("{:?}", encoded[3]),
-        "String(\"icod-msg:\\0\\0\\0\\u{3}\\0\\0\\u{5}a\") == Bytes(\"69636f642d6d73673a0000000300000561\")"
+      format!("{:?}", encoded[3]),
+      "String(\"\\0\\0\\0\\u{3}\\0\\0\\u{5}a\") == Bytes(\"0000000300000561\")"
     );
   }
 
@@ -575,7 +563,7 @@ mod tests {
     assert_eq!(encoded.len(), 1);
     assert_eq!(
         format!("{:?}", encoded[0]),
-        "String(\"icod-msg:\\0\\0\\0\\0\\0\\0\\u{1}test nonce xTest Data\") == Bytes(\"69636f642d6d73673a0000000000000174657374206e6f6e63652078546573742044617461\")"
+        "String(\"\\0\\0\\0\\0\\0\\0\\u{1}test nonce xTest Data\") == Bytes(\"0000000000000174657374206e6f6e63652078546573742044617461\")"
     );
   }
 

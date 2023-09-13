@@ -1,5 +1,4 @@
 use icod_crypto::encryption::{Message, MessageEncryptionKey};
-use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -32,39 +31,25 @@ impl From<icod_crypto::encryption::EncryptedMessageError> for Error {
     Self::DataTooBig
   }
 }
-
-#[derive(Serialize)]
-pub struct EncryptedMessage {
-  pub data: Vec<u8>,
-  pub nonce: Vec<u8>,
-}
-
-impl From<icod_crypto::encryption::EncryptedMessage> for EncryptedMessage {
-  fn from(value: icod_crypto::encryption::EncryptedMessage) -> Self {
-    let (data, nonce) = value.into_tuple();
-    Self {
-      data: data.into(),
-      nonce: nonce.into(),
-    }
-  }
-}
-
-pub(crate) fn encrypted_message_to_js(
-  encrypted: icod_crypto::encryption::EncryptedMessage,
-) -> JsValue {
-  serde_wasm_bindgen::to_value(&EncryptedMessage::from(encrypted))
-    .expect("EncryptedMessage serialization is infallible")
-}
-
 #[wasm_bindgen]
-pub fn encrypt_message(key: Vec<u8>, msg: String) -> Result<JsValue, Error> {
+pub fn encrypt_message(
+  key: Vec<u8>,
+  msg: String,
+  split: Option<usize>,
+) -> Result<Vec<JsValue>, Error> {
   let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let msg = Message::from_str(&msg);
 
   let encrypted = icod_crypto::encryption::encrypt_message(&key, &msg)?;
 
-  Ok(encrypted_message_to_js(encrypted))
+  let encoded = encrypted.encode(split);
+  Ok(
+    encoded
+      .into_iter()
+      .map(|x| crate::conv::bytes_to_hex_js(x.into()))
+      .collect(),
+  )
 }
 
 #[wasm_bindgen]

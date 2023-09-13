@@ -171,6 +171,7 @@ impl std::fmt::Debug for Bytes {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn should_format_hash() {
