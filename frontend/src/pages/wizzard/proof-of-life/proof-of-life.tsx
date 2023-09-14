@@ -4,6 +4,7 @@ import styles from './styles.module.scss';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
 import { Adapters, ConfiguredAdapter, createAdapter } from '../wizzard-context/proof-of-life';
 import { useWizzard } from '../wizzard-context';
+import { AdapterSelector } from './adapter-selector';
 
 const availableAdapters = Object.values(Adapters);
 
@@ -37,6 +38,7 @@ export const ProofOfLife = () => {
     <div>
       <h2 className={styles.header}>I want the pieces to be send when:</h2>
       <POLList />
+      <AdapterSelector />
     </div>
   );
 };
