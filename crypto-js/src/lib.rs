@@ -76,6 +76,7 @@ pub enum RestorationError {
   InvalidNonceSize,
   Recovery(shamir::RecoveryError),
   Decryption(encryption::Error),
+  DataTooBig,
 }
 
 impl From<shamir::RecoveryError> for RestorationError {
@@ -93,6 +94,12 @@ impl From<icod_crypto::RestorationError> for RestorationError {
   }
 }
 
+impl From<icod_crypto::encryption::EncryptedMessageError> for RestorationError {
+  fn from(_value: icod_crypto::encryption::EncryptedMessageError) -> Self {
+    Self::DataTooBig
+  }
+}
+
 impl From<RestorationError> for JsValue {
   fn from(value: RestorationError) -> Self {
     JsValue::from_str(&format!("{:?}", value))
@@ -106,7 +113,7 @@ pub fn restore_message(
   chunks: Vec<JsValue>,
 ) -> Result<Vec<u8>, RestorationError> {
   let nonce = parse_nonce(nonce).map_err(|_| RestorationError::InvalidNonceSize)?;
-  let encrypted_message = icod_crypto::encryption::EncryptedMessage::new(data, nonce);
+  let encrypted_message = icod_crypto::encryption::EncryptedMessage::new(data, nonce)?;
   let chunks = shamir::conv::js_to_chunks(chunks)?;
   let message = icod_crypto::restore_message(encrypted_message, chunks)?;
   let (message, _) = message.into_tuple();
