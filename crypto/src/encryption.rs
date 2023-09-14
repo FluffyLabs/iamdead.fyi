@@ -6,6 +6,8 @@
 //!
 //! The `V0` version is using `AES-GCM-SIV` with `256b` key size.
 
+use std::collections::BTreeMap;
+
 use aes_gcm_siv::{
   aead::{Aead, OsRng, Payload},
   Aes256GcmSiv, KeyInit, Nonce,
@@ -225,6 +227,13 @@ pub enum EncryptedMessageError {
   /// The `data` length can't be encoded into 3 bytes.
   #[error("Given data exceeds maximum of 16MBs.")]
   DataTooBig,
+  // TODO [ToDr] docs
+  #[error("")]
+  InvalidVersion,
+  #[error("")]
+  MalformedData,
+  #[error("")]
+  MissingParts,
 }
 
 /// An encrypted payload of the message and the `nonce` which was used.
@@ -257,6 +266,61 @@ impl EncryptedMessage {
     })
   }
 
+  pub fn collate_from_parts(parts: Vec<Bytes>) -> Result<Self, EncryptedMessageError> {
+    let mut nonce = [0u8; NONCE_SIZE];
+    let mut message_parts = BTreeMap::<u32, Vec<u8>>::new();
+    let mut expected_parts = 0u32;
+    let version = [0u8];
+
+    for part in parts {
+      let part = part
+        .strip_prefix(&version)
+        .ok_or(EncryptedMessageError::InvalidVersion)?;
+      let (part_id, part) =
+        EncryptedMessagePartId::read_from(&part).ok_or(EncryptedMessageError::MalformedData)?;
+      // Check number of expected parts
+      if expected_parts != part_id.all {
+        if expected_parts == 0 {
+          expected_parts = part_id.all;
+        } else {
+          return Err(EncryptedMessageError::MalformedData);
+        }
+      }
+      // read nonce first for the first part
+      if part_id.idx == 0 {
+        if part.len() < NONCE_SIZE {
+          return Err(EncryptedMessageError::MalformedData);
+        }
+        nonce.copy_from_slice(&part[0..NONCE_SIZE]);
+      }
+      // now rest of the data
+      // TODO [ToDr] Avoid alloc? Use split_off just calculate where.
+      message_parts.insert(part_id.idx, part.to_vec());
+    }
+
+    if expected_parts as usize != message_parts.len() {
+      return Err(EncryptedMessageError::MissingParts);
+    }
+
+    let mut message = Vec::with_capacity(
+      expected_parts as usize
+        * message_parts
+          .first_key_value()
+          .map(|(_, v)| v.len() + NONCE_SIZE)
+          .unwrap_or(0),
+    );
+
+    for (_, part) in message_parts.into_iter() {
+      message.extend(part);
+    }
+
+    Ok(Self {
+      version: EncryptionKeyVersion::V0,
+      data: message.into(),
+      nonce: Bytes::from_slice(&nonce),
+    })
+  }
+
   /// Encode the encrypted message into multiple vectors of bytes.
   ///
   /// Since the encrypted message may be quite long, the message
@@ -285,7 +349,7 @@ impl EncryptedMessage {
   /// | data (variable length)         |
   /// +--------------------------------+
   /// ```
-  pub fn encode(self, split: Option<usize>) -> Vec<Bytes> {
+  pub fn split_and_encode(self, split: Option<usize>) -> Vec<Bytes> {
     let version = match self.version {
       #[cfg(test)]
       EncryptionKeyVersion::Test => 255u8,
@@ -306,6 +370,8 @@ impl EncryptedMessage {
       let mut out = vec![];
       out.push(version);
       out.extend_from_slice(&part_id.index_bytes());
+      // TODO [ToDr] We might consider dropping this and version from
+      // every chunk. Not sure if it adds anything.
       out.extend_from_slice(&part_id.all_bytes());
 
       let mut split_point = data.len().min(split);
@@ -356,6 +422,21 @@ impl EncryptedMessagePartId {
     }
   }
 
+  fn read_from(part: &[u8]) -> Option<(Self, &[u8])> {
+    if part.len() < BYTES_PER_ID_PART * 2 {
+      return None;
+    }
+
+    let idx = Self::slice_to_u32(&part[0..3]);
+    let all = Self::slice_to_u32(&part[3..6]);
+
+    if idx >= all {
+      return None;
+    }
+
+    Some((Self { idx, all }, &part[6..]))
+  }
+
   fn u32_to_bytes(val: u32) -> [u8; BYTES_PER_ID_PART] {
     let mut out = [0u8; BYTES_PER_ID_PART];
     out.copy_from_slice(&val.to_be_bytes()[1..]);
@@ -363,6 +444,11 @@ impl EncryptedMessagePartId {
   }
 
   fn bytes_to_u32(bytes: &[u8; BYTES_PER_ID_PART]) -> u32 {
+    Self::slice_to_u32(&*bytes)
+  }
+
+  fn slice_to_u32(bytes: &[u8]) -> u32 {
+    assert_eq!(bytes.len(), 3);
     let mut out = [0u8; 4];
     out[1..].copy_from_slice(bytes);
     u32::from_be_bytes(out)
@@ -529,7 +615,7 @@ mod tests {
     let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned()).unwrap();
 
     // when
-    let encoded = message.encode(Some(4));
+    let encoded = message.split_and_encode(Some(4));
 
     // then
     assert_eq!(encoded.len(), 4);
@@ -557,7 +643,7 @@ mod tests {
     let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned()).unwrap();
 
     // when
-    let encoded = message.encode(None);
+    let encoded = message.split_and_encode(None);
 
     // then
     assert_eq!(encoded.len(), 1);
@@ -573,7 +659,7 @@ mod tests {
     let message = EncryptedMessage::new(b"Test Data".to_vec(), b"test nonce x".to_owned()).unwrap();
 
     // when
-    let encoded = message.encode(Some(0));
+    let encoded = message.split_and_encode(Some(0));
 
     // then
     // Assuming nonce has length 12 and data has length 9.
@@ -588,7 +674,7 @@ mod tests {
     let message = EncryptedMessage::new(large_data, b"test nonce x".to_owned()).unwrap();
 
     // when
-    let encoded = message.encode(Some(200));
+    let encoded = message.split_and_encode(Some(200));
 
     // then
     assert_eq!(encoded.len(), 1 + 5); // The large_data with size 1000 will be split into 5 parts each of size 200.
@@ -601,7 +687,7 @@ mod tests {
       .map(|x| (x % 256) as u8)
       .collect();
     let message = EncryptedMessage::new(large_data.clone(), b"test nonce x".to_owned()).unwrap();
-    let encoded = message.encode(Some(200));
+    let encoded = message.split_and_encode(Some(200));
     // with 60 QR codes a second, this would take ~23 mins to fully scan (0.o)!
     assert_eq!(encoded.len(), 1 + 83886);
 

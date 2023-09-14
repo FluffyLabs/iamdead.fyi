@@ -1,12 +1,18 @@
+//! Shamir Secret Sharing related functions exposed to JS.
+
+use crate::JsValueOrString;
 use icod_crypto::encryption::MessageEncryptionKey;
 use icod_crypto::shamir::KeyRecoveryError;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
+/// An error occuring while splitting the key into SSS chunks.
 #[wasm_bindgen]
 #[derive(Debug)]
 pub enum SplittingError {
+  /// Provided `key` has invalid byte length.
   InvalidKeySize,
+  /// The chunk configuration is incorrect.
   ConfigurationError,
 }
 
@@ -16,14 +22,21 @@ impl From<SplittingError> for JsValue {
   }
 }
 
+/// An error occuring during key recovery from chunks.
 #[wasm_bindgen]
 #[derive(Debug)]
 pub enum RecoveryError {
+  /// Cannot decode the chunk.
   ChunkDecodingError,
+  /// The chunks are not part of the same set.
   InconsistentChunks,
+  /// The configuration is not matching between chunks.
   InconsistentConfiguration,
+  /// There is not enough chunks to recover the key.
   NotEnoughChunks,
+  /// The key does not match the expected hash.
   UnexpectedKey,
+  /// The key could not be decoded.
   KeyDecodingError,
 }
 
@@ -47,18 +60,23 @@ impl From<KeyRecoveryError> for RecoveryError {
 
 impl From<crate::conv::Error> for RecoveryError {
   fn from(_: crate::conv::Error) -> Self {
+    // TODO [ToDr] Pass more useful info somehow.
     Self::ChunkDecodingError
   }
 }
 
+/// WASM-compatible SSS chunks configuration.
 #[wasm_bindgen]
 pub struct ChunksConfiguration {
+  /// Number of chunks required for recovery.
   pub required: u8,
+  /// Number of extra chunks.
   pub spare: u8,
 }
 
 #[wasm_bindgen]
 impl ChunksConfiguration {
+  /// Create new [ChunksConfiguration].
   #[wasm_bindgen(constructor)]
   pub fn new(required: u8, spare: u8) -> Self {
     Self { required, spare }
@@ -71,11 +89,20 @@ impl ChunksConfiguration {
   }
 }
 
-#[wasm_bindgen]
+/// Human readable prefix of every chunk.
+///
+/// Used to identify the string typically obtained by scanning a QR code.
+pub const CHUNK_PREFIX: &'static str = "icod-chunk:";
+
+/// Split given `key` into SSS chunks according to `configuration`.
+///
+/// The `key` should be raw, 32-bytes key. The magic sequence and version
+/// will be prepended internally.
+#[cfg_attr(not(test), wasm_bindgen)]
 pub fn split_into_chunks(
   key: Vec<u8>,
   configuration: ChunksConfiguration,
-) -> Result<Vec<JsValue>, SplittingError> {
+) -> Result<Vec<JsValueOrString>, SplittingError> {
   let key = crate::parse_key(key).map_err(|_| SplittingError::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let chunks_configuration = configuration
@@ -86,12 +113,23 @@ pub fn split_into_chunks(
   Ok(conv::chunks_to_js(chunks))
 }
 
-pub const CHUNK_PREFIX: &'static str = "icod-chunk:";
+/// Recover key given enough SSS chunks.
+///
+/// The recovered key will be byte-encoded, i.e. it will
+/// be prepended with magic sequence and version information.
+#[cfg_attr(not(test), wasm_bindgen)]
+pub fn recover_key(chunks: Vec<JsValueOrString>) -> Result<Vec<u8>, RecoveryError> {
+  let chunks = conv::js_to_chunks(chunks)?;
+  let key = icod_crypto::shamir::recover_key(&chunks)?;
+
+  Ok(key.encode().into())
+}
 
 pub(crate) mod conv {
-  use super::{JsValue, RecoveryError, CHUNK_PREFIX};
+  use super::{RecoveryError, CHUNK_PREFIX};
+  use crate::JsValueOrString;
 
-  pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValue> {
+  pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValueOrString> {
     chunks
       .into_iter()
       .map(|chunk| crate::conv::bytes_to_prefixed_str_js(CHUNK_PREFIX, chunk.encode().into()))
@@ -99,7 +137,7 @@ pub(crate) mod conv {
   }
 
   pub fn js_to_chunks(
-    chunks: Vec<JsValue>,
+    chunks: Vec<JsValueOrString>,
   ) -> Result<Vec<icod_crypto::shamir::Chunk>, RecoveryError> {
     chunks
       .into_iter()
@@ -114,10 +152,31 @@ pub(crate) mod conv {
   }
 }
 
-#[wasm_bindgen]
-pub fn recover_key(chunks: Vec<JsValue>) -> Result<Vec<u8>, RecoveryError> {
-  let chunks = conv::js_to_chunks(chunks)?;
-  let key = icod_crypto::shamir::recover_key(&chunks)?;
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use icod_crypto::encryption::KEY_SIZE;
+  use pretty_assertions::assert_eq;
 
-  Ok(key.encode().into())
+  #[test]
+  fn should_split_key_into_chunks() {
+    let key = [1u8; KEY_SIZE].to_vec();
+    let configuration = ChunksConfiguration {
+      required: 1,
+      spare: 1,
+    };
+
+    let chunks = split_into_chunks(key.clone(), configuration).unwrap();
+
+    assert_eq!(chunks.len(), 2);
+    assert_eq!(&chunks[0], "icod-chunk:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g00b9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g");
+    assert_eq!(&chunks[1], "icod-chunk:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g20j9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g");
+
+    let mut chunks = chunks;
+    let recovered = recover_key(chunks.split_off(1)).unwrap();
+
+    let recovered_no_prefix = recovered.strip_prefix(b"icodk").unwrap();
+    let recovered_no_version = &recovered_no_prefix[1..];
+    assert_eq!(recovered_no_version, &key);
+  }
 }

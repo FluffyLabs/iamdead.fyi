@@ -1,3 +1,4 @@
+#[warn(missing_docs)]
 pub mod encryption;
 pub mod shamir;
 
@@ -67,7 +68,7 @@ pub fn secure_message(
 
   // TODO [ToDr] make it a parameter.
   let split = None;
-  let encrypted_message = encrypted_message.encode(split);
+  let encrypted_message = encrypted_message.split_and_encode(split);
   let encrypted_message = encrypted_message
     .into_iter()
     .map(|msg| crate::conv::bytes_to_prefixed_str(MSG_PREFIX, msg.into()))
@@ -116,11 +117,11 @@ impl From<RestorationError> for JsValue {
   }
 }
 
-#[wasm_bindgen]
+#[cfg_attr(not(test), wasm_bindgen)]
 pub fn restore_message(
   data: Vec<u8>,
   nonce: Vec<u8>,
-  chunks: Vec<JsValue>,
+  chunks: Vec<JsValueOrString>,
 ) -> Result<Vec<u8>, RestorationError> {
   let nonce = parse_nonce(nonce).map_err(|_| RestorationError::InvalidNonceSize)?;
   let encrypted_message = icod_crypto::encryption::EncryptedMessage::new(data, nonce)?;
@@ -130,37 +131,53 @@ pub fn restore_message(
   Ok(message.into())
 }
 
+#[cfg(test)]
+pub type JsValueOrString = String;
+#[cfg(not(test))]
+pub type JsValueOrString = JsValue;
+
 pub(crate) mod conv {
-  use super::JsValue;
+  use super::*;
 
   #[derive(Debug)]
   pub enum Error {
     ValueError,
-    HexError,
+    DecodingError,
     PrefixError,
   }
 
+  /// We could consider using something like BASE40 to maximize size-efficiency,
+  /// but for now we're choosing BASE32 for simplicity.
   fn encode(b: Vec<u8>) -> String {
-    // TODO [ToDr] Replace with Base64 with custom alphabet
-    hex::encode(&b)
+    data_encoding::BASE32_DNSSEC.encode(&b)
   }
 
   fn decode(v: &str) -> Result<Vec<u8>, ()> {
-    // TODO [ToDr] Replace with Base64 with custom alphabet
-    hex::decode(v).map_err(|e| ())
+    data_encoding::BASE32_DNSSEC
+      .decode(v.as_bytes())
+      .map_err(|_| ())
   }
 
   pub fn bytes_to_prefixed_str(prefix: &str, b: Vec<u8>) -> String {
     format!("{}{}", prefix, encode(b))
   }
 
-  pub fn bytes_to_prefixed_str_js(prefix: &str, b: Vec<u8>) -> JsValue {
-    JsValue::from_str(&bytes_to_prefixed_str(prefix, b))
+  pub fn bytes_to_str_js(b: Vec<u8>) -> JsValueOrString {
+    bytes_to_prefixed_str_js("", b)
   }
 
-  pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValue) -> Result<Vec<u8>, Error> {
-    let s = v.as_string().ok_or(Error::ValueError)?;
-    let s = s.strip_prefix(prefix).ok_or(Error::PrefixError)?;
-    decode(&s).map_err(|_| Error::HexError)
+  pub fn bytes_to_prefixed_str_js(prefix: &str, b: Vec<u8>) -> JsValueOrString {
+    let result = bytes_to_prefixed_str(prefix, b);
+    #[cfg(test)]
+    return result;
+    #[cfg(not(test))]
+    return JsValue::from_str(&result);
+  }
+
+  pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValueOrString) -> Result<Vec<u8>, Error> {
+    #[cfg(not(test))]
+    let v = v.as_string().ok_or(Error::ValueError)?;
+    let s = v.strip_prefix(prefix).ok_or(Error::PrefixError)?;
+    decode(&s).map_err(|_| Error::DecodingError)
   }
 }
