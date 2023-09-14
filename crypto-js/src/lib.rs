@@ -1,7 +1,9 @@
 pub mod encryption;
 pub mod shamir;
 
+use encryption::MSG_PREFIX;
 use icod_crypto::encryption::{KEY_SIZE, NONCE_SIZE};
+use shamir::CHUNK_PREFIX;
 use wasm_bindgen::{prelude::*, JsValue};
 
 pub(crate) fn parse_key(key: Vec<u8>) -> Result<[u8; KEY_SIZE], ()> {
@@ -60,7 +62,7 @@ pub fn secure_message(
 
   let chunks = chunks
     .into_iter()
-    .map(|chunk| conv::bytes_to_hex_str(chunk.encode().into()))
+    .map(|chunk| conv::bytes_to_prefixed_str(CHUNK_PREFIX, chunk.encode().into()))
     .collect();
 
   // TODO [ToDr] make it a parameter.
@@ -68,7 +70,7 @@ pub fn secure_message(
   let encrypted_message = encrypted_message.encode(split);
   let encrypted_message = encrypted_message
     .into_iter()
-    .map(|x| crate::conv::bytes_to_hex_str(x.into()))
+    .map(|msg| crate::conv::bytes_to_prefixed_str(MSG_PREFIX, msg.into()))
     .collect();
   Ok(
     serde_wasm_bindgen::to_value(&MessageAndChunks {
@@ -135,22 +137,30 @@ pub(crate) mod conv {
   pub enum Error {
     ValueError,
     HexError,
+    PrefixError,
   }
 
-  // TODO [ToDr] how to keep the original byte prefix readable instead of hex-encoded?
-  // We would like all the parts to have `icod-xxx:` human-readable prefix,
-  // instead of having it attached during `encode` process.
-  // Perhaps `encode` could return a tuple?
-  pub fn bytes_to_hex_str(b: Vec<u8>) -> String {
-    hex::encode(b)
+  fn encode(b: Vec<u8>) -> String {
+    // TODO [ToDr] Replace with Base64 with custom alphabet
+    hex::encode(&b)
   }
 
-  pub fn bytes_to_hex_js(b: Vec<u8>) -> JsValue {
-    JsValue::from_str(&bytes_to_hex_str(b))
+  fn decode(v: &str) -> Result<Vec<u8>, ()> {
+    // TODO [ToDr] Replace with Base64 with custom alphabet
+    hex::decode(v).map_err(|e| ())
   }
 
-  pub fn hex_js_to_bytes(v: JsValue) -> Result<Vec<u8>, Error> {
+  pub fn bytes_to_prefixed_str(prefix: &str, b: Vec<u8>) -> String {
+    format!("{}{}", prefix, encode(b))
+  }
+
+  pub fn bytes_to_prefixed_str_js(prefix: &str, b: Vec<u8>) -> JsValue {
+    JsValue::from_str(&bytes_to_prefixed_str(prefix, b))
+  }
+
+  pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValue) -> Result<Vec<u8>, Error> {
     let s = v.as_string().ok_or(Error::ValueError)?;
-    hex::decode(&s).map_err(|_| Error::HexError)
+    let s = s.strip_prefix(prefix).ok_or(Error::PrefixError)?;
+    decode(&s).map_err(|_| Error::HexError)
   }
 }

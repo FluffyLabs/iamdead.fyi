@@ -1,6 +1,8 @@
 use icod_crypto::encryption::{Message, MessageEncryptionKey};
 use wasm_bindgen::prelude::*;
 
+pub const MSG_PREFIX: &'static str = "icod-msg:";
+
 #[wasm_bindgen]
 #[derive(Debug)]
 pub enum Error {
@@ -47,7 +49,7 @@ pub fn encrypt_message(
   Ok(
     encoded
       .into_iter()
-      .map(|x| crate::conv::bytes_to_hex_js(x.into()))
+      .map(|msg| crate::conv::bytes_to_prefixed_str_js(MSG_PREFIX, msg.into()))
       .collect(),
   )
 }
@@ -63,4 +65,14 @@ pub fn decrypt_message(key: Vec<u8>, data: Vec<u8>, nonce: Vec<u8>) -> Result<Ve
 
   let (data, _nonce) = decrypted.into_tuple();
   Ok(data.into())
+}
+
+#[cfg(test)]
+mod tests {
+  #[test]
+  fn should_format_encrypted_message() {
+    // TODO [ToDr] Write tests for encrypted messages encoding
+    // and chunks after switching to BASE64.
+    assert_eq!(true, false)
+  }
 }

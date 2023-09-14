@@ -86,13 +86,15 @@ pub fn split_into_chunks(
   Ok(conv::chunks_to_js(chunks))
 }
 
+pub const CHUNK_PREFIX: &'static str = "icod-chunk:";
+
 pub(crate) mod conv {
-  use super::{JsValue, RecoveryError};
+  use super::{JsValue, RecoveryError, CHUNK_PREFIX};
 
   pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValue> {
     chunks
       .into_iter()
-      .map(|chunk| crate::conv::bytes_to_hex_js(chunk.encode().into()))
+      .map(|chunk| crate::conv::bytes_to_prefixed_str_js(CHUNK_PREFIX, chunk.encode().into()))
       .collect()
   }
 
@@ -102,7 +104,7 @@ pub(crate) mod conv {
     chunks
       .into_iter()
       .map(|val| {
-        crate::conv::hex_js_to_bytes(val)
+        crate::conv::prefixed_str_js_to_bytes(CHUNK_PREFIX, val)
           .map_err(RecoveryError::from)
           .and_then(|v| {
             icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)
