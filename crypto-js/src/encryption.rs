@@ -85,13 +85,12 @@ pub fn encrypt_message(
   Ok(conv::msg_parts_to_js(encoded))
 }
 
-/// Decrypt given `data` using provided `key`.
+/// Decrypt given message using provided `key`.
 ///
 /// - `key` must be exactly [KEY_SIZE] bytes (32-bytes for V0).
-/// - `data` is arbitrary length encrypted message.
-/// - `nonce` must be exactly [NONCE_SIZE] bytes (12-bytes).
+/// - `message_parts` will be collated into single encrypted message.
 ///
-/// The result will be the decrypted message as a string `JsValue`.
+/// The result will be the decrypted message as a `String`.
 #[cfg_attr(not(test), wasm_bindgen)]
 pub fn decrypt_message(key: Vec<u8>, message_parts: Vec<JsValueOrString>) -> Result<String, Error> {
   let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
