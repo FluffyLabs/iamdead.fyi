@@ -214,6 +214,10 @@ function getArrayJsValueFromWasm0(ptr, len) {
     return result;
 }
 /**
+* Split given `key` into SSS chunks according to `configuration`.
+*
+* The `key` should be raw, 32-bytes key. The magic sequence and version
+* will be prepended internally.
 * @param {Uint8Array} key
 * @param {ChunksConfiguration} configuration
 * @returns {any[]}
@@ -256,6 +260,10 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
+* Recover key given enough SSS chunks.
+*
+* The recovered key will be byte-encoded, i.e. it will
+* be prepended with magic sequence and version information.
 * @param {any[]} chunks
 * @returns {Uint8Array}
 */
@@ -281,18 +289,25 @@ export function recover_key(chunks) {
 }
 
 /**
+* Secure given message by randomly selecting an encryption key,
+* encrypting the message and splitting the key using Shamir Secret Sharing
+* scheme with given configuration.
+*
+* The resulting encrypted message may also be split into multiple parts
+* using `split` parameter to make sure it can fit into QR codes.
 * @param {string} msg
+* @param {number | undefined} split
 * @param {ChunksConfiguration} chunks_configuration
 * @returns {any}
 */
-export function secure_message(msg, chunks_configuration) {
+export function secure_message(msg, split, chunks_configuration) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(msg, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         _assertClass(chunks_configuration, ChunksConfiguration);
         var ptr1 = chunks_configuration.__destroy_into_raw();
-        wasm.secure_message(retptr, ptr0, len0, ptr1);
+        wasm.secure_message(retptr, ptr0, len0, !isLikeNone(split), isLikeNone(split) ? 0 : split, ptr1);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -306,21 +321,65 @@ export function secure_message(msg, chunks_configuration) {
 }
 
 /**
-* @param {Uint8Array} data
-* @param {Uint8Array} nonce
+* Restore the original message given parts of the encrypted message and SSS chunks.
+* @param {any[]} message
 * @param {any[]} chunks
-* @returns {Uint8Array}
+* @returns {string}
 */
-export function restore_message(data, nonce, chunks) {
+export function restore_message(message, chunks) {
+    let deferred4_0;
+    let deferred4_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+        const ptr0 = passArrayJsValueToWasm0(message, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(nonce, wasm.__wbindgen_malloc);
+        const ptr1 = passArrayJsValueToWasm0(chunks, wasm.__wbindgen_malloc);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passArrayJsValueToWasm0(chunks, wasm.__wbindgen_malloc);
-        const len2 = WASM_VECTOR_LEN;
-        wasm.restore_message(retptr, ptr0, len0, ptr1, len1, ptr2, len2);
+        wasm.restore_message(retptr, ptr0, len0, ptr1, len1);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        var r3 = getInt32Memory0()[retptr / 4 + 3];
+        var ptr3 = r0;
+        var len3 = r1;
+        if (r3) {
+            ptr3 = 0; len3 = 0;
+            throw takeObject(r2);
+        }
+        deferred4_0 = ptr3;
+        deferred4_1 = len3;
+        return getStringFromWasm0(ptr3, len3);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_free(deferred4_0, deferred4_1);
+    }
+}
+
+/**
+* Encrypt given `message` using provided `key`.
+*
+* The `key` must be a vector containing exactly
+* [KEY_SIZE] bytes (32-bytes for V0).
+*
+* The result will be a vector of string `JsValue`s, each
+* containing an encoded part of encrypted message, no
+* longer than given `split` value.
+*
+* If `None` for `split` is provided, the result will be single
+* `JsValue` string, containing the entire encrypted message.
+* @param {Uint8Array} key
+* @param {string} message
+* @param {number | undefined} split
+* @returns {any[]}
+*/
+export function encrypt_message(key, message, split) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(message, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        wasm.encrypt_message(retptr, ptr0, len0, ptr1, len1, !isLikeNone(split), isLikeNone(split) ? 0 : split);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -328,67 +387,52 @@ export function restore_message(data, nonce, chunks) {
         if (r3) {
             throw takeObject(r2);
         }
-        var v4 = getArrayU8FromWasm0(r0, r1).slice();
-        wasm.__wbindgen_free(r0, r1 * 1);
-        return v4;
+        var v3 = getArrayJsValueFromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 4);
+        return v3;
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
 
 /**
+* Decrypt given `data` using provided `key`.
+*
+* - `key` must be exactly [KEY_SIZE] bytes (32-bytes for V0).
+* - `data` is arbitrary length encrypted message.
+* - `nonce` must be exactly [NONCE_SIZE] bytes (12-bytes).
+*
+* The result will be the decrypted message as a string `JsValue`.
 * @param {Uint8Array} key
-* @param {string} msg
-* @returns {any}
+* @param {any[]} message_parts
+* @returns {string}
 */
-export function encrypt_message(key, msg) {
+export function decrypt_message(key, message_parts) {
+    let deferred4_0;
+    let deferred4_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(msg, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr1 = passArrayJsValueToWasm0(message_parts, wasm.__wbindgen_malloc);
         const len1 = WASM_VECTOR_LEN;
-        wasm.encrypt_message(retptr, ptr0, len0, ptr1, len1);
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        var r2 = getInt32Memory0()[retptr / 4 + 2];
-        if (r2) {
-            throw takeObject(r1);
-        }
-        return takeObject(r0);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-}
-
-/**
-* @param {Uint8Array} key
-* @param {Uint8Array} data
-* @param {Uint8Array} nonce
-* @returns {Uint8Array}
-*/
-export function decrypt_message(key, data, nonce) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passArray8ToWasm0(nonce, wasm.__wbindgen_malloc);
-        const len2 = WASM_VECTOR_LEN;
-        wasm.decrypt_message(retptr, ptr0, len0, ptr1, len1, ptr2, len2);
+        wasm.decrypt_message(retptr, ptr0, len0, ptr1, len1);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
         var r3 = getInt32Memory0()[retptr / 4 + 3];
+        var ptr3 = r0;
+        var len3 = r1;
         if (r3) {
+            ptr3 = 0; len3 = 0;
             throw takeObject(r2);
         }
-        var v4 = getArrayU8FromWasm0(r0, r1).slice();
-        wasm.__wbindgen_free(r0, r1 * 1);
-        return v4;
+        deferred4_0 = ptr3;
+        deferred4_1 = len3;
+        return getStringFromWasm0(ptr3, len3);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_free(deferred4_0, deferred4_1);
     }
 }
 
@@ -400,15 +444,7 @@ function handleError(f, args) {
     }
 }
 /**
-*/
-export const SplittingError = Object.freeze({ InvalidKeySize:0,"0":"InvalidKeySize",ConfigurationError:1,"1":"ConfigurationError", });
-/**
-*/
-export const RecoveryError = Object.freeze({ ChunkDecodingError:0,"0":"ChunkDecodingError",InconsistentChunks:1,"1":"InconsistentChunks",InconsistentConfiguration:2,"2":"InconsistentConfiguration",NotEnoughChunks:3,"3":"NotEnoughChunks",UnexpectedKey:4,"4":"UnexpectedKey",KeyDecodingError:5,"5":"KeyDecodingError", });
-/**
-*/
-export const Error = Object.freeze({ InvalidKeySize:0,"0":"InvalidKeySize",InvalidNonceSize:1,"1":"InvalidNonceSize",VersionError:2,"2":"VersionError",CryptoError:3,"3":"CryptoError", });
-/**
+* WASM-compatible SSS chunks configuration.
 */
 export class ChunksConfiguration {
 
@@ -432,6 +468,7 @@ export class ChunksConfiguration {
         wasm.__wbg_chunksconfiguration_free(ptr);
     }
     /**
+    * Number of chunks required for recovery.
     * @returns {number}
     */
     get required() {
@@ -439,12 +476,14 @@ export class ChunksConfiguration {
         return ret;
     }
     /**
+    * Number of chunks required for recovery.
     * @param {number} arg0
     */
     set required(arg0) {
         wasm.__wbg_set_chunksconfiguration_required(this.__wbg_ptr, arg0);
     }
     /**
+    * Number of extra chunks.
     * @returns {number}
     */
     get spare() {
@@ -452,12 +491,14 @@ export class ChunksConfiguration {
         return ret;
     }
     /**
+    * Number of extra chunks.
     * @param {number} arg0
     */
     set spare(arg0) {
         wasm.__wbg_set_chunksconfiguration_spare(this.__wbg_ptr, arg0);
     }
     /**
+    * Create new [ChunksConfiguration].
     * @param {number} required
     * @param {number} spare
     */
@@ -515,10 +556,6 @@ function __wbg_get_imports() {
         var len1 = WASM_VECTOR_LEN;
         getInt32Memory0()[arg0 / 4 + 1] = len1;
         getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-    };
-    imports.wbg.__wbindgen_number_new = function(arg0) {
-        const ret = arg0;
-        return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
         const ret = getObject(arg0);
