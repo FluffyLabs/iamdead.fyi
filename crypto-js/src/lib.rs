@@ -212,18 +212,21 @@ mod tests {
   #[test]
   fn should_secore_and_restore_message() {
     let msg = "This is a secret message";
-    let split = Some(100);
+    let split = Some(368);
     let chunks_configuration = ChunksConfiguration {
       required: 1,
       spare: 1,
     };
     let result = secure_message(msg.to_owned(), split, chunks_configuration).unwrap();
 
-    assert_eq!(result.encrypted_message.len(), 2);
-    assert!(result.encrypted_message[0].starts_with("icod-msg:00000000001b1acbsgf0rctmnne11a"));
+    assert_eq!(result.encrypted_message.len(), 1);
+    assert_eq!(
+      &result.encrypted_message[0][..39],
+      "icod-msg:00000000000r1acbsgf0rctmnne11a"
+    );
 
     assert_eq!(result.chunks.len(), 2);
-    assert!(result.chunks[0].starts_with("icod-chunk:d5hmup330"));
+    assert_eq!(&result.chunks[0][..20], "icod-chunk:d5hmup330");
 
     let mut result = result;
     let restored = restore_message(result.encrypted_message, result.chunks.split_off(0)).unwrap();

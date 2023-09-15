@@ -374,6 +374,7 @@ impl EncryptedMessage {
 
     let data_len = self.data.len();
     let split = split_arg.unwrap_or(data_len).min(data_len).max(1);
+    println!("Split: {:?}, Data: {:?}", split, self.data.len());
     let capacity = if split_arg.is_none() {
       // special case if we are not planning to do any splitting.
       1
@@ -382,8 +383,9 @@ impl EncryptedMessage {
       (data_len + split - 1) / split + 1
     } else {
       // treat nonce as regular data
-      (data_len + NONCE_SIZE + split - 1) / split
+      (data_len + split - 1) / split
     };
+    println!("Capacity: {:?}", capacity);
     let mut output = Vec::with_capacity(capacity);
 
     let mut data = &self.data[..];
