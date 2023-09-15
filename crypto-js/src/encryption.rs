@@ -103,7 +103,7 @@ pub fn decrypt_message(key: Vec<u8>, message_parts: Vec<JsValueOrString>) -> Res
   Ok(String::from_utf8_lossy(&data).to_string())
 }
 
-mod conv {
+pub(crate) mod conv {
   use super::*;
 
   pub(crate) fn msg_parts_to_js(encoded: Vec<icod_crypto::Bytes>) -> Vec<JsValueOrString> {
