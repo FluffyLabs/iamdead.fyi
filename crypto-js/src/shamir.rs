@@ -7,7 +7,6 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
 /// An error occuring while splitting the key into SSS chunks.
-#[wasm_bindgen]
 #[derive(Debug)]
 pub enum SplittingError {
   /// Provided `key` has invalid byte length.
@@ -23,11 +22,10 @@ impl From<SplittingError> for JsValue {
 }
 
 /// An error occuring during key recovery from chunks.
-#[wasm_bindgen]
 #[derive(Debug)]
 pub enum RecoveryError {
   /// Cannot decode the chunk.
-  ChunkDecodingError,
+  ChunkDecodingError(String),
   /// The chunks are not part of the same set.
   InconsistentChunks,
   /// The configuration is not matching between chunks.
@@ -59,9 +57,8 @@ impl From<KeyRecoveryError> for RecoveryError {
 }
 
 impl From<crate::conv::Error> for RecoveryError {
-  fn from(_: crate::conv::Error) -> Self {
-    // TODO [ToDr] Pass more useful info somehow.
-    Self::ChunkDecodingError
+  fn from(e: crate::conv::Error) -> Self {
+    Self::ChunkDecodingError(format!("{:?}", e))
   }
 }
 
@@ -145,7 +142,8 @@ pub(crate) mod conv {
         crate::conv::prefixed_str_js_to_bytes(CHUNK_PREFIX, val)
           .map_err(RecoveryError::from)
           .and_then(|v| {
-            icod_crypto::shamir::Chunk::decode(&v).map_err(|_| RecoveryError::ChunkDecodingError)
+            icod_crypto::shamir::Chunk::decode(&v)
+              .map_err(|e| RecoveryError::ChunkDecodingError(format!("{:?}", e)))
           })
       })
       .collect()

@@ -12,13 +12,12 @@ use wasm_bindgen::prelude::*;
 pub const MSG_PREFIX: &'static str = "icod-msg:";
 
 /// An error that happened during encryption or decryption.
-#[wasm_bindgen]
 #[derive(Debug)]
 pub enum Error {
   /// The provided `key` has incorrect byte length.
   InvalidKeySize,
   /// The message could not be decoded.
-  MessageDecodingError,
+  MessageDecodingError(String),
   /// The version is invalid.
   VersionError,
   /// Opaque cryptographic error.
@@ -44,20 +43,19 @@ impl From<encryption::Error> for Error {
 
 impl From<encryption::EncryptedMessageError> for Error {
   fn from(value: encryption::EncryptedMessageError) -> Self {
+    use encryption::EncryptedMessageError::*;
     match value {
-      encryption::EncryptedMessageError::DataTooBig => Self::DataTooBig,
-      // TODO [ToDr] Better errors
-      encryption::EncryptedMessageError::MissingParts => Self::MessageDecodingError,
-      encryption::EncryptedMessageError::MalformedData => Self::MessageDecodingError,
-      encryption::EncryptedMessageError::InvalidVersion => Self::MessageDecodingError,
+      DataTooBig => Self::DataTooBig,
+      MissingParts | MalformedData(_) | InvalidVersion => {
+        Self::MessageDecodingError(format!("{:?}", value))
+      }
     }
   }
 }
 
 impl From<crate::conv::Error> for Error {
-  fn from(_: crate::conv::Error) -> Self {
-    // TODO [ToDr] Pass more useful info somehow.
-    Self::MessageDecodingError
+  fn from(e: crate::conv::Error) -> Self {
+    Self::MessageDecodingError(format!("{:?}", e))
   }
 }
 
@@ -83,7 +81,6 @@ pub fn encrypt_message(
   let message = Message::from_str(&message);
 
   let encrypted = encryption::encrypt_message(&key, &message)?;
-
   let encoded = encrypted.split_and_encode(split);
   Ok(conv::msg_parts_to_js(encoded))
 }
@@ -96,18 +93,14 @@ pub fn encrypt_message(
 ///
 /// The result will be the decrypted message as a string `JsValue`.
 #[cfg_attr(not(test), wasm_bindgen)]
-pub fn decrypt_message(
-  key: Vec<u8>,
-  message_parts: Vec<JsValueOrString>,
-) -> Result<JsValueOrString, Error> {
+pub fn decrypt_message(key: Vec<u8>, message_parts: Vec<JsValueOrString>) -> Result<String, Error> {
   let key = crate::parse_key(key).map_err(|_| Error::InvalidKeySize)?;
   let key = MessageEncryptionKey::new(key);
   let parts = conv::js_to_msg_parts(message_parts)?;
   let msg = encryption::EncryptedMessage::collate_from_parts(parts)?;
   let decrypted = encryption::decrypt_message(&key, &msg)?;
-
   let (data, _nonce) = decrypted.into_tuple();
-  Ok(crate::conv::bytes_to_str_js(data.into()))
+  Ok(String::from_utf8_lossy(&data).to_string())
 }
 
 mod conv {
@@ -141,20 +134,20 @@ mod tests {
   #[test]
   fn should_encrypt_and_decrypt_a_message() {
     let key = [1u8; KEY_SIZE].to_vec();
-    let message = "This is an secret message.".to_owned();
-    let encrypted = encrypt_message(key, message, Some(20)).unwrap();
+    let message = "This is a secret message.";
+    let encrypted = encrypt_message(key.clone(), message.to_owned(), Some(20)).unwrap();
     assert_eq!(encrypted.len(), 3);
     assert_eq!(
       &encrypted[0],
-      "icod-msg:00000000001feorqc9gbe9fpouedo17cbpeg1vmvmb00"
+      "icod-msg:00000000001htf0sd658f3aqpvsfa8fkjuu573u45re0"
     );
     assert_eq!(
       &encrypted[1],
-      "icod-msg:0000008000179aortamitnj1fjta1udqp6dipsc5c2l0"
+      "icod-msg:00000080001tbm5l7hd2ki6scpjo5sg21q44vp8n7vk0"
     );
-    assert_eq!(&encrypted[2], "icod-msg:000000g0001222nonhbn1fdmo2nsvann6s");
+    assert_eq!(&encrypted[2], "icod-msg:000000g0001sh18v1ft00a9c3lerflva");
 
-    // TODO [ToDr] add test for decrypting the message
-    assert_eq!(true, false)
+    let original = decrypt_message(key, encrypted).unwrap();
+    assert_eq!(original, message);
   }
 }

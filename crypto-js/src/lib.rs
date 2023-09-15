@@ -162,10 +162,6 @@ pub(crate) mod conv {
     format!("{}{}", prefix, encode(b))
   }
 
-  pub fn bytes_to_str_js(b: Vec<u8>) -> JsValueOrString {
-    bytes_to_prefixed_str_js("", b)
-  }
-
   pub fn bytes_to_prefixed_str_js(prefix: &str, b: Vec<u8>) -> JsValueOrString {
     let result = bytes_to_prefixed_str(prefix, b);
     #[cfg(test)]

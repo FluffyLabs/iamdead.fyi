@@ -227,12 +227,14 @@ pub enum EncryptedMessageError {
   /// The `data` length can't be encoded into 3 bytes.
   #[error("Given data exceeds maximum of 16MBs.")]
   DataTooBig,
-  // TODO [ToDr] docs
-  #[error("")]
+  /// The decoded version of message is invalid.
+  #[error("Given message seems to use unsupported crypto.")]
   InvalidVersion,
-  #[error("")]
-  MalformedData,
-  #[error("")]
+  /// We failed to fully decode message parts or found some inconsistencies.
+  #[error("The message parts are malformed or incorrect.")]
+  MalformedData(&'static str),
+  /// Some parts of the message were not passed.
+  #[error("There is not enough parts of the encrypted message.")]
   MissingParts,
 }
 
@@ -266,6 +268,13 @@ impl EncryptedMessage {
     })
   }
 
+  /// Restore the [EncryptedMessage] from multiple parts coming from [split_and_encode] method.
+  ///
+  /// Note that you need to provide all `parts` to fully restore the message.
+  /// Restoration DOES NOT guarantee that the message is consistent,
+  /// it might just happen the consistency checks will pass, but
+  /// the parts are not part of the same original message and you will just get
+  /// garbage.
   pub fn collate_from_parts(parts: Vec<Bytes>) -> Result<Self, EncryptedMessageError> {
     let mut nonce = [0u8; NONCE_SIZE];
     let mut message_parts = BTreeMap::<u32, Vec<u8>>::new();
@@ -276,23 +285,30 @@ impl EncryptedMessage {
       let part = part
         .strip_prefix(&version)
         .ok_or(EncryptedMessageError::InvalidVersion)?;
-      let (part_id, part) =
-        EncryptedMessagePartId::read_from(&part).ok_or(EncryptedMessageError::MalformedData)?;
+      let (part_id, part) = EncryptedMessagePartId::read_from(&part)
+        .ok_or(EncryptedMessageError::MalformedData("Cannot read part id."))?;
       // Check number of expected parts
       if expected_parts != part_id.all {
         if expected_parts == 0 {
           expected_parts = part_id.all;
         } else {
-          return Err(EncryptedMessageError::MalformedData);
+          return Err(EncryptedMessageError::MalformedData(
+            "Number of parts mismatch.",
+          ));
         }
       }
       // read nonce first for the first part
-      if part_id.idx == 0 {
+      let part = if part_id.idx == 0 {
         if part.len() < NONCE_SIZE {
-          return Err(EncryptedMessageError::MalformedData);
+          return Err(EncryptedMessageError::MalformedData(
+            "Not enough bytes to read NONCE.",
+          ));
         }
         nonce.copy_from_slice(&part[0..NONCE_SIZE]);
-      }
+        &part[NONCE_SIZE..]
+      } else {
+        part
+      };
       // now rest of the data
       // TODO [ToDr] Avoid alloc? Use split_off just calculate where.
       message_parts.insert(part_id.idx, part.to_vec());
@@ -349,16 +365,25 @@ impl EncryptedMessage {
   /// | data (variable length)         |
   /// +--------------------------------+
   /// ```
-  pub fn split_and_encode(self, split: Option<usize>) -> Vec<Bytes> {
+  pub fn split_and_encode(self, split_arg: Option<usize>) -> Vec<Bytes> {
     let version = match self.version {
       #[cfg(test)]
       EncryptionKeyVersion::Test => 255u8,
       EncryptionKeyVersion::V0 => 0u8,
     };
 
-    let total_length = self.data.len() + NONCE_SIZE;
-    let split = split.unwrap_or(total_length).min(total_length).max(1);
-    let capacity = total_length / split;
+    let data_len = self.data.len();
+    let split = split_arg.unwrap_or(data_len).min(data_len).max(1);
+    let capacity = if split_arg.is_none() {
+      // special case if we are not planning to do any splitting.
+      1
+    } else if split < NONCE_SIZE {
+      // add one extra chunk just for nonce
+      (data_len + split - 1) / split + 1
+    } else {
+      // treat nonce as regular data
+      (data_len + NONCE_SIZE + split - 1) / split
+    };
     let mut output = Vec::with_capacity(capacity);
 
     let mut data = &self.data[..];
@@ -405,6 +430,7 @@ impl EncryptedMessage {
 pub const BYTES_PER_ID_PART: usize = 3;
 
 /// A location of part within the original [EncryptedMessage].
+#[derive(Debug)]
 pub struct EncryptedMessagePartId {
   /// Current part index (0-based).
   idx: u32,
@@ -621,19 +647,19 @@ mod tests {
     assert_eq!(encoded.len(), 4);
     assert_eq!(
         format!("{:?}", encoded[0]),
-        "String(\"\\0\\0\\0\\0\\0\\0\\u{5}test nonce x\") == Bytes(\"0000000000000574657374206e6f6e63652078\")"
+        "String(\"\\0\\0\\0\\0\\0\\0\\u{4}test nonce x\") == Bytes(\"0000000000000474657374206e6f6e63652078\")"
     );
     assert_eq!(
       format!("{:?}", encoded[1]),
-      "String(\"\\0\\0\\0\\u{1}\\0\\0\\u{5}Test\") == Bytes(\"0000000100000554657374\")"
+      "String(\"\\0\\0\\0\\u{1}\\0\\0\\u{4}Test\") == Bytes(\"0000000100000454657374\")"
     );
     assert_eq!(
       format!("{:?}", encoded[2]),
-      "String(\"\\0\\0\\0\\u{2}\\0\\0\\u{5} Dat\") == Bytes(\"0000000200000520446174\")"
+      "String(\"\\0\\0\\0\\u{2}\\0\\0\\u{4} Dat\") == Bytes(\"0000000200000420446174\")"
     );
     assert_eq!(
       format!("{:?}", encoded[3]),
-      "String(\"\\0\\0\\0\\u{3}\\0\\0\\u{5}a\") == Bytes(\"0000000300000561\")"
+      "String(\"\\0\\0\\0\\u{3}\\0\\0\\u{4}a\") == Bytes(\"0000000300000461\")"
     );
   }
 
