@@ -1,6 +1,7 @@
 //! Functions used to identify & decode icod-produced strings.
 
 use icod_crypto::{encryption::EncryptedMessagePart, shamir::Chunk};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{encryption::MSG_PREFIX, shamir::CHUNK_PREFIX};
 
@@ -14,6 +15,13 @@ pub enum Error {
   /// Error during type-specific decoding.
   Other(String),
 }
+
+impl From<Error> for JsValue {
+  fn from(value: Error) -> Self {
+    JsValue::from_str(&format!("{:?}", value))
+  }
+}
+
 
 /// Result of identifiation of the string.
 #[derive(Debug, PartialEq, Eq, serde::Serialize)]
@@ -48,33 +56,48 @@ pub enum Identification {
   },
 }
 
+fn serialize(id: Identification) -> IdentificationOrJsValue {
+  #[cfg(test)]
+  return id;
+  #[cfg(not(test))]
+  serde_wasm_bindgen::to_value(&id).expect("Identification serialization is infallible")
+}
+
+/// A type returned by [identify] function.
+#[cfg(test)]
+pub type IdentificationOrJsValue = Identification;
+/// A type returned by [identify] function.
+#[cfg(not(test))]
+pub type IdentificationOrJsValue = JsValue;
+
 /// Given a string attempts to identify and decode the details
 /// of encoded value.
-pub fn identify(item: String) -> Result<Identification, Error> {
+#[cfg_attr(not(test), wasm_bindgen)]
+pub fn identify(item: String) -> Result<IdentificationOrJsValue, Error> {
   if let Some(chunk) = item.strip_prefix(CHUNK_PREFIX) {
     let bytes = crate::conv::decode(&chunk).map_err(|_| Error::DecodingError)?;
     let chunk = Chunk::decode(&bytes).map_err(|e| Error::Other(format!("{}", e)))?;
 
-    return Ok(Identification::Chunk {
+    return Ok(serialize(Identification::Chunk {
       version: chunk.version(),
       key_hash: crate::conv::encode(&chunk.key_hash().to_bytes()),
       required_chunks: chunk.configuration().required() as u8,
       spare_chunks: chunk.configuration().spare() as u8,
       chunk_index: chunk.index(),
       data: crate::conv::encode(&chunk.data()),
-    });
+    }));
   }
 
   if let Some(msg) = item.strip_prefix(MSG_PREFIX) {
     let bytes = crate::conv::decode(&msg).map_err(|_| Error::DecodingError)?;
     let part = EncryptedMessagePart::decode(&bytes).map_err(|e| Error::Other(format!("{}", e)))?;
-    return Ok(Identification::MessagePart {
+    return Ok(serialize(Identification::MessagePart {
       version: part.version(),
       part_index: part.part_index,
       parts_total: part.parts_total,
       nonce: part.nonce.map(|n| crate::conv::encode(&n)),
       data: crate::conv::encode(&part.data),
-    });
+    }));
   }
 
   return Err(Error::MissingPrefix);
