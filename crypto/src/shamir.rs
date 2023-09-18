@@ -51,6 +51,11 @@ impl ChunksConfiguration {
     self.required as usize
   }
 
+  /// Returns number of spare chunks.
+  pub fn spare(&self) -> usize {
+    self.spare as usize
+  }
+
   /// Returns total number of generated chunks.
   ///
   /// The method returns `usize` type to avoid overflows.
@@ -171,18 +176,22 @@ impl Chunk {
   /// +--------------------------------+
   /// ```
   pub fn encode(&self) -> Bytes {
-    let version = match self.version {
-      ChunkVersion::V0 => 0u8,
-    };
     let mut out = vec![];
     out.extend_from_slice(CHUNK_ENCODING_MAGIC_SEQUENCE);
-    out.push(version);
+    out.push(self.version());
     out.extend_from_slice(self.key_hash.as_slice());
     out.push(self.chunks_configuration.required);
     out.push(self.chunks_configuration.spare);
     out.push(self.chunk_index);
     out.extend_from_slice(&*self.chunk_data);
     Bytes::from(out)
+  }
+
+  /// Return version byte.
+  pub fn version(&self) -> u8 {
+    match self.version {
+      ChunkVersion::V0 => 0u8,
+    }
   }
 
   /// Return the hash of the key the chunk is for.

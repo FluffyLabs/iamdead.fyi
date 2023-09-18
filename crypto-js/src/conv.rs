@@ -9,21 +9,21 @@ pub enum Error {
 
 /// We could consider using something like BASE40 to maximize size-efficiency,
 /// but for now we're choosing BASE32 for simplicity.
-fn encode(b: Vec<u8>) -> String {
-  data_encoding::BASE32_DNSSEC.encode(&b)
+pub(crate) fn encode(b: &[u8]) -> String {
+  data_encoding::BASE32_DNSSEC.encode(b)
 }
 
-fn decode(v: &str) -> Result<Vec<u8>, ()> {
+pub(crate) fn decode(v: &str) -> Result<Vec<u8>, ()> {
   data_encoding::BASE32_DNSSEC
     .decode(v.as_bytes())
     .map_err(|_| ())
 }
 
-pub fn bytes_to_prefixed_str(prefix: &str, b: Vec<u8>) -> String {
+pub fn bytes_to_prefixed_str(prefix: &str, b: &[u8]) -> String {
   format!("{}{}", prefix, encode(b))
 }
 
-pub fn bytes_to_prefixed_str_js(prefix: &str, b: Vec<u8>) -> JsValueOrString {
+pub fn bytes_to_prefixed_str_js(prefix: &str, b: &[u8]) -> JsValueOrString {
   let result = bytes_to_prefixed_str(prefix, b);
   #[cfg(test)]
   return result;

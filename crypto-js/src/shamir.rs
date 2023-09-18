@@ -129,7 +129,7 @@ pub(crate) mod conv {
   pub fn chunks_to_js(chunks: Vec<icod_crypto::shamir::Chunk>) -> Vec<JsValueOrString> {
     chunks
       .into_iter()
-      .map(|chunk| crate::conv::bytes_to_prefixed_str_js(CHUNK_PREFIX, chunk.encode().into()))
+      .map(|chunk| crate::conv::bytes_to_prefixed_str_js(CHUNK_PREFIX, &chunk.encode()))
       .collect()
   }
 

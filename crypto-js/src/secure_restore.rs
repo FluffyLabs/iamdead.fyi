@@ -69,13 +69,14 @@ pub fn secure_message(
 
   let chunks = chunks
     .into_iter()
-    .map(|chunk| crate::conv::bytes_to_prefixed_str(CHUNK_PREFIX, chunk.encode().into()))
+    .map(|chunk| crate::conv::bytes_to_prefixed_str(CHUNK_PREFIX, &chunk.encode()))
     .collect();
 
+  println!("Original: {:?}", encrypted_message);
   let encrypted_message = encrypted_message.split_and_encode(split);
   let encrypted_message = encrypted_message
     .into_iter()
-    .map(|msg| crate::conv::bytes_to_prefixed_str(MSG_PREFIX, msg.into()))
+    .map(|msg| crate::conv::bytes_to_prefixed_str(MSG_PREFIX, &msg))
     .collect();
   let result = MessageAndChunks {
     encrypted_message,
@@ -134,6 +135,7 @@ pub fn restore_message(
   let message = encryption::conv::js_to_msg_parts(message).map_err(encryption::Error::from)?;
   let encrypted_message = icod_crypto::encryption::EncryptedMessage::collate_from_parts(message)
     .map_err(encryption::Error::from)?;
+  println!("Encrypted: {:?}", encrypted_message);
   let chunks = shamir::conv::js_to_chunks(chunks)?;
   let message = icod_crypto::restore_message(encrypted_message, chunks)?;
   let (message, _) = message.into_tuple();
