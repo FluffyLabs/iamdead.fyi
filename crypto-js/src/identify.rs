@@ -22,7 +22,6 @@ impl From<Error> for JsValue {
   }
 }
 
-
 /// Result of identifiation of the string.
 #[derive(Debug, PartialEq, Eq, serde::Serialize)]
 pub enum Identification {
