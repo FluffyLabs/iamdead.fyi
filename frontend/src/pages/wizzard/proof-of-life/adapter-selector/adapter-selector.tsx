@@ -1,11 +1,12 @@
 import { AdaptersSection } from './adapters-section';
 import { AdapterItem } from './types';
 
-import styles from './styles.module.scss';
 import { Adapters } from '../../wizzard-context/proof-of-life';
 import { ChangeEvent, useCallback, useState } from 'react';
 import { capitalize } from '../../../../utils/string';
 import { Button, TextInput } from 'evergreen-ui';
+
+import styles from './styles.module.scss';
 
 type Props = {
   adapters: {
@@ -61,12 +62,14 @@ export const AdapterSelector = ({ adapters, onChange }: Props) => {
             onChange={handleChange}
             value={adapterId}
           />
-          <Button marginRight={16} onClick={changeAdapter}>
-            Change adapter
-          </Button>
-          <Button appearance="primary" onClick={onConfirm}>
-            Confirm
-          </Button>
+          <div className={styles.buttons}>
+            <Button marginRight={16} onClick={changeAdapter}>
+              Change adapter
+            </Button>
+            <Button appearance="primary" onClick={onConfirm}>
+              Confirm
+            </Button>
+          </div>
         </>
       )}
     </div>
