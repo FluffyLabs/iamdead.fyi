@@ -11,6 +11,7 @@ import { useWizzardContext } from '../wizzard-context';
 import { AdapterSelector } from './adapter-selector';
 import { AdapterItem } from './adapter-selector/types';
 import { capitalize } from '../../../utils/string';
+import { NewAdapterPopover } from './new-adapter-popover/new-adapter-popover';
 
 import telegramImage from './adapter-selector/images/telegram.svg';
 import whatsappImage from './adapter-selector/images/whatsapp.png';
@@ -64,7 +65,7 @@ const getText = ({ adapter }: ConfiguredAdapter) => {
 
 export const ProofOfLife = () => {
   const { proofOfLife } = useWizzardContext();
-  const addFirstAdapter = useCallback(
+  const addNewAdapterGroup = useCallback(
     ({ adapter }: { adapter: Adapters }) => {
       proofOfLife.addNewGroup({ adapter, time: 5, unit: Units.Months });
     },
@@ -85,7 +86,7 @@ export const ProofOfLife = () => {
             socialMediaAdapters: socialMediaAdapterItems,
             messageAdapters: messageAdapterItems,
           }}
-          onChange={addFirstAdapter}
+          onChange={addNewAdapterGroup}
         />
       )}
     </div>
@@ -94,6 +95,14 @@ export const ProofOfLife = () => {
 
 const POLList = () => {
   const { proofOfLife } = useWizzardContext();
+
+  const addNewAdapterGroup = useCallback(
+    ({ adapter }: { adapter: Adapters }) => {
+      proofOfLife.addNewGroup({ adapter, time: 5, unit: Units.Months });
+    },
+    [proofOfLife],
+  );
+
   return (
     <ul className={styles.mainList}>
       {proofOfLife.listOfAdapters.map((group, i) => (
@@ -103,7 +112,15 @@ const POLList = () => {
         </React.Fragment>
       ))}
       <li>
-        <button className={styles.button}>+ and</button>
+        <NewAdapterPopover
+          adapters={{
+            socialMediaAdapters: socialMediaAdapterItems,
+            messageAdapters: messageAdapterItems,
+          }}
+          onNewAdapter={addNewAdapterGroup}
+        >
+          <button className={styles.button}>+ and</button>
+        </NewAdapterPopover>
       </li>
     </ul>
   );
@@ -116,6 +133,17 @@ const POLSubList = ({
   items: Array<ConfiguredAdapter>;
   groupIndex: number;
 }) => {
+  const { proofOfLife } = useWizzardContext();
+
+  const addNewAdapter = useCallback(
+    ({ adapter }: { adapter: Adapters }) => {
+      proofOfLife.addToGroup(
+        { adapter, time: 5, unit: Units.Months },
+        groupIndex,
+      );
+    },
+    [proofOfLife, groupIndex],
+  );
   return (
     <ul className={styles.subList}>
       {items.map((adapter, i) => (
@@ -127,7 +155,15 @@ const POLSubList = ({
         />
       ))}
       <li>
-        <button className={styles.button}>+ or</button>
+        <NewAdapterPopover
+          adapters={{
+            socialMediaAdapters: socialMediaAdapterItems,
+            messageAdapters: messageAdapterItems,
+          }}
+          onNewAdapter={addNewAdapter}
+        >
+          <button className={styles.button}>+ or</button>
+        </NewAdapterPopover>
       </li>
     </ul>
   );
