@@ -91,7 +91,7 @@ function DisplayResult({ result, error }: { result: SecureMessageResult | null; 
     <div>
       <h3>Encrypted message</h3>
       <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <EncryptedMessage data={result.encryptedMessage.data + result.encryptedMessage.nonce} />
+        <EncryptedMessage data={result.encryptedMessage} />
       </div>
       <h4>Recovery chunks</h4>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -103,37 +103,18 @@ function DisplayResult({ result, error }: { result: SecureMessageResult | null; 
   );
 }
 
-function EncryptedMessage({ data }: { data: string }) {
-  // TODO [ToDr] We use upper case now to switch to alphanumeric mode of QR
-  const parts = splitMessage(data);
+function EncryptedMessage({ data }: { data: string[] }) {
+  const parts = data;
   return (
     <Fragment>
       {parts.map((part: string, idx) => (
-        <div style={{ margin: 50 }} title={part}>
+        <div style={{ margin: 50 }} title={part} key={part}>
           <h3>Message Part {idx + 1}</h3>
           <QRCodeSVG value={part.toUpperCase()} />
         </div>
       ))}
     </Fragment>
   );
-}
-
-function splitMessage(message: string) {
-  const THRESHOLD = 250;
-  // TODO [ToDr] The whole function should be in Rust, so that we can have a common place that is able to identify any `icod-` prefixed string.
-  const PREFIX = 'icod-msg:';
-  if (message.length <= THRESHOLD) {
-    return [PREFIX + `0/1:` + message];
-  }
-  const noOfParts = message.length / THRESHOLD;
-  const msg = message.split('');
-  const parts = [];
-  for (let i = 0; i < noOfParts; i += 1) {
-    const m = msg.splice(0, THRESHOLD).join('');
-    const id = `${i}/${noOfParts}:`;
-    parts.push(PREFIX + id + m);
-  }
-  return parts;
 }
 
 function Chunk({ id, chunk }: { id: number; chunk: string }) {
