@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
-import { Adapters, ConfiguredAdapter, Units, createAdapter } from '../wizzard-context/proof-of-life';
-import { useWizzardContext } from '../wizzard-context';
+import { Adapters, ConfiguredAdapter, Units, createAdapter } from '../wizard-context/proof-of-life';
+import { useWizardContext } from '../wizard-context';
 import { AdapterSelector } from './adapter-selector';
 import { AdapterItem } from './adapter-selector/types';
 import { capitalize } from '../../../utils/string';
@@ -51,7 +51,7 @@ const getText = ({ adapter }: ConfiguredAdapter) => {
 };
 
 export const ProofOfLife = () => {
-  const { proofOfLife } = useWizzardContext();
+  const { proofOfLife } = useWizardContext();
   const addNewAdapterGroup = useCallback(
     ({ adapter }: { adapter: Adapters }) => {
       proofOfLife.addNewGroup({ adapter, time: 5, unit: Units.Months });
@@ -81,7 +81,7 @@ export const ProofOfLife = () => {
 };
 
 const POLList = () => {
-  const { proofOfLife } = useWizzardContext();
+  const { proofOfLife } = useWizardContext();
 
   const addNewAdapterGroup = useCallback(
     ({ adapter }: { adapter: Adapters }) => {
@@ -114,7 +114,7 @@ const POLList = () => {
 };
 
 const POLSubList = ({ items, groupIndex }: { items: Array<ConfiguredAdapter>; groupIndex: number }) => {
-  const { proofOfLife } = useWizzardContext();
+  const { proofOfLife } = useWizardContext();
 
   const addNewAdapter = useCallback(
     ({ adapter }: { adapter: Adapters }) => {
@@ -151,7 +151,7 @@ const POLSubListItem = ({
   itemIndex: number;
   groupIndex: number;
 }) => {
-  const { proofOfLife } = useWizzardContext();
+  const { proofOfLife } = useWizardContext();
 
   const item = proofOfLife.listOfAdapters[groupIndex][itemIndex];
 

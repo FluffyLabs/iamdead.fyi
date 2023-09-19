@@ -1,7 +1,7 @@
 import { AdaptersSection } from './adapters-section';
 import { AdapterItem } from './types';
 
-import { Adapters } from '../../wizzard-context/proof-of-life';
+import { Adapters } from '../../wizard-context/proof-of-life';
 import { ChangeEvent, useCallback, useState } from 'react';
 import { capitalize } from '../../../../utils/string';
 import { Button, TextInput } from 'evergreen-ui';

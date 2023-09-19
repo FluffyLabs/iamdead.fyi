@@ -2,17 +2,17 @@ import { createContext, useContext, useMemo } from 'react';
 import { useSecurityStep } from './security';
 import { useProofOfLifeStep } from './proof-of-life';
 
-type WizzardContext = ReturnType<typeof useWizzard>;
+type WizardContext = ReturnType<typeof useWizard>;
 
-const wizzardContext = createContext<ReturnType<typeof useWizzard>>(null as unknown as WizzardContext);
+const wizardContext = createContext<ReturnType<typeof useWizard>>(null as unknown as WizardContext);
 
-export const WizzardContextProvider = wizzardContext.Provider;
+export const WizardContextProvider = wizardContext.Provider;
 
-export function useWizzardContext() {
-  return useContext(wizzardContext);
+export function useWizardContext() {
+  return useContext(wizardContext);
 }
 
-export function useWizzard() {
+export function useWizard() {
   const security = useSecurityStep();
   const proofOfLife = useProofOfLifeStep();
   return useMemo(

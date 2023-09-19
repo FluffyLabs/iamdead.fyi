@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { ChangeEvent, ComponentType, SVGProps, useCallback, useMemo, useState } from 'react';
 
-import { useWizzardContext } from '../wizzard-context';
+import { useWizardContext } from '../wizard-context';
 import { KeyPerson } from '../icons';
 import { Key } from '../icons';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
@@ -21,7 +21,7 @@ const MIN_NO_OF_ADDITIONAL_PIECES = 0;
 const MAX_NO_OF_ADDITIONAL_PIECES = 9;
 
 export const Security = () => {
-  const { security } = useWizzardContext();
+  const { security } = useWizardContext();
   const [editedCardId, setEditedCardId] = useState<number>(-1);
   const closeModal = useCallback(() => setEditedCardId(-1), [setEditedCardId]);
   const onSave = useCallback(
@@ -111,7 +111,7 @@ const Row = ({
 };
 
 const OneRecipient = () => {
-  const { security } = useWizzardContext();
+  const { security } = useWizardContext();
 
   return (
     <>
@@ -127,7 +127,7 @@ const OneRecipient = () => {
 };
 
 const ManyRecipients = () => {
-  const { security } = useWizzardContext();
+  const { security } = useWizardContext();
 
   const handleNoOfPiecesChange = useCallback(
     (val: number) => {
@@ -159,7 +159,7 @@ type EditKeyModalProps = {
 } & Partial<Omit<ModalProps, 'onConfirm'>>;
 
 function useNoteHandler(cardId: number) {
-  const { security } = useWizzardContext();
+  const { security } = useWizardContext();
 
   const [note, setNote] = useState<string>(() => security.keyPieces[cardId].note ?? '');
 
@@ -172,7 +172,7 @@ function useNoteHandler(cardId: number) {
 }
 
 function useRecipientHandler(cardId: number) {
-  const { security } = useWizzardContext();
+  const { security } = useWizardContext();
   const [isNewRecipient, setNewRecipient] = useState(false);
   const options = useMemo(
     () =>

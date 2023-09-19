@@ -1,8 +1,8 @@
 import { Outlet } from 'react-router-dom';
 import { useDefaultSubpath } from '../../hooks/use-default-subpath';
-import { DEFAULT_WIZZARD_ROUTE, Steps } from './consts';
+import { DEFAULT_WIZARD_ROUTE, Steps } from './consts';
 import { useStepName, useStepsNavigation } from './hooks';
-import { WizzardContextProvider, useWizzard } from './wizzard-context';
+import { WizardContextProvider, useWizard } from './wizard-context';
 
 const createStepConfig = (title: string, previousStep: Steps | null, nextStep: Steps | null, progress: string) => ({
   title,
@@ -16,9 +16,9 @@ const STEPS_CONFIG = {
   [Steps.ProofOfLife]: createStepConfig('STEP 2: Configure Proof of Life', Steps.Security, Steps.Message, '50%'),
   [Steps.Message]: createStepConfig('STEP 3: Create Message', Steps.ProofOfLife, null, '75%'),
 };
-export const Wizzard = () => {
-  const wizzard = useWizzard();
-  useDefaultSubpath(DEFAULT_WIZZARD_ROUTE);
+export const Wizard = () => {
+  const wizard = useWizard();
+  useDefaultSubpath(DEFAULT_WIZARD_ROUTE);
   const stepName = useStepName();
   const stepConfig = STEPS_CONFIG[stepName];
   const { handleNext, handlePrevious } = useStepsNavigation(stepConfig);
@@ -32,9 +32,9 @@ export const Wizzard = () => {
         ></div>
       </div>
 
-      <WizzardContextProvider value={wizzard}>
+      <WizardContextProvider value={wizard}>
         <Outlet />
-      </WizzardContextProvider>
+      </WizardContextProvider>
 
       <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
 

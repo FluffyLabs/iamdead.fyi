@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { CrossIcon, IconButton, Pane, Popover, Position } from 'evergreen-ui';
 import { AdapterSelector } from '../adapter-selector';
-import { Adapters } from '../../wizzard-context/proof-of-life';
+import { Adapters } from '../../wizard-context/proof-of-life';
 import { AdapterItem } from '../adapter-selector/types';
 
 import styles from './styles.module.scss';

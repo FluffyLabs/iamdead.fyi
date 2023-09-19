@@ -1,4 +1,4 @@
-import { Adapters } from '../../wizzard-context/proof-of-life';
+import { Adapters } from '../../wizard-context/proof-of-life';
 
 export type AdapterItem = {
   name: string;

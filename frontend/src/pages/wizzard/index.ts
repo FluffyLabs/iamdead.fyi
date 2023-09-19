@@ -1,1 +1,0 @@
-export { Wizzard } from './wizzard';

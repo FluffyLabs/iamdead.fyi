@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Adapters } from '../../../wizzard-context/proof-of-life';
+import { Adapters } from '../../../wizard-context/proof-of-life';
 
 import styles from './styles.module.scss';
 

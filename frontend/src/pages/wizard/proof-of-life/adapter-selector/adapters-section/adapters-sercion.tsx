@@ -1,4 +1,4 @@
-import { Adapters } from '../../../wizzard-context/proof-of-life';
+import { Adapters } from '../../../wizard-context/proof-of-life';
 import { Adapter } from '../adapter/adapter';
 import { AdapterItem } from '../types';
 

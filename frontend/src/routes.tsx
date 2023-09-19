@@ -5,11 +5,11 @@ import { Home } from './pages/home';
 import { Recover } from './pages/recover';
 import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
-import { Wizzard } from './pages/wizzard';
-import { Security } from './pages/wizzard/security';
-import { ProofOfLife } from './pages/wizzard/proof-of-life';
-import { Steps } from './pages/wizzard/consts';
-import { Message } from './pages/wizzard/message';
+import { Wizard } from './pages/wizard';
+import { Security } from './pages/wizard/security';
+import { ProofOfLife } from './pages/wizard/proof-of-life';
+import { Steps } from './pages/wizard/consts';
+import { Message } from './pages/wizard/message';
 
 export function Routes() {
   return (
@@ -24,7 +24,7 @@ export function Routes() {
           <Route element={<IndieAuthRedirect />} path="indie-auth-redirect" />
         </Route>
 
-        <Route element={<Wizzard />} path="wizzard">
+        <Route element={<Wizard />} path="wizard">
           <Route index element={<Security />} path={Steps.Security} />
           <Route element={<ProofOfLife />} path={Steps.ProofOfLife} />
           <Route element={<Message />} path={Steps.Message} />

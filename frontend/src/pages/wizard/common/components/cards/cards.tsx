@@ -4,14 +4,14 @@ import { useCallback } from 'react';
 import { Card } from '../../../icons';
 
 import styles from './styles.module.scss';
-import { useWizzardContext } from '../../../wizzard-context';
+import { useWizardContext } from '../../../wizard-context';
 
 type Props = {
   onClick?: (id: number) => void;
 };
 
 export const Cards = ({ onClick }: Props) => {
-  const { security } = useWizzardContext();
+  const { security } = useWizardContext();
 
   return (
     <div className={styles.cards}>
