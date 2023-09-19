@@ -101,6 +101,7 @@ function EncryptedMessage({ data }: { data: string[] }) {
         <div style={{ margin: 50 }} title={part} key={part}>
           <h3>Message Part {idx + 1}</h3>
           <QRCodeSVG value={part.toUpperCase()} />
+          <input type="text" disabled value={part.toUpperCase()} />
         </div>
       ))}
     </Fragment>
@@ -114,6 +115,7 @@ function Chunk({ id, chunk }: { id: number; chunk: string }) {
     <div style={{ margin: 20 }} title={chunk}>
       <h3>Chunk {id}</h3>
       <QRCodeSVG value={chunk.toUpperCase()} />
+      <input type="text" disabled value={chunk.toUpperCase()} />
     </div>
   );
 }
