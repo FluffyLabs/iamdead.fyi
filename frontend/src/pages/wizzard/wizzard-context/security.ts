@@ -31,43 +31,25 @@ function changeNoOfKeyPieces(noOfPieces: number, pieces: KeyPieces): KeyPieces {
 }
 
 export function useSecurityStep() {
-  const [noOfRecipients, setNoOfRecipients] = useState(
-    DEFAULT_NUMBER_OF_RECIPIENTS,
-  );
-  const [noOfAdditionalPieces, setNoOfAdditionalPieces] = useState(
-    DEFAULT_NUMBER_OF_ADDITIONAL_PIECES,
-  );
+  const [noOfRecipients, setNoOfRecipients] = useState(DEFAULT_NUMBER_OF_RECIPIENTS);
+  const [noOfAdditionalPieces, setNoOfAdditionalPieces] = useState(DEFAULT_NUMBER_OF_ADDITIONAL_PIECES);
 
-  const [mainKeyPieces, setMainKeyPieces] = useState(() =>
-    createKeyPieces(noOfRecipients),
-  );
-  const [additionalKeyPieces, setAdditionalKeyPieces] = useState(() =>
-    createKeyPieces(noOfAdditionalPieces),
-  );
+  const [mainKeyPieces, setMainKeyPieces] = useState(() => createKeyPieces(noOfRecipients));
+  const [additionalKeyPieces, setAdditionalKeyPieces] = useState(() => createKeyPieces(noOfAdditionalPieces));
 
-  const keyPieces = useMemo(
-    () => [...mainKeyPieces, ...additionalKeyPieces],
-    [mainKeyPieces, additionalKeyPieces],
-  );
+  const keyPieces = useMemo(() => [...mainKeyPieces, ...additionalKeyPieces], [mainKeyPieces, additionalKeyPieces]);
 
   const [recipients, setRecipients] = useState<Recipients>([]);
 
   const createRecipient = useCallback(
     (newRecipient: Recipient) => {
-      setRecipients((currentRecipients) => [
-        ...currentRecipients,
-        newRecipient,
-      ]);
+      setRecipients((currentRecipients) => [...currentRecipients, newRecipient]);
     },
     [setRecipients],
   );
 
   const updateKeyPieces = useCallback(
-    function <T extends keyof KeyPiece>(
-      cardId: number,
-      key: T,
-      value: KeyPiece[T],
-    ) {
+    function <T extends keyof KeyPiece>(cardId: number, key: T, value: KeyPiece[T]) {
       const keyPieciesCopy = [...keyPieces];
       keyPieciesCopy[cardId][key] = value;
       setMainKeyPieces(keyPieciesCopy.slice(0, mainKeyPieces.length));
@@ -99,10 +81,7 @@ export function useSecurityStep() {
 
   useEffect(() => {
     if (noOfAdditionalPieces !== additionalKeyPieces.length) {
-      const newPieces = changeNoOfKeyPieces(
-        noOfAdditionalPieces,
-        additionalKeyPieces,
-      );
+      const newPieces = changeNoOfKeyPieces(noOfAdditionalPieces, additionalKeyPieces);
       setAdditionalKeyPieces(newPieces);
     }
   }, [noOfAdditionalPieces, additionalKeyPieces]);

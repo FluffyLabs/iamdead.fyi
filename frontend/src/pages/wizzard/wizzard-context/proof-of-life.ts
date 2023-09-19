@@ -17,11 +17,7 @@ export enum Units {
   Months = 'months',
 }
 
-export const createAdapter = (
-  adapter: Adapters,
-  time: number,
-  unit = Units.Months,
-): ConfiguredAdapter => ({
+export const createAdapter = (adapter: Adapters, time: number, unit = Units.Months): ConfiguredAdapter => ({
   adapter,
   time,
   unit,
@@ -34,8 +30,7 @@ const list: Array<Array<ConfiguredAdapter>> = [
 ];
 
 export function useProofOfLifeStep() {
-  const [listOfAdapters, setListOfAdapters] =
-    useState<Array<Array<ConfiguredAdapter>>>(list);
+  const [listOfAdapters, setListOfAdapters] = useState<Array<Array<ConfiguredAdapter>>>(list);
 
   const addNewGroup = useCallback(
     (item: ConfiguredAdapter) => {

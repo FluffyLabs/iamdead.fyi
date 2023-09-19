@@ -4,32 +4,17 @@ import { DEFAULT_WIZZARD_ROUTE, Steps } from './consts';
 import { useStepName, useStepsNavigation } from './hooks';
 import { WizzardContextProvider, useWizzard } from './wizzard-context';
 
-const createStepConfig = (
-  title: string,
-  previousStep: Steps | null,
-  nextStep: Steps | null,
-  progress: string,
-) => ({ title, nextStep, previousStep, progress });
+const createStepConfig = (title: string, previousStep: Steps | null, nextStep: Steps | null, progress: string) => ({
+  title,
+  nextStep,
+  previousStep,
+  progress,
+});
 
 const STEPS_CONFIG = {
-  [Steps.Security]: createStepConfig(
-    'STEP 1: Configure Security',
-    null,
-    Steps.ProofOfLife,
-    '25%',
-  ),
-  [Steps.ProofOfLife]: createStepConfig(
-    'STEP 2: Configure Proof of Life',
-    Steps.Security,
-    Steps.Message,
-    '50%',
-  ),
-  [Steps.Message]: createStepConfig(
-    'STEP 3: Create Message',
-    Steps.ProofOfLife,
-    null,
-    '75%',
-  ),
+  [Steps.Security]: createStepConfig('STEP 1: Configure Security', null, Steps.ProofOfLife, '25%'),
+  [Steps.ProofOfLife]: createStepConfig('STEP 2: Configure Proof of Life', Steps.Security, Steps.Message, '50%'),
+  [Steps.Message]: createStepConfig('STEP 3: Create Message', Steps.ProofOfLife, null, '75%'),
 };
 export const Wizzard = () => {
   const wizzard = useWizzard();

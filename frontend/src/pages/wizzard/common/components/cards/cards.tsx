@@ -22,13 +22,7 @@ export const Cards = ({ onClick }: Props) => {
   );
 };
 
-const CardItem = ({
-  id,
-  onClick,
-}: {
-  onClick?: (id: number) => void;
-  id: number;
-}) => {
+const CardItem = ({ id, onClick }: { onClick?: (id: number) => void; id: number }) => {
   const handleCardClick = useCallback(() => {
     onClick?.(id);
   }, [onClick, id]);

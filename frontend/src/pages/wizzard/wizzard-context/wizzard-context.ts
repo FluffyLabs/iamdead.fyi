@@ -4,9 +4,7 @@ import { useProofOfLifeStep } from './proof-of-life';
 
 type WizzardContext = ReturnType<typeof useWizzard>;
 
-const wizzardContext = createContext<ReturnType<typeof useWizzard>>(
-  null as unknown as WizzardContext,
-);
+const wizzardContext = createContext<ReturnType<typeof useWizzard>>(null as unknown as WizzardContext);
 
 export const WizzardContextProvider = wizzardContext.Provider;
 

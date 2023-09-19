@@ -1,12 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
-import {
-  Adapters,
-  ConfiguredAdapter,
-  Units,
-  createAdapter,
-} from '../wizzard-context/proof-of-life';
+import { Adapters, ConfiguredAdapter, Units, createAdapter } from '../wizzard-context/proof-of-life';
 import { useWizzardContext } from '../wizzard-context';
 import { AdapterSelector } from './adapter-selector';
 import { AdapterItem } from './adapter-selector/types';
@@ -24,16 +19,10 @@ const availableAdapters = Object.values(Adapters);
 
 const socialMediaAdapters: typeof availableAdapters = [Adapters.Twitter];
 
-const messageAdapters: typeof availableAdapters = [
-  Adapters.Email,
-  Adapters.Telegram,
-  Adapters.Whatsapp,
-];
+const messageAdapters: typeof availableAdapters = [Adapters.Email, Adapters.Telegram, Adapters.Whatsapp];
 
-const isMessageAdapter = (adapter: Adapters) =>
-  messageAdapters.includes(adapter);
-const isSocialAdapter = (adapter: Adapters) =>
-  socialMediaAdapters.includes(adapter);
+const isMessageAdapter = (adapter: Adapters) => messageAdapters.includes(adapter);
+const isSocialAdapter = (adapter: Adapters) => socialMediaAdapters.includes(adapter);
 
 const createAdapterItem = (adapter: Adapters, image: string): AdapterItem => ({
   value: adapter,
@@ -41,9 +30,7 @@ const createAdapterItem = (adapter: Adapters, image: string): AdapterItem => ({
   name: capitalize(adapter),
 });
 
-const socialMediaAdapterItems = [
-  createAdapterItem(Adapters.Twitter, twitterImage),
-];
+const socialMediaAdapterItems = [createAdapterItem(Adapters.Twitter, twitterImage)];
 
 const messageAdapterItems = [
   createAdapterItem(Adapters.Telegram, telegramImage),
@@ -108,7 +95,7 @@ const POLList = () => {
       {proofOfLife.listOfAdapters.map((group, i) => (
         <React.Fragment key={i}>
           <POLSubList items={group} groupIndex={i} />
-          {i < group.length - 1 && <li>and</li>}
+          {i < proofOfLife.listOfAdapters.length - 1 && <li>and</li>}
         </React.Fragment>
       ))}
       <li>
@@ -126,33 +113,19 @@ const POLList = () => {
   );
 };
 
-const POLSubList = ({
-  items,
-  groupIndex,
-}: {
-  items: Array<ConfiguredAdapter>;
-  groupIndex: number;
-}) => {
+const POLSubList = ({ items, groupIndex }: { items: Array<ConfiguredAdapter>; groupIndex: number }) => {
   const { proofOfLife } = useWizzardContext();
 
   const addNewAdapter = useCallback(
     ({ adapter }: { adapter: Adapters }) => {
-      proofOfLife.addToGroup(
-        { adapter, time: 5, unit: Units.Months },
-        groupIndex,
-      );
+      proofOfLife.addToGroup({ adapter, time: 5, unit: Units.Months }, groupIndex);
     },
     [proofOfLife, groupIndex],
   );
   return (
     <ul className={styles.subList}>
       {items.map((adapter, i) => (
-        <POLSubListItme
-          adapter={adapter}
-          itemIndex={i}
-          groupIndex={groupIndex}
-          key={i}
-        />
+        <POLSubListItem adapter={adapter} itemIndex={i} groupIndex={groupIndex} key={i} />
       ))}
       <li>
         <NewAdapterPopover
@@ -169,7 +142,7 @@ const POLSubList = ({
   );
 };
 
-const POLSubListItme = ({
+const POLSubListItem = ({
   adapter,
   itemIndex,
   groupIndex,
@@ -193,13 +166,7 @@ const POLSubListItme = ({
   return (
     <li>
       {itemIndex > 0 && 'or '}
-      {getText(adapter)}{' '}
-      <DraggableNumberInput
-        value={item.time}
-        onChange={handleChange}
-        max={60}
-        min={1}
-      />
+      {getText(adapter)} <DraggableNumberInput value={item.time} onChange={handleChange} max={60} min={1} />
       {adapter.unit}
     </li>
   );

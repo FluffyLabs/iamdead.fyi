@@ -9,22 +9,14 @@ import { usePrevious } from '../../hooks/use-previous';
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 9;
 
-type Props = Omit<
-  InputHTMLAttributes<HTMLInputElement>,
-  'onChange' | 'value' | 'min' | 'max'
-> & {
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'min' | 'max'> & {
   onChange: (val: number) => void;
   value: number;
   min?: number;
   max?: number;
 };
 
-export const DraggableNumberInput = ({
-  onChange,
-  min = DEFAULT_MIN,
-  max = DEFAULT_MAX,
-  ...inputProps
-}: Props) => {
+export const DraggableNumberInput = ({ onChange, min = DEFAULT_MIN, max = DEFAULT_MAX, ...inputProps }: Props) => {
   const [startPosition, setStartPositon] = useState(0);
   const [isDragged, setDragged] = useState(false);
   const wasDragged = usePrevious(isDragged);
@@ -45,42 +37,23 @@ export const DraggableNumberInput = ({
         setDragged(false);
       };
 
-      const distanceToScreenEdge = Math.min(
-        window.innerWidth - startPosition,
-        startPosition,
-      );
+      const distanceToScreenEdge = Math.min(window.innerWidth - startPosition, startPosition);
       const limit = Math.min(distanceToScreenEdge, startPosition, 1000) / 2;
 
       document.onmousemove = function (e: MouseEvent) {
-        const currentX = clamp(
-          Math.ceil(e.clientX),
-          startPosition - limit,
-          startPosition + limit,
-        );
+        const currentX = clamp(Math.ceil(e.clientX), startPosition - limit, startPosition + limit);
 
         const newVal =
           currentX <= startPosition
-            ? ((currentX - startPosition + limit) / limit) *
-                (valueWhenDragged - min) +
-              min
-            : ((currentX - startPosition) / limit) * (max - valueWhenDragged) +
-              valueWhenDragged;
+            ? ((currentX - startPosition + limit) / limit) * (valueWhenDragged - min) + min
+            : ((currentX - startPosition) / limit) * (max - valueWhenDragged) + valueWhenDragged;
         onChange(Math.round(newVal));
       };
     } else if (wasDragged) {
       document.onmousemove = null;
       document.onmouseup = null;
     }
-  }, [
-    isDragged,
-    setDragged,
-    startPosition,
-    max,
-    min,
-    onChange,
-    wasDragged,
-    valueWhenDragged,
-  ]);
+  }, [isDragged, setDragged, startPosition, max, min, onChange, wasDragged, valueWhenDragged]);
 
   return (
     <input

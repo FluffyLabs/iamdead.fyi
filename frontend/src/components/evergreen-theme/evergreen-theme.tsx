@@ -16,6 +16,4 @@ const theme = mergeTheme(defaultTheme, {
 
 type Props = PropsWithChildren<{}>;
 
-export const EvergreenTheme = ({ children }: Props) => (
-  <ThemeProvider value={theme}>{children}</ThemeProvider>
-);
+export const EvergreenTheme = ({ children }: Props) => <ThemeProvider value={theme}>{children}</ThemeProvider>;

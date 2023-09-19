@@ -34,7 +34,7 @@ export const AdapterSelector = ({ adapters, onChange }: Props) => {
     }
   }, [onChange, selectedAdapter, adapterId]);
   return (
-    <div>
+    <div className={styles.container}>
       {!selectedAdapter && (
         <>
           <h1 className={styles.title}>Select an adapter</h1>
@@ -43,25 +43,14 @@ export const AdapterSelector = ({ adapters, onChange }: Props) => {
             adapters={adapters.socialMediaAdapters}
             onClick={setSelectedAdapter}
           />
-          <AdaptersSection
-            title="Message adapters"
-            adapters={adapters.messageAdapters}
-            onClick={setSelectedAdapter}
-          />
+          <AdaptersSection title="Message adapters" adapters={adapters.messageAdapters} onClick={setSelectedAdapter} />
         </>
       )}
 
       {selectedAdapter && (
         <>
-          <h1 className={styles.title}>
-            Selected adapter: {capitalize(selectedAdapter)}
-          </h1>
-          <TextInput
-            name="adapter-id"
-            placeholder="Adapter id"
-            onChange={handleChange}
-            value={adapterId}
-          />
+          <h1 className={styles.title}>Selected adapter: {capitalize(selectedAdapter)}</h1>
+          <TextInput name="adapter-id" placeholder="Adapter id" onChange={handleChange} value={adapterId} />
           <div className={styles.buttons}>
             <Button marginRight={16} onClick={changeAdapter}>
               Change adapter

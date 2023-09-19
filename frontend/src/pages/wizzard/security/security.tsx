@@ -1,12 +1,5 @@
 import { clsx } from 'clsx';
-import {
-  ChangeEvent,
-  ComponentType,
-  SVGProps,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react';
+import { ChangeEvent, ComponentType, SVGProps, useCallback, useMemo, useState } from 'react';
 
 import { useWizzardContext } from '../wizzard-context';
 import { KeyPerson } from '../icons';
@@ -32,12 +25,7 @@ export const Security = () => {
   const [editedCardId, setEditedCardId] = useState<number>(-1);
   const closeModal = useCallback(() => setEditedCardId(-1), [setEditedCardId]);
   const onSave = useCallback(
-    (
-      recipient: Recipient,
-      cardId: number,
-      note: string,
-      isNewRecipient: boolean,
-    ) => {
+    (recipient: Recipient, cardId: number, note: string, isNewRecipient: boolean) => {
       closeModal();
       if (isNewRecipient) {
         security.createRecipient(recipient);
@@ -90,21 +78,14 @@ export const Security = () => {
         }
         text={
           <>
-            For redundancy I want{' '}
-            {security.noOfRecipients.value === 1 && <OneRecipient />}
+            For redundancy I want {security.noOfRecipients.value === 1 && <OneRecipient />}
             {security.noOfRecipients.value > 1 && <ManyRecipients />}
           </>
         }
       />
 
       <Cards onClick={setEditedCardId} />
-      {editedCardId >= 0 && (
-        <EditKeyModal
-          cardId={editedCardId}
-          onCancel={closeModal}
-          onConfirm={onSave}
-        />
-      )}
+      {editedCardId >= 0 && <EditKeyModal cardId={editedCardId} onCancel={closeModal} onConfirm={onSave} />}
     </div>
   );
 };
@@ -150,18 +131,14 @@ const ManyRecipients = () => {
 
   const handleNoOfPiecesChange = useCallback(
     (val: number) => {
-      security.noOfAdditionalPieces.setValue(
-        val - security.noOfRecipients.value,
-      );
+      security.noOfAdditionalPieces.setValue(val - security.noOfRecipients.value);
     },
     [security.noOfAdditionalPieces, security.noOfRecipients],
   );
   return (
     <>
       <DraggableNumberInput
-        value={
-          security.noOfAdditionalPieces.value + security.noOfRecipients.value
-        }
+        value={security.noOfAdditionalPieces.value + security.noOfRecipients.value}
         onChange={handleNoOfPiecesChange}
         min={security.noOfRecipients.value}
         max={security.noOfRecipients.value + MAX_NO_OF_ADDITIONAL_PIECES}
@@ -178,25 +155,15 @@ type Option = {
 
 type EditKeyModalProps = {
   cardId: number;
-  onConfirm: (
-    recipient: Recipient,
-    cardId: number,
-    note: string,
-    isNewRecipient: boolean,
-  ) => void;
+  onConfirm: (recipient: Recipient, cardId: number, note: string, isNewRecipient: boolean) => void;
 } & Partial<Omit<ModalProps, 'onConfirm'>>;
 
 function useNoteHandler(cardId: number) {
   const { security } = useWizzardContext();
 
-  const [note, setNote] = useState<string>(
-    () => security.keyPieces[cardId].note ?? '',
-  );
+  const [note, setNote] = useState<string>(() => security.keyPieces[cardId].note ?? '');
 
-  const handleNoteChange = useCallback(
-    (e: ChangeEvent<HTMLTextAreaElement>) => setNote(e.target.value),
-    [setNote],
-  );
+  const handleNoteChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => setNote(e.target.value), [setNote]);
 
   return {
     note,
@@ -215,18 +182,16 @@ function useRecipientHandler(cardId: number) {
       })),
     [security.recipients],
   );
-  const [currentRecipient, setCurrentRecipient] = useState<Option | null>(
-    () => {
-      const recipient = security.keyPieces[cardId].recipient;
-      if (!recipient) {
-        return null;
-      }
-      return {
-        label: recipient.name,
-        value: recipient.email,
-      };
-    },
-  );
+  const [currentRecipient, setCurrentRecipient] = useState<Option | null>(() => {
+    const recipient = security.keyPieces[cardId].recipient;
+    if (!recipient) {
+      return null;
+    }
+    return {
+      label: recipient.name,
+      value: recipient.email,
+    };
+  });
   const onCreate = useCallback(
     (label: string) => {
       const newRecipient = { label, value: '' };
@@ -264,20 +229,10 @@ function useRecipientHandler(cardId: number) {
   };
 }
 
-const EditKeyModal = ({
-  cardId,
-  onConfirm,
-  ...modalProps
-}: EditKeyModalProps) => {
+const EditKeyModal = ({ cardId, onConfirm, ...modalProps }: EditKeyModalProps) => {
   const { note, handleNoteChange } = useNoteHandler(cardId);
-  const {
-    isNewRecipient,
-    currentRecipient,
-    onChange,
-    onCreate,
-    options,
-    handleEmailChange,
-  } = useRecipientHandler(cardId);
+  const { isNewRecipient, currentRecipient, onChange, onCreate, options, handleEmailChange } =
+    useRecipientHandler(cardId);
 
   const handleSave = useCallback(() => {
     const newRecipient: Recipient = {
@@ -289,11 +244,7 @@ const EditKeyModal = ({
   }, [note, currentRecipient, cardId, isNewRecipient, onConfirm]);
 
   return (
-    <Modal
-      {...modalProps}
-      title={`Edit key ${cardId + 1}`}
-      onConfirm={handleSave}
-    >
+    <Modal {...modalProps} title={`Edit key ${cardId + 1}`} onConfirm={handleSave}>
       <div>
         <div className={styles.inputRow}>
           <label>Recipient: </label>
@@ -321,11 +272,7 @@ const EditKeyModal = ({
 
         <div className={styles.inputRow}>
           <label>Note: </label>
-          <textarea
-            className={clsx(styles.note, styles.input)}
-            value={note}
-            onChange={handleNoteChange}
-          />
+          <textarea className={clsx(styles.note, styles.input)} value={note} onChange={handleNoteChange} />
         </div>
       </div>
     </Modal>

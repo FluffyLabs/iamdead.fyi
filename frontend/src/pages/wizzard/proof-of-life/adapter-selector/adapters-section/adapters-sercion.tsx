@@ -16,13 +16,7 @@ export const AdaptersSection = ({ title, adapters, onClick }: Props) => {
       <h3>{title}</h3>
       <div className={styles.wrapper}>
         {adapters.map(({ image, name, value }) => (
-          <Adapter
-            key={value}
-            image={image}
-            name={name}
-            onClick={onClick}
-            value={value}
-          />
+          <Adapter key={value} image={image} name={name} onClick={onClick} value={value} />
         ))}
       </div>
     </div>

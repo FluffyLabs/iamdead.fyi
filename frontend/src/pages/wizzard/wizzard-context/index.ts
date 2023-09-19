@@ -1,5 +1,1 @@
-export {
-  WizzardContextProvider,
-  useWizzardContext,
-  useWizzard,
-} from './wizzard-context';
+export { WizzardContextProvider, useWizzardContext, useWizzard } from './wizzard-context';

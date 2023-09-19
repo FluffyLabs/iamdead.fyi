@@ -14,11 +14,7 @@ type Props = PropsWithChildren<{
   onNewAdapter: (value: { adapter: Adapters; adapterId: string }) => void;
 }>;
 
-export const NewAdapterPopover = ({
-  adapters,
-  onNewAdapter,
-  children,
-}: Props) => {
+export const NewAdapterPopover = ({ adapters, onNewAdapter, children }: Props) => {
   return (
     <Popover
       bringFocusInside
@@ -26,11 +22,7 @@ export const NewAdapterPopover = ({
       position={Position.BOTTOM_LEFT}
       content={({ close }) => (
         <Pane className={styles.pane}>
-          <IconButton
-            className={styles.closeIcon}
-            icon={<CrossIcon />}
-            onClick={close}
-          />
+          <IconButton className={styles.closeIcon} icon={<CrossIcon />} onClick={close} />
           <AdapterSelector
             adapters={{
               socialMediaAdapters: adapters.socialMediaAdapters,
