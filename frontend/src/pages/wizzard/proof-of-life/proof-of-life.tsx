@@ -4,9 +4,10 @@ import { DraggableNumberInput } from '../../../components/draggable-number-input
 import {
   Adapters,
   ConfiguredAdapter,
+  Units,
   createAdapter,
 } from '../wizzard-context/proof-of-life';
-import { useWizzard } from '../wizzard-context';
+import { useWizzardContext } from '../wizzard-context';
 import { AdapterSelector } from './adapter-selector';
 import { AdapterItem } from './adapter-selector/types';
 import { capitalize } from '../../../utils/string';
@@ -62,30 +63,43 @@ const getText = ({ adapter }: ConfiguredAdapter) => {
 };
 
 export const ProofOfLife = () => {
+  const { proofOfLife } = useWizzardContext();
+  const addFirstAdapter = useCallback(
+    ({ adapter }: { adapter: Adapters }) => {
+      proofOfLife.addNewGroup({ adapter, time: 5, unit: Units.Months });
+    },
+    [proofOfLife],
+  );
+
   return (
     <div>
-      <h2 className={styles.header}>I want the pieces to be send when:</h2>
-      <POLList />
-      <AdapterSelector
-        adapters={{
-          socialMediaAdapters: socialMediaAdapterItems,
-          messageAdapters: messageAdapterItems,
-        }}
-        onChange={(e) => console.log(e)}
-      />
+      {proofOfLife.listOfAdapters.length > 0 && (
+        <>
+          <h2 className={styles.header}>I want the pieces to be send when:</h2>
+          <POLList />
+        </>
+      )}
+      {proofOfLife.listOfAdapters.length === 0 && (
+        <AdapterSelector
+          adapters={{
+            socialMediaAdapters: socialMediaAdapterItems,
+            messageAdapters: messageAdapterItems,
+          }}
+          onChange={addFirstAdapter}
+        />
+      )}
     </div>
   );
 };
 
 const POLList = () => {
-  const { proofOfLife } = useWizzard();
-
+  const { proofOfLife } = useWizzardContext();
   return (
     <ul className={styles.mainList}>
-      {proofOfLife.listOfAdapters.map((listOfAdapters, i) => (
+      {proofOfLife.listOfAdapters.map((group, i) => (
         <React.Fragment key={i}>
-          <POLSubList items={listOfAdapters} groupIndex={i} />
-          {i < listOfAdapters.length && <li>and</li>}
+          <POLSubList items={group} groupIndex={i} />
+          {i < group.length - 1 && <li>and</li>}
         </React.Fragment>
       ))}
       <li>
@@ -128,7 +142,7 @@ const POLSubListItme = ({
   itemIndex: number;
   groupIndex: number;
 }) => {
-  const { proofOfLife } = useWizzard();
+  const { proofOfLife } = useWizzardContext();
 
   const item = proofOfLife.listOfAdapters[groupIndex][itemIndex];
 

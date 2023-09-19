@@ -22,10 +22,10 @@ export const AdapterSelector = ({ adapters, onChange }: Props) => {
     (event: ChangeEvent<HTMLInputElement>) => setAdapterId(event.target.value),
     [setAdapterId],
   );
-  const changeAdapter = useCallback(
-    () => setSelectedAdapter(null),
-    [setSelectedAdapter],
-  );
+  const changeAdapter = useCallback(() => {
+    setAdapterId('');
+    setSelectedAdapter(null);
+  }, [setSelectedAdapter]);
 
   const onConfirm = useCallback(() => {
     if (selectedAdapter && adapterId) {

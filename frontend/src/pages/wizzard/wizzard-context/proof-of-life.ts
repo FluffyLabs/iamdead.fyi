@@ -27,10 +27,10 @@ export const createAdapter = (
   unit,
 });
 
-const list = [
-  [createAdapter(Adapters.Email, 2), createAdapter(Adapters.Telegram, 2)],
-  [createAdapter(Adapters.Twitter, 2), createAdapter(Adapters.Whatsapp, 2)],
-  [createAdapter(Adapters.Twitter, 2), createAdapter(Adapters.Email, 2)],
+const list: Array<Array<ConfiguredAdapter>> = [
+  //   [createAdapter(Adapters.Email, 2), createAdapter(Adapters.Telegram, 2)],
+  //   [createAdapter(Adapters.Twitter, 2), createAdapter(Adapters.Whatsapp, 2)],
+  //   [createAdapter(Adapters.Twitter, 2), createAdapter(Adapters.Email, 2)],
 ];
 
 export function useProofOfLifeStep() {
@@ -48,8 +48,7 @@ export function useProofOfLifeStep() {
     (item: ConfiguredAdapter, groupIndex: number) => {
       setListOfAdapters((previousList) => {
         const newList = [...previousList];
-        newList[groupIndex] = [...newList[groupIndex]];
-        newList[groupIndex].push(item);
+        newList[groupIndex] = [...newList[groupIndex], item];
         return newList;
       });
     },
