@@ -1,14 +1,21 @@
-import styles from './styles.module.scss';
-import telegram from '../images/twitter.png';
-type Props = {};
+import { useCallback } from 'react';
+import { Adapters } from '../../../wizzard-context/proof-of-life';
 
-export const Adapter = ({}: Props) => {
-    return (
-        <button className={styles.box}>
-            <div>
-            <img src={telegram} />
-            <span>Twitter</span>
-            </div>
-        </button>
-    )
-}
+import styles from './styles.module.scss';
+
+type Props = {
+  image: string;
+  name: string;
+  value: Adapters;
+  onClick: (value: Adapters) => void;
+};
+
+export const Adapter = ({ image, name, onClick, value }: Props) => {
+  const handleClick = useCallback(() => onClick(value), [value, onClick]);
+  return (
+    <button className={styles.box} onClick={handleClick}>
+      <img src={image} className={styles.adapterImage} alt={name} />
+      <span className={styles.adapterName}>{name}</span>
+    </button>
+  );
+};

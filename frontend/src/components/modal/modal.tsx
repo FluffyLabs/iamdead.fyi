@@ -18,7 +18,12 @@ export const Modal = ({ title, children, onCancel, onConfirm }: ModalProps) => {
         styles.overlay,
       )}
     >
-      <div className={clsx("hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0  ease-out transition-all md:max-w-2xl md:w-full m-3 md:mx-auto", styles.center)}>
+      <div
+        className={clsx(
+          'hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0  ease-out transition-all md:max-w-2xl md:w-full m-3 md:mx-auto',
+          styles.center,
+        )}
+      >
         <div className="flex flex-col bg-white border shadow-sm rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:shadow-slate-700/[.7]">
           <div className="flex justify-between items-center py-3 px-4 border-b dark:border-gray-700">
             <h3 className="font-bold text-gray-800 dark:text-white">{title}</h3>

@@ -4,7 +4,7 @@ import { Recipient, Recipients } from '../common/types';
 const DEFAULT_NUMBER_OF_RECIPIENTS = 4;
 const DEFAULT_NUMBER_OF_ADDITIONAL_PIECES = 1;
 
-type KeyPiece = {recipient?: Recipient; note?: string};
+type KeyPiece = { recipient?: Recipient; note?: string };
 
 type KeyPieces = Array<KeyPiece>;
 
@@ -49,7 +49,7 @@ export function useSecurityStep() {
     () => [...mainKeyPieces, ...additionalKeyPieces],
     [mainKeyPieces, additionalKeyPieces],
   );
-  
+
   const [recipients, setRecipients] = useState<Recipients>([]);
 
   const createRecipient = useCallback(

@@ -205,61 +205,63 @@ function useNoteHandler(cardId: number) {
 }
 
 function useRecipientHandler(cardId: number) {
- const { security } = useWizzardContext();
- const [isNewRecipient, setNewRecipient] = useState(false);
- const options = useMemo(
-   () =>
-     security.recipients.map((recipient) => ({
-       label: recipient.name,
-       value: recipient.email,
-     })),
-   [security.recipients],
- );
- const [currentRecipient, setCurrentRecipient] = useState<Option | null>(() => {
-   const recipient = security.keyPieces[cardId].recipient;
-   if (!recipient) {
-     return null;
-   }
-   return {
-     label: recipient.name,
-     value: recipient.email,
-   };
- });
- const onCreate = useCallback(
-   (label: string) => {
-     const newRecipient = { label, value: '' };
-     setNewRecipient(true);
-     setCurrentRecipient(newRecipient);
-   },
-   [setNewRecipient],
- );
+  const { security } = useWizzardContext();
+  const [isNewRecipient, setNewRecipient] = useState(false);
+  const options = useMemo(
+    () =>
+      security.recipients.map((recipient) => ({
+        label: recipient.name,
+        value: recipient.email,
+      })),
+    [security.recipients],
+  );
+  const [currentRecipient, setCurrentRecipient] = useState<Option | null>(
+    () => {
+      const recipient = security.keyPieces[cardId].recipient;
+      if (!recipient) {
+        return null;
+      }
+      return {
+        label: recipient.name,
+        value: recipient.email,
+      };
+    },
+  );
+  const onCreate = useCallback(
+    (label: string) => {
+      const newRecipient = { label, value: '' };
+      setNewRecipient(true);
+      setCurrentRecipient(newRecipient);
+    },
+    [setNewRecipient],
+  );
 
- const handleEmailChange = useCallback(
-   (e: ChangeEvent<HTMLInputElement>) => {
-     setCurrentRecipient((prev) => ({
-       label: prev!.label,
-       value: e.target.value,
-     }));
-   },
-   [setCurrentRecipient],
- );
+  const handleEmailChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setCurrentRecipient((prev) => ({
+        label: prev!.label,
+        value: e.target.value,
+      }));
+    },
+    [setCurrentRecipient],
+  );
 
- const onChange = useCallback(
-   (newValue: Option | null) => {
-     setNewRecipient(false);
-     setCurrentRecipient(newValue);
-   },
-   [setNewRecipient],
- );
+  const onChange = useCallback(
+    (newValue: Option | null) => {
+      setNewRecipient(false);
+      setCurrentRecipient(newValue);
+    },
+    [setNewRecipient],
+  );
 
- return {
-   isNewRecipient,
-   options,
-   currentRecipient,
-   handleEmailChange,
-   onCreate,
-   onChange
- };
+  return {
+    isNewRecipient,
+    options,
+    currentRecipient,
+    handleEmailChange,
+    onCreate,
+    onChange,
+  };
 }
 
 const EditKeyModal = ({
@@ -267,8 +269,15 @@ const EditKeyModal = ({
   onConfirm,
   ...modalProps
 }: EditKeyModalProps) => {
-  const {note, handleNoteChange } = useNoteHandler(cardId);
-  const { isNewRecipient, currentRecipient, onChange, onCreate, options, handleEmailChange } = useRecipientHandler(cardId);
+  const { note, handleNoteChange } = useNoteHandler(cardId);
+  const {
+    isNewRecipient,
+    currentRecipient,
+    onChange,
+    onCreate,
+    options,
+    handleEmailChange,
+  } = useRecipientHandler(cardId);
 
   const handleSave = useCallback(() => {
     const newRecipient: Recipient = {
@@ -280,7 +289,11 @@ const EditKeyModal = ({
   }, [note, currentRecipient, cardId, isNewRecipient, onConfirm]);
 
   return (
-    <Modal {...modalProps} title={`Edit key ${cardId + 1}`} onConfirm={handleSave}>
+    <Modal
+      {...modalProps}
+      title={`Edit key ${cardId + 1}`}
+      onConfirm={handleSave}
+    >
       <div>
         <div className={styles.inputRow}>
           <label>Recipient: </label>

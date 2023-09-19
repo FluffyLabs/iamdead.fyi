@@ -1,10 +1,22 @@
 import React, { useCallback } from 'react';
 
-import styles from './styles.module.scss';
 import { DraggableNumberInput } from '../../../components/draggable-number-input';
-import { Adapters, ConfiguredAdapter, createAdapter } from '../wizzard-context/proof-of-life';
+import {
+  Adapters,
+  ConfiguredAdapter,
+  createAdapter,
+} from '../wizzard-context/proof-of-life';
 import { useWizzard } from '../wizzard-context';
 import { AdapterSelector } from './adapter-selector';
+import { AdapterItem } from './adapter-selector/types';
+import { capitalize } from '../../../utils/string';
+
+import telegramImage from './adapter-selector/images/telegram.svg';
+import whatsappImage from './adapter-selector/images/whatsapp.png';
+import twitterImage from './adapter-selector/images/twitter.png';
+import emailImage from './adapter-selector/images/email.png';
+
+import styles from './styles.module.scss';
 
 const availableAdapters = Object.values(Adapters);
 
@@ -20,6 +32,22 @@ const isMessageAdapter = (adapter: Adapters) =>
   messageAdapters.includes(adapter);
 const isSocialAdapter = (adapter: Adapters) =>
   socialMediaAdapters.includes(adapter);
+
+const createAdapterItem = (adapter: Adapters, image: string): AdapterItem => ({
+  value: adapter,
+  image,
+  name: capitalize(adapter),
+});
+
+const socialMediaAdapterItems = [
+  createAdapterItem(Adapters.Twitter, twitterImage),
+];
+
+const messageAdapterItems = [
+  createAdapterItem(Adapters.Telegram, telegramImage),
+  createAdapterItem(Adapters.Whatsapp, whatsappImage),
+  createAdapterItem(Adapters.Email, emailImage),
+];
 
 const getText = ({ adapter }: ConfiguredAdapter) => {
   if (isMessageAdapter(adapter)) {
@@ -38,14 +66,20 @@ export const ProofOfLife = () => {
     <div>
       <h2 className={styles.header}>I want the pieces to be send when:</h2>
       <POLList />
-      <AdapterSelector />
+      <AdapterSelector
+        adapters={{
+          socialMediaAdapters: socialMediaAdapterItems,
+          messageAdapters: messageAdapterItems,
+        }}
+        onChange={(e) => console.log(e)}
+      />
     </div>
   );
 };
 
 const POLList = () => {
   const { proofOfLife } = useWizzard();
-  
+
   return (
     <ul className={styles.mainList}>
       {proofOfLife.listOfAdapters.map((listOfAdapters, i) => (
@@ -54,31 +88,57 @@ const POLList = () => {
           {i < listOfAdapters.length && <li>and</li>}
         </React.Fragment>
       ))}
-      <li><button className={styles.button}>+ and</button></li>
+      <li>
+        <button className={styles.button}>+ and</button>
+      </li>
     </ul>
   );
 };
 
-const POLSubList = ({ items, groupIndex }: { items: Array<ConfiguredAdapter>, groupIndex: number }) => {
+const POLSubList = ({
+  items,
+  groupIndex,
+}: {
+  items: Array<ConfiguredAdapter>;
+  groupIndex: number;
+}) => {
   return (
     <ul className={styles.subList}>
       {items.map((adapter, i) => (
-        <POLSubListItme adapter={adapter} itemIndex={i} groupIndex={groupIndex} key={i} />
+        <POLSubListItme
+          adapter={adapter}
+          itemIndex={i}
+          groupIndex={groupIndex}
+          key={i}
+        />
       ))}
-      <li><button className={styles.button}>+ or</button></li>
+      <li>
+        <button className={styles.button}>+ or</button>
+      </li>
     </ul>
   );
 };
 
-const POLSubListItme = ({ adapter, itemIndex, groupIndex }: { adapter: ConfiguredAdapter, itemIndex: number, groupIndex: number }) => {
+const POLSubListItme = ({
+  adapter,
+  itemIndex,
+  groupIndex,
+}: {
+  adapter: ConfiguredAdapter;
+  itemIndex: number;
+  groupIndex: number;
+}) => {
   const { proofOfLife } = useWizzard();
 
   const item = proofOfLife.listOfAdapters[groupIndex][itemIndex];
 
-  const handleChange = useCallback((newValue: number) => {
+  const handleChange = useCallback(
+    (newValue: number) => {
       const newItem = createAdapter(item.adapter, newValue, item.unit);
       proofOfLife.updateGroupItem(newItem, groupIndex, itemIndex);
-  }, [proofOfLife, item, groupIndex, itemIndex]);
+    },
+    [proofOfLife, item, groupIndex, itemIndex],
+  );
 
   return (
     <li>

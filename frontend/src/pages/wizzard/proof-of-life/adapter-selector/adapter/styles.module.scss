@@ -1,8 +1,17 @@
 .box {
-    background-color: #444;
-    color: #fff;
-    border-radius: 5px;
-    padding: 20px;
-    font-size: 150%;
-  }
-  
+  background-color: #444;
+  color: #fff;
+  border-radius: 5px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.adapterName {
+  margin-top: 10px;
+}
+
+.adapterImage {
+  max-height: 50px;
+}

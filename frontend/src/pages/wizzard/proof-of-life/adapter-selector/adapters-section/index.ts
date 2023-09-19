@@ -1,1 +1,1 @@
-export {AdaptersSection} from './adapters-sercion';
+export { AdaptersSection } from './adapters-sercion';
