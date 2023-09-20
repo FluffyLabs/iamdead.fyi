@@ -63,7 +63,7 @@ export const ProofOfLife = () => {
     <div>
       {proofOfLife.listOfAdapters.length > 0 && (
         <>
-          <h2 className={styles.header}>I want the pieces to be send when:</h2>
+          <h2 className={styles.header}>I want the pieces to be sent when:</h2>
           <POLList />
         </>
       )}
