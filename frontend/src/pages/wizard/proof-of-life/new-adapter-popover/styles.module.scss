@@ -1,0 +1,18 @@
+.pane {
+  position: relative;
+  padding: 10px;
+}
+
+.closeIcon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+
+  &:focus {
+    box-shadow: none !important;
+  }
+  &:hover {
+    border: 0 !important;
+  }
+}

@@ -1,0 +1,9 @@
+.overlay {
+  background-color: rgba(50, 50, 50, 0.4);
+}
+
+.center {
+  top: 50%;
+  transform: translateY(-50%);
+  position: relative;
+}

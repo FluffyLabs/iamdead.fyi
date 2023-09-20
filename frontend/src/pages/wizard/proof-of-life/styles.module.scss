@@ -1,0 +1,35 @@
+.header {
+  font-size: 1.15rem;
+}
+
+.mainList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.item {
+  margin-bottom: 10px;
+}
+
+.subList {
+  margin-left: 20px;
+}
+
+.subList li:last-child {
+  margin-bottom: 0;
+}
+
+.subList li:before {
+  content: '\25CF';
+  color: #888;
+  font-size: 0.8em;
+  margin-right: 5px;
+}
+
+.subList li:last-child:before {
+  content: '';
+}
+
+.button {
+  border-bottom: 1px dashed #000 !important;
+}
