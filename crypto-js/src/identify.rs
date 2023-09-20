@@ -1,7 +1,9 @@
 //! Functions used to identify & decode icod-produced strings.
 
 use icod_crypto::{encryption::EncryptedMessagePart, shamir::Chunk};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+#[cfg(not(test))]
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsValue;
 
 use crate::{encryption::MSG_PREFIX, shamir::CHUNK_PREFIX};
 
@@ -92,10 +94,10 @@ pub fn identify(item: String) -> Result<IdentificationOrJsValue, Error> {
     let part = EncryptedMessagePart::decode(&bytes).map_err(|e| Error::Other(format!("{}", e)))?;
     return Ok(serialize(Identification::MessagePart {
       version: part.version(),
-      part_index: part.part_index,
-      parts_total: part.parts_total,
-      nonce: part.nonce.map(|n| crate::conv::encode(&n)),
-      data: crate::conv::encode(&part.data),
+      part_index: part.part_index(),
+      parts_total: part.parts_total(),
+      nonce: part.nonce().map(|n| crate::conv::encode(n)),
+      data: crate::conv::encode(part.data()),
     }));
   }
 

@@ -413,30 +413,17 @@ pub const BYTES_PER_ID_PART: usize = 3;
 pub struct EncryptedMessagePart<'a> {
   /// Version of the message encoding.
   version: EncryptionKeyVersion,
-  // TODO [ToDr] consider making accessor methods (alike Chunk) instead of making the fields public.
   /// Current part index (0-based).
-  pub part_index: u32,
+  part_index: u32,
   /// Total number of all parts.
-  pub parts_total: u32,
+  parts_total: u32,
   /// Message nonce. Only present in the `part_index = 0`.
-  pub nonce: Option<Cow<'a, [u8]>>,
+  nonce: Option<Cow<'a, [u8]>>,
   /// Part of the original encrypted data.
-  pub data: Cow<'a, [u8]>,
+  data: Cow<'a, [u8]>,
 }
 
 impl<'a> EncryptedMessagePart<'a> {
-  // /// Create a new [EncryptedMessagePartId] given 3-byte big endian encoding
-  // /// of it's components.
-  // pub fn new(
-  //   idx: &[u8; BYTES_PER_ID_PART],
-  //   all: &[u8; BYTES_PER_ID_PART],
-  // ) -> Self {
-  //   Self {
-  //     idx: Self::bytes_to_u32(idx),
-  //     all: Self::bytes_to_u32(all),
-  //   }
-  // }
-
   /// Return the version byte of this message encryption part.
   pub fn version(&self) -> u8 {
     match self.version {
@@ -444,6 +431,26 @@ impl<'a> EncryptedMessagePart<'a> {
       EncryptionKeyVersion::Test => 255u8,
       EncryptionKeyVersion::V0 => 0u8,
     }
+  }
+
+  /// Part index (0-based).
+  pub fn part_index(&self) -> u32 {
+    self.part_index
+  }
+
+  /// Total number of parts.
+  pub fn parts_total(&self) -> u32 {
+    self.parts_total
+  }
+
+  /// Message nonce. Only present in `part_index = 0`.
+  pub fn nonce(&self) -> Option<&[u8]> {
+    self.nonce.as_ref().map(|x| x.as_ref())
+  }
+
+  /// Part data.
+  pub fn data(&self) -> &[u8] {
+    &*self.data
   }
 
   fn encode(&self) -> Bytes {
