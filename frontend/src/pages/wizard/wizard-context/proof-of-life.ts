@@ -23,11 +23,7 @@ export const createAdapter = (adapter: Adapters, time: number, unit = Units.Mont
   unit,
 });
 
-const list: Array<Array<ConfiguredAdapter>> = [
-  //   [createAdapter(Adapters.Email, 2), createAdapter(Adapters.Telegram, 2)],
-  //   [createAdapter(Adapters.Twitter, 2), createAdapter(Adapters.Whatsapp, 2)],
-  //   [createAdapter(Adapters.Twitter, 2), createAdapter(Adapters.Email, 2)],
-];
+const list: Array<Array<ConfiguredAdapter>> = [];
 
 export function useProofOfLifeStep() {
   const [listOfAdapters, setListOfAdapters] = useState<Array<Array<ConfiguredAdapter>>>(list);
