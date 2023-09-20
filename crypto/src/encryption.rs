@@ -6,7 +6,7 @@
 //!
 //! The `V0` version is using `AES-GCM-SIV` with `256b` key size.
 
-use std::collections::BTreeMap;
+use std::{borrow::Cow, collections::BTreeMap};
 
 use aes_gcm_siv::{
   aead::{Aead, OsRng, Payload},
@@ -276,42 +276,24 @@ impl EncryptedMessage {
   /// the parts are not part of the same original message and you will just get
   /// garbage.
   pub fn collate_from_parts(parts: Vec<Bytes>) -> Result<Self, EncryptedMessageError> {
-    let mut nonce = [0u8; NONCE_SIZE];
+    let mut nonce = None;
     let mut message_parts = BTreeMap::<u32, Vec<u8>>::new();
     let mut expected_parts = 0u32;
-    let version = [0u8];
 
-    for part in parts {
-      let part = part
-        .strip_prefix(&version)
-        .ok_or(EncryptedMessageError::InvalidVersion)?;
-      let (part_id, part) = EncryptedMessagePartId::read_from(&part)
-        .ok_or(EncryptedMessageError::MalformedData("Cannot read part id."))?;
+    for raw_part in parts {
+      let part = EncryptedMessagePart::decode(&raw_part)?;
       // Check number of expected parts
-      if expected_parts != part_id.all {
+      if expected_parts != part.parts_total {
         if expected_parts == 0 {
-          expected_parts = part_id.all;
+          expected_parts = part.parts_total;
         } else {
           return Err(EncryptedMessageError::MalformedData(
             "Number of parts mismatch.",
           ));
         }
       }
-      // read nonce first for the first part
-      let part = if part_id.idx == 0 {
-        if part.len() < NONCE_SIZE {
-          return Err(EncryptedMessageError::MalformedData(
-            "Not enough bytes to read NONCE.",
-          ));
-        }
-        nonce.copy_from_slice(&part[0..NONCE_SIZE]);
-        &part[NONCE_SIZE..]
-      } else {
-        part
-      };
-      // now rest of the data
-      // TODO [ToDr] Avoid alloc? Use split_off just calculate where.
-      message_parts.insert(part_id.idx, part.to_vec());
+      message_parts.insert(part.part_index, part.data.to_vec());
+      nonce = nonce.or_else(|| part.nonce.map(|n| Bytes::from(n.to_vec())));
     }
 
     if expected_parts as usize != message_parts.len() {
@@ -330,10 +312,12 @@ impl EncryptedMessage {
       message.extend(part);
     }
 
+    let nonce = nonce.ok_or(EncryptedMessageError::MalformedData("Missing nonce."))?;
+
     Ok(Self {
       version: EncryptionKeyVersion::V0,
       data: message.into(),
-      nonce: Bytes::from_slice(&nonce),
+      nonce,
     })
   }
 
@@ -366,12 +350,6 @@ impl EncryptedMessage {
   /// +--------------------------------+
   /// ```
   pub fn split_and_encode(self, split_arg: Option<usize>) -> Vec<Bytes> {
-    let version = match self.version {
-      #[cfg(test)]
-      EncryptionKeyVersion::Test => 255u8,
-      EncryptionKeyVersion::V0 => 0u8,
-    };
-
     let data_len = self.data.len();
     let total_len = data_len + NONCE_SIZE;
     let split = split_arg.unwrap_or(total_len).min(total_len).max(1);
@@ -388,22 +366,15 @@ impl EncryptedMessage {
     let mut output = Vec::with_capacity(capacity);
 
     let mut data = &self.data[..];
-    let mut part_id = EncryptedMessagePartId {
-      idx: 0,
-      all: capacity as u32,
-    };
-    loop {
-      let mut out = vec![];
-      out.push(version);
-      out.extend_from_slice(&part_id.index_bytes());
-      // TODO [ToDr] We might consider dropping this and version from
-      // every chunk. Not sure if it adds anything.
-      out.extend_from_slice(&part_id.all_bytes());
+    let mut part_index = 0;
+    let parts_total = capacity as u32;
 
+    loop {
+      let mut nonce = None;
       let mut split_point = data.len().min(split);
       // The first chunk always contains the nonce.
-      if part_id.idx == 0 {
-        out.extend_from_slice(&self.nonce);
+      if part_index == 0 {
+        nonce = Some(Cow::Borrowed(&*self.nonce));
         // we subtract the nonce size from the chunk size
         // to keep the chunks consistent
         if capacity > 1 {
@@ -411,12 +382,19 @@ impl EncryptedMessage {
         }
       }
       let (slice, rest) = data.split_at(split_point);
-      data = rest;
-      out.extend_from_slice(&slice);
-      output.push(Bytes::from(out));
-      part_id.idx += 1;
+      let part = EncryptedMessagePart {
+        version: self.version,
+        part_index,
+        parts_total,
+        nonce,
+        data: slice.into(),
+      };
+      output.push(part.encode());
 
-      if data.is_empty() || part_id.idx > part_id.all {
+      part_index += 1;
+      data = rest;
+
+      if data.is_empty() || part_index > parts_total {
         break;
       }
     }
@@ -425,53 +403,117 @@ impl EncryptedMessage {
   }
 }
 
-/// Number of bytes used to encode each field of [EncryptedMessagePartId].
+/// Number of bytes used to encode each part location (index and total) of [EncryptedMessagePart].
 ///
 /// We use 3 bytes, which allows us to store up to: 2**24 bytes (~16MB)
 pub const BYTES_PER_ID_PART: usize = 3;
 
-/// A location of part within the original [EncryptedMessage].
+/// A single part of encrypted message.
 #[derive(Debug)]
-pub struct EncryptedMessagePartId {
+pub struct EncryptedMessagePart<'a> {
+  /// Version of the message encoding.
+  version: EncryptionKeyVersion,
   /// Current part index (0-based).
-  idx: u32,
+  part_index: u32,
   /// Total number of all parts.
-  all: u32,
+  parts_total: u32,
+  /// Message nonce. Only present in the `part_index = 0`.
+  nonce: Option<Cow<'a, [u8]>>,
+  /// Part of the original encrypted data.
+  data: Cow<'a, [u8]>,
 }
 
-impl EncryptedMessagePartId {
-  /// Create a new [EncryptedMessagePartId] given 3-byte big endian encoding
-  /// of it's components.
-  pub fn new(idx: &[u8; BYTES_PER_ID_PART], all: &[u8; BYTES_PER_ID_PART]) -> Self {
-    Self {
-      idx: Self::bytes_to_u32(idx),
-      all: Self::bytes_to_u32(all),
+impl<'a> EncryptedMessagePart<'a> {
+  /// Return the version byte of this message encryption part.
+  pub fn version(&self) -> u8 {
+    match self.version {
+      #[cfg(test)]
+      EncryptionKeyVersion::Test => 255u8,
+      EncryptionKeyVersion::V0 => 0u8,
     }
   }
 
-  fn read_from(part: &[u8]) -> Option<(Self, &[u8])> {
+  /// Part index (0-based).
+  pub fn part_index(&self) -> u32 {
+    self.part_index
+  }
+
+  /// Total number of parts.
+  pub fn parts_total(&self) -> u32 {
+    self.parts_total
+  }
+
+  /// Message nonce. Only present in `part_index = 0`.
+  pub fn nonce(&self) -> Option<&[u8]> {
+    self.nonce.as_ref().map(|x| x.as_ref())
+  }
+
+  /// Part data.
+  pub fn data(&self) -> &[u8] {
+    &*self.data
+  }
+
+  fn encode(&self) -> Bytes {
+    let mut out = vec![];
+    out.push(self.version());
+    out.extend_from_slice(&self.index_bytes());
+    // TODO [ToDr] We might consider dropping this and version from
+    // every chunk. Not sure if it adds anything.
+    out.extend_from_slice(&self.all_bytes());
+    if let Some(nonce) = self.nonce.as_ref() {
+      out.extend_from_slice(nonce);
+    }
+    out.extend_from_slice(&self.data);
+    out.into()
+  }
+
+  /// Decode the [MessageEncryptionPart] given a set of bytes.
+  pub fn decode(part: &'a [u8]) -> Result<Self, EncryptedMessageError> {
+    let version = [0u8];
+    let part = part
+      .strip_prefix(&version)
+      .ok_or(EncryptedMessageError::InvalidVersion)?;
+
     if part.len() < BYTES_PER_ID_PART * 2 {
-      return None;
+      return Err(EncryptedMessageError::MalformedData("Cannot read part id."));
     }
 
-    let idx = Self::slice_to_u32(&part[0..3]);
-    let all = Self::slice_to_u32(&part[3..6]);
+    let part_index = Self::slice_to_u32(&part[0..BYTES_PER_ID_PART]);
+    let parts_total = Self::slice_to_u32(&part[BYTES_PER_ID_PART..BYTES_PER_ID_PART * 2]);
 
-    if idx >= all {
-      return None;
+    let part = &part[BYTES_PER_ID_PART * 2..];
+    if part_index >= parts_total {
+      return Err(EncryptedMessageError::MalformedData("Invalid part id."));
     }
 
-    Some((Self { idx, all }, &part[6..]))
+    // read nonce first for the first part
+    let mut nonce = None;
+    let part = if part_index == 0 {
+      if part.len() < NONCE_SIZE {
+        return Err(EncryptedMessageError::MalformedData(
+          "Not enough bytes to read NONCE.",
+        ));
+      }
+      nonce = Some(Cow::Owned(part[0..NONCE_SIZE].to_vec()));
+      &part[NONCE_SIZE..]
+    } else {
+      part
+    };
+    // now rest of the data
+    // TODO [ToDr] Avoid alloc? Use split_off just calculate where.
+    Ok(Self {
+      version: EncryptionKeyVersion::V0,
+      part_index,
+      parts_total,
+      nonce,
+      data: part.into(),
+    })
   }
 
   fn u32_to_bytes(val: u32) -> [u8; BYTES_PER_ID_PART] {
     let mut out = [0u8; BYTES_PER_ID_PART];
     out.copy_from_slice(&val.to_be_bytes()[1..]);
     out
-  }
-
-  fn bytes_to_u32(bytes: &[u8; BYTES_PER_ID_PART]) -> u32 {
-    Self::slice_to_u32(&*bytes)
   }
 
   fn slice_to_u32(bytes: &[u8]) -> u32 {
@@ -483,12 +525,12 @@ impl EncryptedMessagePartId {
 
   /// Return 3-byte big endian encoding of part index.
   pub fn index_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
-    Self::u32_to_bytes(self.idx)
+    Self::u32_to_bytes(self.part_index)
   }
 
   /// Return 3-byte big endian encoding of total number of parts.
   pub fn all_bytes(&self) -> [u8; BYTES_PER_ID_PART] {
-    Self::u32_to_bytes(self.all)
+    Self::u32_to_bytes(self.parts_total)
   }
 }
 

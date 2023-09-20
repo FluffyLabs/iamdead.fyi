@@ -108,7 +108,7 @@ pub(crate) mod conv {
   pub(crate) fn msg_parts_to_js(encoded: Vec<icod_crypto::Bytes>) -> Vec<JsValueOrString> {
     encoded
       .into_iter()
-      .map(|msg| crate::conv::bytes_to_prefixed_str_js(MSG_PREFIX, msg.into()))
+      .map(|msg| crate::conv::bytes_to_prefixed_str_js(MSG_PREFIX, &msg))
       .collect()
   }
 
