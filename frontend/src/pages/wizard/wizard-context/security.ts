@@ -50,10 +50,10 @@ export function useSecurityStep() {
 
   const updateKeyPieces = useCallback(
     function <T extends keyof KeyPiece>(cardId: number, key: T, value: KeyPiece[T]) {
-      const keyPieciesCopy = [...keyPieces];
-      keyPieciesCopy[cardId][key] = value;
-      setMainKeyPieces(keyPieciesCopy.slice(0, mainKeyPieces.length));
-      setAdditionalKeyPieces(keyPieciesCopy.slice(mainKeyPieces.length));
+      const keyPiecesCopy = [...keyPieces];
+      keyPiecesCopy[cardId][key] = value;
+      setMainKeyPieces(keyPiecesCopy.slice(0, mainKeyPieces.length));
+      setAdditionalKeyPieces(keyPiecesCopy.slice(mainKeyPieces.length));
     },
     [setMainKeyPieces, setAdditionalKeyPieces, keyPieces, mainKeyPieces],
   );
