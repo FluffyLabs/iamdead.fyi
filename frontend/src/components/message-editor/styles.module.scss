@@ -1,0 +1,8 @@
+.editor {
+  height: 500px;
+  margin-bottom: calc(44px + 1rem); // because of toolbar
+
+  :global(.ql-container) {
+    overflow: auto;
+  }
+}

@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo } from 'react';
 import { useSecurityStep } from './security';
 import { useProofOfLifeStep } from './proof-of-life';
+import { useMessage } from './message';
 
 type WizardContext = ReturnType<typeof useWizard>;
 
@@ -15,11 +16,14 @@ export function useWizardContext() {
 export function useWizard() {
   const security = useSecurityStep();
   const proofOfLife = useProofOfLifeStep();
+  const message = useMessage();
+
   return useMemo(
     () => ({
       security,
       proofOfLife,
+      message,
     }),
-    [security, proofOfLife],
+    [security, proofOfLife, message],
   );
 }
