@@ -3,10 +3,11 @@ name = "icod-crypto-js"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dev-dependencies]
+pretty_assertions = "1.4.0"
 
 [dependencies]
-hex = "0.4.3"
+data-encoding = "2.4.0"
 icod-crypto = { path = "../crypto" }
 serde = { version = "1.0.164", features = ["derive"] }
 serde-wasm-bindgen = "0.6.0"

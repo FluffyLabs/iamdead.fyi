@@ -91,7 +91,7 @@ pub struct Chunk {
 ///
 /// The encoding of [Chunk] is simply a concatentaion of the magic sequence and the rest
 /// of the fields of [Chunk] struct in the order they are declared.
-pub const CHUNK_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icod-chunk:";
+pub const CHUNK_ENCODING_MAGIC_SEQUENCE: &'static [u8] = b"icodc";
 
 impl Chunk {
   /// Create a new [Chunk] providing it's index, data configuration and hash of the key.
@@ -156,8 +156,8 @@ impl Chunk {
   ///
   /// /// ```markdown
   /// +--------------------------------+
-  /// | magic byte sequence (11 bytes) |
-  /// | (b"icod-chunk:")               |
+  /// | magic byte sequence (5 bytes)  |
+  /// | (b"icodc")                     |
   /// +--------------------------------+
   /// | version (1 byte)               |
   /// +--------------------------------+
@@ -345,6 +345,7 @@ pub fn recover_key(chunks: &[Chunk]) -> Result<MessageEncryptionKey, KeyRecovery
 #[cfg(test)]
 mod tests {
   use crate::encryption::EncryptionKeyVersion;
+  use pretty_assertions::assert_eq;
 
   use super::*;
 
@@ -376,7 +377,7 @@ mod tests {
       assert_eq!(chunks1.len(), 1);
       assert_eq!(
         format!("{:?}", chunks1[0]),
-        r#"Chunk { version: V0, key_hash: Hash("aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b2"), chunks_configuration: ChunksConfiguration { required: 1, spare: 0 }, chunk_index: 0, chunk_data: String("\u{1}icod-key:\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("0169636f642d6b65793a000101010101010101010101010101010101010101010101010101010101010101") }"#
+        r#"Chunk { version: V0, key_hash: Hash("57d20cb83fe35db059c4ac1a85acab73a1ac0103d1380c8b8d90cc2221dad0995aa98f72f8b2ddc431093e69c791425bee10d461f003447a0f7fca7b9faa6d15"), chunks_configuration: ChunksConfiguration { required: 1, spare: 0 }, chunk_index: 0, chunk_data: String("\u{1}icodk\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("0169636f646b000101010101010101010101010101010101010101010101010101010101010101") }"#
       );
     }
 
@@ -390,11 +391,11 @@ mod tests {
       assert_eq!(chunks1.len(), 2);
       assert_eq!(
         format!("{:?}", chunks1[0]),
-        r#"Chunk { version: V0, key_hash: Hash("aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b2"), chunks_configuration: ChunksConfiguration { required: 1, spare: 1 }, chunk_index: 0, chunk_data: String("\u{1}icod-key:\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("0169636f642d6b65793a000101010101010101010101010101010101010101010101010101010101010101") }"#
+        r#"Chunk { version: V0, key_hash: Hash("57d20cb83fe35db059c4ac1a85acab73a1ac0103d1380c8b8d90cc2221dad0995aa98f72f8b2ddc431093e69c791425bee10d461f003447a0f7fca7b9faa6d15"), chunks_configuration: ChunksConfiguration { required: 1, spare: 1 }, chunk_index: 0, chunk_data: String("\u{1}icodk\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("0169636f646b000101010101010101010101010101010101010101010101010101010101010101") }"#
       );
       assert_eq!(
         format!("{:?}", chunks1[1]),
-        r#"Chunk { version: V0, key_hash: Hash("aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b2"), chunks_configuration: ChunksConfiguration { required: 1, spare: 1 }, chunk_index: 1, chunk_data: String("\u{2}icod-key:\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("0269636f642d6b65793a000101010101010101010101010101010101010101010101010101010101010101") }"#
+        r#"Chunk { version: V0, key_hash: Hash("57d20cb83fe35db059c4ac1a85acab73a1ac0103d1380c8b8d90cc2221dad0995aa98f72f8b2ddc431093e69c791425bee10d461f003447a0f7fca7b9faa6d15"), chunks_configuration: ChunksConfiguration { required: 1, spare: 1 }, chunk_index: 1, chunk_data: String("\u{2}icodk\0\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}\u{1}") == Bytes("0269636f646b000101010101010101010101010101010101010101010101010101010101010101") }"#
       );
     }
   }
@@ -441,16 +442,18 @@ mod tests {
     assert_eq!(chunks.len(), 3);
     let chunk = format!("{:?}", chunks[0].encode());
     assert!(
-            chunk.starts_with( r#"Bytes("69636f642d6368756e6b3a00aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b202010001"#
+            chunk.starts_with( r#"Bytes("69636f64630057d20cb83fe35db059c4ac1a85acab73a1ac0103d1380c8b8d90cc2221dad0995aa98f72f8b2ddc431093e69c791425bee10d461f003447a0f7fca7b9faa6d1502010001"#
         ), "Expected chunk prefix not found in: {}", chunk);
     let chunk = format!("{:?}", chunks[1].encode());
     assert!(
-            chunk.starts_with( r#"Bytes("69636f642d6368756e6b3a00aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b202010102"#
-        ), "Expected chunk prefix not found in: {}", chunk);
+            chunk.starts_with(
+r#"Bytes("69636f64630057d20cb83fe35db059c4ac1a85acab73a1ac0103d1380c8b8d90cc2221dad0995aa98f72f8b2ddc431093e69c791425bee10d461f003447a0f7fca7b9faa6d1502010102"#),
+            "Expected chunk prefix not found in: {}", chunk);
     let chunk = format!("{:?}", chunks[2].encode());
     assert!(
-            chunk.starts_with( r#"Bytes("69636f642d6368756e6b3a00aaf784588d21f3be1a1c4992766dd27a35baf6b09828b44ea99627eac8a1e7304acf64f2a6d458a1fcef30bdba88f54d05cddbc614fc2c4b4e03cb15f54070b202010203"#
-        ), "Expected chunk prefix not found in: {}", chunk);
+            chunk.starts_with(
+r#"Bytes("69636f64630057d20cb83fe35db059c4ac1a85acab73a1ac0103d1380c8b8d90cc2221dad0995aa98f72f8b2ddc431093e69c791425bee10d461f003447a0f7fca7b9faa6d1502010203"#),
+        "Expected chunk prefix not found in: {}", chunk);
   }
 
   #[test]

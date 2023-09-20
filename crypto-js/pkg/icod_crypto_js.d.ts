@@ -1,79 +1,92 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* Split given `key` into SSS chunks according to `configuration`.
+*
+* The `key` should be raw, 32-bytes key. The magic sequence and version
+* will be prepended internally.
 * @param {Uint8Array} key
 * @param {ChunksConfiguration} configuration
 * @returns {any[]}
 */
 export function split_into_chunks(key: Uint8Array, configuration: ChunksConfiguration): any[];
 /**
+* Recover key given enough SSS chunks.
+*
+* The recovered key will be byte-encoded, i.e. it will
+* be prepended with magic sequence and version information.
 * @param {any[]} chunks
 * @returns {Uint8Array}
 */
 export function recover_key(chunks: any[]): Uint8Array;
 /**
+* Secure given message by randomly selecting an encryption key,
+* encrypting the message and splitting the key using Shamir Secret Sharing
+* scheme with given configuration.
+*
+* The resulting encrypted message may also be split into multiple parts
+* using `split` parameter to make sure it can fit into QR codes.
 * @param {string} msg
+* @param {number | undefined} split
 * @param {ChunksConfiguration} chunks_configuration
 * @returns {any}
 */
-export function secure_message(msg: string, chunks_configuration: ChunksConfiguration): any;
+export function secure_message(msg: string, split: number | undefined, chunks_configuration: ChunksConfiguration): any;
 /**
-* @param {Uint8Array} data
-* @param {Uint8Array} nonce
+* Restore the original message given parts of the encrypted message and SSS chunks.
+* @param {any[]} message
 * @param {any[]} chunks
-* @returns {Uint8Array}
+* @returns {string}
 */
-export function restore_message(data: Uint8Array, nonce: Uint8Array, chunks: any[]): Uint8Array;
+export function restore_message(message: any[], chunks: any[]): string;
 /**
+* Encrypt given `message` using provided `key`.
+*
+* The `key` must be a vector containing exactly
+* [KEY_SIZE] bytes (32-bytes for V0).
+*
+* The result will be a vector of string `JsValue`s, each
+* containing an encoded part of encrypted message, no
+* longer than given `split` value.
+*
+* If `None` for `split` is provided, the result will be single
+* `JsValue` string, containing the entire encrypted message.
 * @param {Uint8Array} key
-* @param {string} msg
-* @returns {any}
+* @param {string} message
+* @param {number | undefined} split
+* @returns {any[]}
 */
-export function encrypt_message(key: Uint8Array, msg: string): any;
+export function encrypt_message(key: Uint8Array, message: string, split?: number): any[];
 /**
+* Decrypt given `data` using provided `key`.
+*
+* - `key` must be exactly [KEY_SIZE] bytes (32-bytes for V0).
+* - `data` is arbitrary length encrypted message.
+* - `nonce` must be exactly [NONCE_SIZE] bytes (12-bytes).
+*
+* The result will be the decrypted message as a string `JsValue`.
 * @param {Uint8Array} key
-* @param {Uint8Array} data
-* @param {Uint8Array} nonce
-* @returns {Uint8Array}
+* @param {any[]} message_parts
+* @returns {string}
 */
-export function decrypt_message(key: Uint8Array, data: Uint8Array, nonce: Uint8Array): Uint8Array;
+export function decrypt_message(key: Uint8Array, message_parts: any[]): string;
 /**
-*/
-export enum SplittingError {
-  InvalidKeySize = 0,
-  ConfigurationError = 1,
-}
-/**
-*/
-export enum RecoveryError {
-  ChunkDecodingError = 0,
-  InconsistentChunks = 1,
-  InconsistentConfiguration = 2,
-  NotEnoughChunks = 3,
-  UnexpectedKey = 4,
-  KeyDecodingError = 5,
-}
-/**
-*/
-export enum Error {
-  InvalidKeySize = 0,
-  InvalidNonceSize = 1,
-  VersionError = 2,
-  CryptoError = 3,
-}
-/**
+* WASM-compatible SSS chunks configuration.
 */
 export class ChunksConfiguration {
   free(): void;
 /**
+* Create new [ChunksConfiguration].
 * @param {number} required
 * @param {number} spare
 */
   constructor(required: number, spare: number);
 /**
+* Number of chunks required for recovery.
 */
   required: number;
 /**
+* Number of extra chunks.
 */
   spare: number;
 }
@@ -90,10 +103,10 @@ export interface InitOutput {
   readonly chunksconfiguration_new: (a: number, b: number) => number;
   readonly split_into_chunks: (a: number, b: number, c: number, d: number) => void;
   readonly recover_key: (a: number, b: number, c: number) => void;
-  readonly secure_message: (a: number, b: number, c: number, d: number) => void;
-  readonly restore_message: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly encrypt_message: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly decrypt_message: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly secure_message: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly restore_message: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly encrypt_message: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly decrypt_message: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
