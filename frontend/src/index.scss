@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 body {
   margin: 0;
 }
@@ -12,7 +8,8 @@ code {
 
 body,
 html {
-  @apply min-h-screen font-Raleway place-content-center;
+  min-height: 100vh;
+  font-family: Raleway, sans-serif;
 }
 
 * {

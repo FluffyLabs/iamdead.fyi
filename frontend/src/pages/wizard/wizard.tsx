@@ -3,6 +3,12 @@ import { useDefaultSubpath } from '../../hooks/use-default-subpath';
 import { DEFAULT_WIZARD_ROUTE, Steps } from './consts';
 import { useStepName, useStepsNavigation } from './hooks';
 import { WizardContextProvider, useWizard } from './wizard-context';
+import { Button } from 'evergreen-ui';
+import { ProgressBar } from '../../components/progress-bar';
+import { Divider } from '../../components/divider';
+import { Container } from '../../components/container';
+
+import styles from './styles.module.scss';
 
 const createStepConfig = (title: string, previousStep: Steps | null, nextStep: Steps | null, progress: string) => ({
   title,
@@ -23,39 +29,27 @@ export const Wizard = () => {
   const stepConfig = STEPS_CONFIG[stepName];
   const { handleNext, handlePrevious } = useStepsNavigation(stepConfig);
   return (
-    <div className="md:container md:mx-auto px-4">
-      <h1 className="text-xl mt-5">{stepConfig.title}</h1>
-      <div className="w-full bg-gray-200 rounded-full h-1.5 mb-4 dark:bg-gray-700">
-        <div
-          className="my-5 h-1.5 rounded-full bg-primary transition-width transition-slowest ease"
-          style={{ width: stepConfig.progress }}
-        ></div>
+    <Container>
+      <div className="md:container md:mx-auto px-4">
+        <h1 className={styles.header}>{stepConfig.title}</h1>
+
+        <ProgressBar progress={stepConfig.progress} />
+
+        <WizardContextProvider value={wizard}>
+          <Outlet />
+        </WizardContextProvider>
+
+        <Divider />
+
+        <div className={styles.buttons}>
+          <Button appearance="primary" onClick={handlePrevious}>
+            Previous
+          </Button>
+          <Button appearance="primary" onClick={handleNext}>
+            Next
+          </Button>
+        </div>
       </div>
-
-      <WizardContextProvider value={wizard}>
-        <Outlet />
-      </WizardContextProvider>
-
-      <hr className="h-px my-5 bg-gray-200 border-0 dark:bg-gray-700" />
-
-      <div className="flex flex-row justify-between">
-        <button
-          disabled={!stepConfig.previousStep}
-          type="button"
-          onClick={handlePrevious}
-          className="bg-secondary text-white text-xs px-2 py-3 rounded-md w-24"
-        >
-          Previous
-        </button>
-        <button
-          disabled={!stepConfig.nextStep}
-          type="button"
-          onClick={handleNext}
-          className="bg-primary text-white text-xs px-2 py-3 rounded-md w-24"
-        >
-          Next
-        </button>
-      </div>
-    </div>
+    </Container>
   );
 };
