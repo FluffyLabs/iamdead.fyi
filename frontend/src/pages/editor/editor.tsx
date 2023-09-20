@@ -1,18 +1,8 @@
 import { Fragment, useCallback, useState } from 'react';
-import ReactQuill from 'react-quill';
-import { Crypto, SecureMessageResult } from './crypto';
-import 'react-quill/dist/quill.snow.css';
 import { QRCodeSVG } from 'qrcode.react';
 
-const modules = {
-  toolbar: [
-    [{ header: [1, 2, false] }],
-    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-    ['link', 'image'],
-    ['clean'],
-  ],
-};
+import { Crypto, SecureMessageResult } from './crypto';
+import { MessageEditor } from '../../components/message-editor';
 
 export const Editor = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +49,7 @@ export const Editor = () => {
       <h1>ICOD Editor</h1>
       <Configuration value={configuration} onChange={setConfiguration} onSecureMessage={handleSecureMessage} />
       <div style={{ maxWidth: '75%', margin: 'auto' }}>
-        <ReactQuill theme="snow" value={value} modules={modules} onChange={handleChange} />
+        <MessageEditor value={value} onChange={handleChange} />
       </div>
       <IsLoading isLoading={isLoading} />
       <DisplayResult result={result} error={error} />
