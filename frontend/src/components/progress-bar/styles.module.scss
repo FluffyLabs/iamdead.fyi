@@ -1,0 +1,23 @@
+@import '../../colors.scss';
+
+%common {
+  border-radius: 9999px;
+  height: 0.375rem;
+}
+
+.wrapper {
+  @extend %common;
+  width: 100%;
+  background-color: rgb(229 231 235);
+  margin-bottom: 1rem;
+}
+
+.progress {
+  @extend %common;
+  background-color: $primary;
+  transition-property: width;
+  transition-timing-function: ease;
+  transition-duration: 150ms;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
