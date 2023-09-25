@@ -20,6 +20,13 @@ export function split_into_chunks(key: Uint8Array, configuration: ChunksConfigur
 */
 export function recover_key(chunks: any[]): Uint8Array;
 /**
+* Given a string attempts to identify and decode the details
+* of encoded value.
+* @param {string} item
+* @returns {any}
+*/
+export function identify(item: string): any;
+/**
 * Secure given message by randomly selecting an encryption key,
 * encrypting the message and splitting the key using Shamir Secret Sharing
 * scheme with given configuration.
@@ -58,13 +65,12 @@ export function restore_message(message: any[], chunks: any[]): string;
 */
 export function encrypt_message(key: Uint8Array, message: string, split?: number): any[];
 /**
-* Decrypt given `data` using provided `key`.
+* Decrypt given message using provided `key`.
 *
 * - `key` must be exactly [KEY_SIZE] bytes (32-bytes for V0).
-* - `data` is arbitrary length encrypted message.
-* - `nonce` must be exactly [NONCE_SIZE] bytes (12-bytes).
+* - `message_parts` will be collated into single encrypted message.
 *
-* The result will be the decrypted message as a string `JsValue`.
+* The result will be the decrypted message as a `String`.
 * @param {Uint8Array} key
 * @param {any[]} message_parts
 * @returns {string}
@@ -103,6 +109,7 @@ export interface InitOutput {
   readonly chunksconfiguration_new: (a: number, b: number) => number;
   readonly split_into_chunks: (a: number, b: number, c: number, d: number) => void;
   readonly recover_key: (a: number, b: number, c: number) => void;
+  readonly identify: (a: number, b: number, c: number) => void;
   readonly secure_message: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly restore_message: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly encrypt_message: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
