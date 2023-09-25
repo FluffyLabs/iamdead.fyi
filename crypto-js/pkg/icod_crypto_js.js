@@ -289,6 +289,30 @@ export function recover_key(chunks) {
 }
 
 /**
+* Given a string attempts to identify and decode the details
+* of encoded value.
+* @param {string} item
+* @returns {any}
+*/
+export function identify(item) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(item, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.identify(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
 * Secure given message by randomly selecting an encryption key,
 * encrypting the message and splitting the key using Shamir Secret Sharing
 * scheme with given configuration.
@@ -396,13 +420,12 @@ export function encrypt_message(key, message, split) {
 }
 
 /**
-* Decrypt given `data` using provided `key`.
+* Decrypt given message using provided `key`.
 *
 * - `key` must be exactly [KEY_SIZE] bytes (32-bytes for V0).
-* - `data` is arbitrary length encrypted message.
-* - `nonce` must be exactly [NONCE_SIZE] bytes (12-bytes).
+* - `message_parts` will be collated into single encrypted message.
 *
-* The result will be the decrypted message as a string `JsValue`.
+* The result will be the decrypted message as a `String`.
 * @param {Uint8Array} key
 * @param {any[]} message_parts
 * @returns {string}
@@ -557,21 +580,25 @@ function __wbg_get_imports() {
         getInt32Memory0()[arg0 / 4 + 1] = len1;
         getInt32Memory0()[arg0 / 4 + 0] = ptr1;
     };
+    imports.wbg.__wbindgen_number_new = function(arg0) {
+        const ret = arg0;
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
         const ret = getObject(arg0);
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_set_bd72c078edfa51ad = function(arg0, arg1, arg2) {
+        getObject(arg0)[takeObject(arg1)] = takeObject(arg2);
+    };
+    imports.wbg.__wbg_crypto_70a96de3b6b73dac = function(arg0) {
+        const ret = getObject(arg0).crypto;
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_is_object = function(arg0) {
         const val = getObject(arg0);
         const ret = typeof(val) === 'object' && val !== null;
         return ret;
-    };
-    imports.wbg.__wbg_set_841ac57cff3d672b = function(arg0, arg1, arg2) {
-        getObject(arg0)[takeObject(arg1)] = takeObject(arg2);
-    };
-    imports.wbg.__wbg_crypto_70a96de3b6b73dac = function(arg0) {
-        const ret = getObject(arg0).crypto;
-        return addHeapObject(ret);
     };
     imports.wbg.__wbg_process_dd1577445152112e = function(arg0) {
         const ret = getObject(arg0).process;
