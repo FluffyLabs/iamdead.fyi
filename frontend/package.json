@@ -13,7 +13,7 @@
     "@types/react-dom": "^18.2.7",
     "axios": "^1.5.0",
     "add": "^2.0.6",
-    "clsx": "^1.2.1",
+    "clsx": "^2.0.0",
     "evergreen-ui": "^7.1.9",
     "http-proxy-middleware": "^2.0.6",
     "icod-crypto-js": "../crypto-js/pkg",
