@@ -1,8 +1,10 @@
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useState, ChangeEvent, MouseEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { Button, TextInputField, Pane, KeyIcon } from 'evergreen-ui';
 
 import { Crypto, SecureMessageResult } from './crypto';
 import { MessageEditor } from '../../components/message-editor';
+import { Container } from '../../components/container';
 
 export const Editor = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,15 +47,13 @@ export const Editor = () => {
   );
 
   return (
-    <div>
+    <Container>
       <h1>ICOD Editor</h1>
       <Configuration value={configuration} onChange={setConfiguration} onSecureMessage={handleSecureMessage} />
-      <div style={{ maxWidth: '75%', margin: 'auto' }}>
-        <MessageEditor value={value} onChange={handleChange} />
-      </div>
+      <MessageEditor value={value} onChange={handleChange} />
       <IsLoading isLoading={isLoading} />
       <DisplayResult result={result} error={error} />
-    </div>
+    </Container>
   );
 };
 
@@ -101,7 +101,7 @@ function EncryptedMessage({ data }: { data: string[] }) {
         <div style={{ margin: 50 }} title={part} key={part}>
           <h3>Message Part {idx + 1}</h3>
           <QRCodeSVG value={part.toUpperCase()} />
-          <input type="text" disabled value={part.toUpperCase()} />
+          <TextInputField type="text" disabled value={part.toUpperCase()} />
         </div>
       ))}
     </Fragment>
@@ -115,7 +115,7 @@ function Chunk({ id, chunk }: { id: number; chunk: string }) {
     <div style={{ margin: 20 }} title={chunk}>
       <h3>Chunk {id}</h3>
       <QRCodeSVG value={chunk.toUpperCase()} />
-      <input type="text" disabled value={chunk.toUpperCase()} />
+      <TextInputField type="text" disabled value={chunk.toUpperCase()} />
     </div>
   );
 }
@@ -136,42 +136,37 @@ function Configuration({
 }) {
   return (
     <form>
-      <fieldset>
-        <label>
-          Required Chunks <br />
-          <input
-            type="number"
-            value={value.required}
-            onChange={(e) => {
-              onChange({ ...value, required: parseInt(e.target.value) || 0 });
-            }}
-          />
-        </label>
-      </fieldset>
+      <Pane border padding="20px">
+        <TextInputField
+          label="Required Chunks"
+          type="number"
+          value={value.required}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            onChange({ ...value, required: parseInt(e.target.value) || 0 });
+          }}
+        />
+        <TextInputField
+          label="Spare Chunks"
+          type="number"
+          value={value.spare}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            onChange({ ...value, spare: parseInt(e.target.value) || 0 });
+          }}
+        />
+      </Pane>
       <br />
-      <fieldset>
-        <label>
-          Spare Chunks
-          <br />
-          <input
-            type="number"
-            value={value.spare}
-            onChange={(e) => {
-              onChange({ ...value, spare: parseInt(e.target.value) || 0 });
-            }}
-          />
-        </label>
-      </fieldset>
-      <br />
-      <button
-        onClick={(e) => {
+      <Button
+        size="large"
+        onClick={(e: MouseEvent<HTMLButtonElement>) => {
           onSecureMessage();
           e.preventDefault();
-          return false;
         }}
+        appearance="primary"
+        iconBefore={<KeyIcon />}
       >
         Encrypt the message
-      </button>
+      </Button>
+      <br />
       <br />
     </form>
   );

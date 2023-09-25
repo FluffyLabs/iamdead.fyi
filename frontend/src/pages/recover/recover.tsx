@@ -1,8 +1,10 @@
-import { useCallback, useState } from 'react';
+import { ChangeEvent, ReactEventHandler, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Result } from '@zxing/library';
 /// TODO [ToDr] Move to some service file.
 import { Crypto, IdentificationResult } from '../editor/crypto';
+import { Alert, Button, CogIcon, Group, Pane, TextInputField } from 'evergreen-ui';
+import { Container } from '../../components/container';
 
 export const Recover = () => {
   const [error, setError] = useState(null as string | null);
@@ -25,53 +27,103 @@ export const Recover = () => {
     [rawData, setRawData],
   );
   return (
-    <div>
+    <Container>
       <h1>Recover the message</h1>
-      <QRScanner handleChunk={handleChunk} />
-      {error && <pre>{error}</pre>}
+      <ChunkInput handleChunk={handleChunk} error={error} />
       <RecoverySummary />
       <pre>{JSON.stringify(rawData, null, 2)}</pre>
-    </div>
+    </Container>
   );
 };
 
-function QRScanner({ handleChunk }: { handleChunk: (arg0: string) => void }) {
+type HandleChunkProps = {
+  handleChunk: (arg0: string) => void;
+  error: string | null;
+};
+
+function ChunkInput({ handleChunk, error }: HandleChunkProps) {
+  const options = useMemo(
+    () => [
+      { label: 'Manual', value: 'manual' },
+      { label: 'QR', value: 'qr' },
+    ],
+    [],
+  );
+  const [mode, setMode] = useState('manual');
+
+  return (
+    <Pane>
+      <Group>
+        {options.map(({ label, value }) => (
+          <Button key={label} isActive={mode === value} onClick={() => setMode(value)}>
+            {label}
+          </Button>
+        ))}
+      </Group>
+      <br />
+      <br />
+      <Pane padding="20px" elevation={1} border height="300px">
+        {mode === 'manual' && <ManualInput handleChunk={handleChunk} error={error} />}
+        {mode === 'qr' && <QRScanner handleChunk={handleChunk} error={error} />}
+      </Pane>
+    </Pane>
+  );
+}
+
+function ManualInput({ handleChunk, error }: HandleChunkProps) {
   const [val, setVal] = useState('');
+
+  return (
+    <Pane>
+      <TextInputField
+        label="ICOD chunk"
+        placeholder="ICOD-???:"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => setVal(e.target.value)}
+        value={val}
+        isInvalid={!!error}
+        validationMessage={error}
+      />
+      <Button
+        size="large"
+        onClick={() => handleChunk(val)}
+        disabled={!val}
+        appearance="primary"
+        iconBefore={<CogIcon />}
+      >
+        Parse
+      </Button>
+    </Pane>
+  );
+}
+
+function QRScanner({ handleChunk, error }: HandleChunkProps) {
+  const [qrError, setQrError] = useState(null as string | null);
+
   const handleResult = (data: Result | null | undefined, err: Error | null | undefined) => {
     if (err) {
-      console.error(err);
+      setQrError(err.message);
       return;
     }
 
     if (data) {
       console.log(data);
+      setQrError(null);
       handleChunk(data.getText());
     }
   };
 
-  // <QrReader
-  //   constraints={{ facingMode: 'environment' }}
-  //   scanDelay={300}
-  //   onResult={handleResult}
-  //   containerStyle={{ width: '150px' }}
-  // />
+  const e = qrError || error;
+
   return (
-    <div>
-      <input
-        type="text"
-        onChange={(e) => {
-          setVal(e.currentTarget.value);
-        }}
-        value={val}
+    <>
+      {e && <Alert intent="danger">{e}</Alert>}
+      <QrReader
+        constraints={{ facingMode: 'environment' }}
+        scanDelay={300}
+        onResult={handleResult}
+        containerStyle={{ width: '150px' }}
       />
-      <button
-        onClick={(e) => {
-          handleChunk(val);
-        }}
-      >
-        Manual input
-      </button>
-    </div>
+    </>
   );
 }
 

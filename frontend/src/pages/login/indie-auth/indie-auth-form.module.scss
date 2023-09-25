@@ -5,19 +5,19 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
 
-input[type='text'] {
-  width: 100%;
-  padding: 15px;
-  margin: 5px 0 22px 0;
-  border: none;
-  background: #f1f1f1;
-}
+  input[type='text'] {
+    width: 100%;
+    padding: 15px;
+    margin: 5px 0 22px 0;
+    border: none;
+    background: #f1f1f1;
+  }
 
-input[type='text']:focus {
-  background-color: #ddd;
-  outline: none;
+  input[type='text']:focus {
+    background-color: #ddd;
+    outline: none;
+  }
 }
 
 .btn {
