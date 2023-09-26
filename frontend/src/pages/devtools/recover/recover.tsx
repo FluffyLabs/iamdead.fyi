@@ -2,9 +2,9 @@ import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Result } from '@zxing/library';
 /// TODO [ToDr] Move to some service file.
-import { Chunk, Crypto, MessagePart } from '../editor/crypto';
+import { Chunk, Crypto, MessagePart } from '../../../services/crypto';
 import { Alert, Button, Card, CogIcon, Group, Pane, TextInputField, UnlockIcon } from 'evergreen-ui';
-import { Container } from '../../components/container';
+import { Container } from '../../../components/container';
 import { isEqual } from 'lodash';
 
 class PartsCollector {
