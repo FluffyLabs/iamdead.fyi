@@ -1,13 +1,12 @@
-import { Adapters } from '../../../wizard-context/proof-of-life';
-import { Adapter } from '../adapter/adapter';
-import { AdapterItem } from '../types';
+import { Adapter } from '../../../../../services/adapters';
+import { AdapterItem } from '../adapter-item';
 
 import styles from './styles.module.scss';
 
 type Props = {
   title: string;
-  adapters: Array<AdapterItem>;
-  onClick: (value: Adapters) => void;
+  adapters: Array<Adapter>;
+  onClick: (value: Adapter) => void;
 };
 
 export const AdaptersSection = ({ title, adapters, onClick }: Props) => {
@@ -15,8 +14,8 @@ export const AdaptersSection = ({ title, adapters, onClick }: Props) => {
     <div>
       <h3>{title}</h3>
       <div className={styles.wrapper}>
-        {adapters.map(({ image, name, value }) => (
-          <Adapter key={value} image={image} name={name} onClick={onClick} value={value} />
+        {adapters.map((adapter) => (
+          <AdapterItem key={adapter.id} adapter={adapter} onClick={onClick} />
         ))}
       </div>
     </div>
