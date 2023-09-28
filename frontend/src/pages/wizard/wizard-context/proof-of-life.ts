@@ -1,26 +1,26 @@
 import { useState, useMemo, useCallback } from 'react';
+import { Adapter } from '../../../services/adapters';
 
-export type ConfiguredAdapter = {
-  adapter: Adapters;
+export type ConfiguredAdapter = Adapter & {
+  adapterId: string;
   time: number;
   unit: Units;
 };
-
-export enum Adapters {
-  Email = 'email',
-  Telegram = 'telegram',
-  Twitter = 'twitter',
-  Whatsapp = 'whatsapp',
-}
 
 export enum Units {
   Months = 'months',
 }
 
-export const createAdapter = (adapter: Adapters, time: number, unit = Units.Months): ConfiguredAdapter => ({
-  adapter,
+export const createAdapter = (
+  adapter: Adapter,
+  adapterId: string,
+  time: number,
+  unit = Units.Months,
+): ConfiguredAdapter => ({
+  ...adapter,
   time,
   unit,
+  adapterId,
 });
 
 const list: Array<Array<ConfiguredAdapter>> = [];
