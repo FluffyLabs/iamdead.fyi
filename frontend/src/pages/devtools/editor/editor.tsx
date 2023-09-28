@@ -2,9 +2,9 @@ import { Fragment, useCallback, useState, ChangeEvent, MouseEvent } from 'react'
 import { QRCodeSVG } from 'qrcode.react';
 import { Button, TextInputField, Pane, KeyIcon } from 'evergreen-ui';
 
-import { Crypto, SecureMessageResult } from './crypto';
-import { MessageEditor } from '../../components/message-editor';
-import { Container } from '../../components/container';
+import { Crypto, SecureMessageResult } from '../../../services/crypto';
+import { MessageEditor } from '../../../components/message-editor';
+import { Container } from '../../../components/container';
 
 export const Editor = () => {
   const [isLoading, setIsLoading] = useState(false);

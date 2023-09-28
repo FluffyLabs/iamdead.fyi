@@ -1,8 +1,9 @@
 import { Routes as ReactRoutes, Route, Outlet } from 'react-router-dom';
 
-import { Editor } from './pages/editor';
+import { Editor } from './pages/devtools/editor';
+import { DevTools } from './pages/devtools';
 import { Home } from './pages/home';
-import { Recover } from './pages/recover';
+import { Recover } from './pages/devtools/recover';
 import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Wizard } from './pages/wizard';
@@ -16,8 +17,10 @@ export function Routes() {
     <>
       <ReactRoutes>
         <Route index element={<Home />} />
-        <Route element={<Editor />} path="editor" />
-        <Route element={<Recover />} path="recover" />
+        <Route element={<DevTools />} path="dev">
+          <Route index element={<Editor />} path="editor" />
+          <Route element={<Recover />} path="recover" />
+        </Route>
 
         <Route element={<Login />} path="login">
           <Route index element={<IndieAuthForm />} path="indie-auth" />
