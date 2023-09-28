@@ -1,0 +1,6 @@
+@import '../../../../mixins.scss';
+
+.button {
+  @include button-reset;
+  border-bottom: 1px dashed #000;
+}
