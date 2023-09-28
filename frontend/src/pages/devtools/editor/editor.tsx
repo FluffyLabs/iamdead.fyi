@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useState, ChangeEvent, MouseEvent } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Button, TextInputField, Pane, KeyIcon } from 'evergreen-ui';
+import { Button, TextInputField, Pane, KeyIcon, Heading, Card, majorScale } from 'evergreen-ui';
 
 import { Crypto, SecureMessageResult } from '../../../services/crypto';
 import { MessageEditor } from '../../../components/message-editor';
@@ -48,9 +48,20 @@ export const Editor = () => {
 
   return (
     <Container>
-      <h1>ICOD Editor</h1>
-      <Configuration value={configuration} onChange={setConfiguration} onSecureMessage={handleSecureMessage} />
+      <Heading size="700">ICOD Editor</Heading>
+      <Configuration value={configuration} onChange={setConfiguration} />
       <MessageEditor value={value} onChange={handleChange} />
+      <Button
+        size="large"
+        onClick={(e: MouseEvent<HTMLButtonElement>) => {
+          handleSecureMessage();
+          e.preventDefault();
+        }}
+        appearance="primary"
+        iconBefore={<KeyIcon />}
+      >
+        Encrypt the message
+      </Button>
       <IsLoading isLoading={isLoading} />
       <DisplayResult result={result} error={error} />
     </Container>
@@ -78,33 +89,34 @@ function DisplayResult({ result, error }: { result: SecureMessageResult | null; 
   }
 
   return (
-    <div>
-      <h3>Encrypted message</h3>
-      <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+    <Pane>
+      <Heading>Encrypted message</Heading>
+      <Card margin="0" padding="0" display="flex" justifyContent="center" flexWrap="wrap">
         <EncryptedMessage data={result.encryptedMessage} />
-      </div>
-      <h4>Recovery chunks</h4>
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      </Card>
+      <Heading>Recovery chunks</Heading>
+      <Card margin="0" padding="0" display="flex" justifyContent="center">
         {result.chunks.map((x, idx) => (
           <Chunk key={x} chunk={x} id={idx + 1} />
         ))}
-      </div>
-    </div>
+      </Card>
+    </Pane>
   );
 }
 
 function EncryptedMessage({ data }: { data: string[] }) {
   const parts = data;
   return (
-    <Fragment>
+    <>
       {parts.map((part: string, idx) => (
-        <div style={{ margin: 50 }} title={part} key={part}>
-          <h3>Message Part {idx + 1}</h3>
+        <Pane margin={majorScale(5)} title={part} key={part}>
+          <Heading size="400">Message Part {idx + 1}</Heading>
+          <br />
           <QRCodeSVG value={part.toUpperCase()} />
           <TextInputField type="text" disabled value={part.toUpperCase()} />
-        </div>
+        </Pane>
       ))}
-    </Fragment>
+    </>
   );
 }
 
@@ -112,11 +124,12 @@ function Chunk({ id, chunk }: { id: number; chunk: string }) {
   // TODO [ToDr] QR code value should rather be a link.
   // TODO [ToDr] We use upper case now to switch to alphanumeric mode of QR
   return (
-    <div style={{ margin: 20 }} title={chunk}>
-      <h3>Chunk {id}</h3>
+    <Pane margin={majorScale(5)} title={chunk}>
+      <Heading size="400">Chunk {id}</Heading>
+      <br />
       <QRCodeSVG value={chunk.toUpperCase()} />
       <TextInputField type="text" disabled value={chunk.toUpperCase()} />
-    </div>
+    </Pane>
   );
 }
 
@@ -125,18 +138,10 @@ type Config = {
   spare: number;
 };
 
-function Configuration({
-  value,
-  onChange,
-  onSecureMessage,
-}: {
-  value: Config;
-  onChange: (e: Config) => void;
-  onSecureMessage: () => void;
-}) {
+function Configuration({ value, onChange }: { value: Config; onChange: (e: Config) => void }) {
   return (
     <form>
-      <Pane border padding="20px">
+      <Pane border>
         <TextInputField
           label="Required Chunks"
           type="number"
@@ -154,20 +159,6 @@ function Configuration({
           }}
         />
       </Pane>
-      <br />
-      <Button
-        size="large"
-        onClick={(e: MouseEvent<HTMLButtonElement>) => {
-          onSecureMessage();
-          e.preventDefault();
-        }}
-        appearance="primary"
-        iconBefore={<KeyIcon />}
-      >
-        Encrypt the message
-      </Button>
-      <br />
-      <br />
     </form>
   );
 }

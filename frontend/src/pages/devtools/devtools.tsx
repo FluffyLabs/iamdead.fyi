@@ -7,12 +7,12 @@ export const DevTools = () => {
 
   return (
     <>
-      <Pane padding="20px" border>
+      <Pane border>
         <Group>
-          <Button is="a" href="/dev/editor">
+          <Button is="a" href="/dev/editor" size="large">
             Secure
           </Button>
-          <Button is="a" href="/dev/recover">
+          <Button is="a" href="/dev/recover" size="large">
             Recover
           </Button>
         </Group>
