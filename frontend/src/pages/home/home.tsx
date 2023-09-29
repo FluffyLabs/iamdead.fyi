@@ -1,6 +1,6 @@
 import { Footer } from './footer';
 import { MainPage } from './main';
-import { Navigation } from './navigation';
+import { Navigation } from '../../components/navigation';
 
 export const Home = () => {
   return (

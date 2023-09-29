@@ -1,8 +1,15 @@
+@import '../../colors.scss';
+
 .editor {
   height: 300px;
   margin-bottom: calc(44px + 1rem); // because of toolbar
 
   :global(.ql-container) {
     overflow: auto;
+  }
+
+  :global(.ql-toolbar),
+  :global(.ql-container) {
+    border-color: $background;
   }
 }

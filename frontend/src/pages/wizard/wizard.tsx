@@ -7,6 +7,7 @@ import { Button } from 'evergreen-ui';
 import { ProgressBar } from '../../components/progress-bar';
 import { Divider } from '../../components/divider';
 import { Container } from '../../components/container';
+import { Navigation } from '../../components/navigation';
 
 import styles from './styles.module.scss';
 
@@ -29,27 +30,30 @@ export const Wizard = () => {
   const stepConfig = STEPS_CONFIG[stepName];
   const { handleNext, handlePrevious } = useStepsNavigation(stepConfig);
   return (
-    <Container>
-      <div className="md:container md:mx-auto px-4">
-        <h1 className={styles.header}>{stepConfig.title}</h1>
+    <>
+      <Navigation />
+      <Container>
+        <div className="md:container md:mx-auto px-4">
+          <h1 className={styles.header}>{stepConfig.title}</h1>
 
-        <ProgressBar progress={stepConfig.progress} />
+          <ProgressBar progress={stepConfig.progress} />
 
-        <WizardContextProvider value={wizard}>
-          <Outlet />
-        </WizardContextProvider>
+          <WizardContextProvider value={wizard}>
+            <Outlet />
+          </WizardContextProvider>
 
-        <Divider />
+          <Divider />
 
-        <div className={styles.buttons}>
-          <Button appearance="primary" onClick={handlePrevious}>
-            Previous
-          </Button>
-          <Button appearance="primary" onClick={handleNext}>
-            Next
-          </Button>
+          <div className={styles.buttons}>
+            <Button appearance="primary" onClick={handlePrevious}>
+              Previous
+            </Button>
+            <Button appearance="primary" onClick={handleNext}>
+              Next
+            </Button>
+          </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </>
   );
 };
