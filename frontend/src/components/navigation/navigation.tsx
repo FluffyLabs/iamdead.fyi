@@ -1,4 +1,4 @@
-import { Pane, majorScale, Button, Link } from 'evergreen-ui';
+import { Pane, majorScale, Link } from 'evergreen-ui';
 import logoWide from './logo256-wide-transparent.png';
 import { ReactNode } from 'react';
 import styles from './styles.module.scss';
