@@ -1,0 +1,22 @@
+@import '../../colors.scss';
+
+a.navLink {
+  background: $pane;
+  border: 1px solid $extra;
+  color: $tertiary;
+
+  &.active {
+    background: $background;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid $extra;
+  }
+
+  &:active {
+    text-decoration: underline;
+  }
+
+  &:hover {
+    color: $secondary;
+  }
+}

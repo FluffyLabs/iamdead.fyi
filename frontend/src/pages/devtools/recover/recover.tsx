@@ -1,9 +1,22 @@
 import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Result } from '@zxing/library';
-/// TODO [ToDr] Move to some service file.
 import { Chunk, Crypto, MessagePart } from '../../../services/crypto';
-import { Alert, Button, Card, CogIcon, Group, Pane, TextInputField, UnlockIcon } from 'evergreen-ui';
+import {
+  Alert,
+  Button,
+  Card,
+  CogIcon,
+  Group,
+  Heading,
+  Pane,
+  TextInputField,
+  UnlockIcon,
+  majorScale,
+  Text,
+  Pre,
+  Textarea,
+} from 'evergreen-ui';
 import { Container } from '../../../components/container';
 import { isEqual } from 'lodash';
 
@@ -163,10 +176,10 @@ export const Recover = () => {
   }, [messageParts, chunks, partsCollector]);
   return (
     <Container>
-      <h1>Recover the message</h1>
+      <Heading size="700">Recover the message</Heading>
       <ChunkInput handlePart={handlePart} error={error} />
-      <RestorationResult restoredMessage={restoredMessage} />
       <RecoverySummary messageParts={messageParts} chunks={chunks} handleRestore={handleRestore} />
+      <RestorationResult restoredMessage={restoredMessage} />
     </Container>
   );
 };
@@ -187,7 +200,7 @@ function ChunkInput({ handlePart, error }: HandleChunkProps) {
   const [mode, setMode] = useState('manual');
 
   return (
-    <Pane>
+    <Pane padding="0">
       <Group>
         {options.map(({ label, value }) => (
           <Button key={label} isActive={mode === value} onClick={() => setMode(value)}>
@@ -197,7 +210,7 @@ function ChunkInput({ handlePart, error }: HandleChunkProps) {
       </Group>
       <br />
       <br />
-      <Pane padding="20px" elevation={1} border height="300px">
+      <Pane marginTop="0" border height="300px">
         {mode === 'manual' && <ManualInput handlePart={handlePart} error={error} />}
         {mode === 'qr' && <QRScanner handlePart={handlePart} error={error} />}
       </Pane>
@@ -209,7 +222,7 @@ function ManualInput({ handlePart, error }: HandleChunkProps) {
   const [val, setVal] = useState('');
 
   return (
-    <Pane>
+    <>
       <TextInputField
         label="ICOD chunk"
         placeholder="ICOD-???:"
@@ -230,7 +243,7 @@ function ManualInput({ handlePart, error }: HandleChunkProps) {
       >
         Parse
       </Button>
-    </Pane>
+    </>
   );
 }
 
@@ -280,6 +293,46 @@ function RecoverySummary({
   const isReadyForRestoration = missingParts !== null && missingChunks !== null && missingParts + missingChunks === 0;
   return (
     <>
+      <Pane border>
+        <Heading>Message:</Heading>
+        {!!messageParts.length && (
+          <details>
+            <summary>
+              {missingParts === null ? (
+                ''
+              ) : missingParts === 0 ? (
+                <Text>Message is complete.</Text>
+              ) : (
+                <Text>Still missing {missingParts} parts.</Text>
+              )}
+            </summary>
+            {messageParts.map((part) => {
+              return <MessagePartDetails key={part.partIndex} part={part} />;
+            })}
+          </details>
+        )}
+        <div style={{ clear: 'both' }}></div>
+      </Pane>
+      <Pane border>
+        <Heading>Chunks:</Heading>
+        {!!chunks.length && (
+          <details>
+            <summary>
+              {missingChunks === null ? (
+                ''
+              ) : missingChunks === 0 ? (
+                <Text>Enough chunks received.</Text>
+              ) : (
+                <Text>Still missing at least {missingChunks} chunks.</Text>
+              )}
+            </summary>
+            {chunks.map((chunk) => {
+              return <ChunkDetails key={chunk.chunkIndex} chunk={chunk} />;
+            })}
+          </details>
+        )}
+        <div style={{ clear: 'both' }}></div>
+      </Pane>
       <Button
         size="large"
         iconBefore={<UnlockIcon />}
@@ -289,36 +342,6 @@ function RecoverySummary({
       >
         Restore The Message
       </Button>
-      <h3>Message:</h3>
-      <details>
-        <summary>
-          {missingParts === null ? (
-            ''
-          ) : missingParts === 0 ? (
-            <span>Message is complete.</span>
-          ) : (
-            <span>Still missing {missingParts} parts.</span>
-          )}
-        </summary>
-        {messageParts.map((part) => {
-          return <MessagePartDetails key={part.partIndex} part={part} />;
-        })}
-      </details>
-      <h3 style={{ clear: 'both' }}>Chunks:</h3>
-      <details>
-        <summary>
-          {missingChunks === null ? (
-            ''
-          ) : missingChunks === 0 ? (
-            <span>Enough chunks received.</span>
-          ) : (
-            <span>Still missing at least {missingChunks} chunks.</span>
-          )}
-        </summary>
-        {chunks.map((chunk) => {
-          return <ChunkDetails key={chunk.chunkIndex} chunk={chunk} />;
-        })}
-      </details>
     </>
   );
 }
@@ -326,12 +349,23 @@ function RecoverySummary({
 function MessagePartDetails({ part }: { part: MessagePart }) {
   const json = JSON.stringify(part, null, 2);
   return (
-    <Card float="left" margin="20px" padding="20px" elevation={2} width="250px" title={json} overflow="hidden" border>
-      <h3>
+    <Card
+      marginRight={majorScale(3)}
+      marginBottom={majorScale(3)}
+      float="left"
+      elevation={2}
+      width="250px"
+      title={json}
+      overflow="auto"
+      border
+    >
+      <Heading size="300">
         Message: {part.partIndex + 1} / {part.partsTotal}{' '}
-      </h3>
-      <h4 title={part.data}>{Math.floor((part.data.length / 8) * 5)} bytes</h4>
-      <pre style={{ maxWidth: '100%' }}>{json}</pre>
+      </Heading>
+      <Heading size="200" title={part.data}>
+        {Math.floor((part.data.length / 8) * 5)} bytes
+      </Heading>
+      <Pre style={{ maxWidth: '100%' }}>{json}</Pre>
     </Card>
   );
 }
@@ -339,12 +373,23 @@ function MessagePartDetails({ part }: { part: MessagePart }) {
 function ChunkDetails({ chunk }: { chunk: Chunk }) {
   const json = JSON.stringify(chunk, null, 2);
   return (
-    <Card float="left" margin="20px" padding="20px" elevation={2} width="250px" title={json} overflow="hidden" border>
-      <h3>
+    <Card
+      marginRight={majorScale(3)}
+      marginBottom={majorScale(3)}
+      float="left"
+      elevation={2}
+      width="250px"
+      title={json}
+      overflow="auto"
+      border
+    >
+      <Heading size="300">
         Chunk {chunk.chunkIndex + 1} / {chunk.requiredChunks} ( + {chunk.spareChunks}){' '}
-      </h3>
-      <h4 title={chunk.keyHash}>{chunk.keyHash.slice(0, 16)}...</h4>
-      <pre style={{ maxWidth: '100%' }}>{json}</pre>
+      </Heading>
+      <Heading size="200" title={chunk.keyHash}>
+        {chunk.keyHash.slice(0, 16)}...
+      </Heading>
+      <Pre style={{ maxWidth: '100%' }}>{json}</Pre>
     </Card>
   );
 }
@@ -355,9 +400,9 @@ function RestorationResult({ restoredMessage }: { restoredMessage: string | null
   }
 
   return (
-    <Pane padding="20px" marginTop="20px" marginBottom="20px" elevation={3} border>
-      <h4>Restored Message</h4>
-      <textarea disabled value={restoredMessage}></textarea>
+    <Pane marginTop={majorScale(2)} marginBottom={majorScale(3)} elevation={3} border>
+      <Heading>Restored Message</Heading>
+      <Textarea disabled value={restoredMessage}></Textarea>
     </Pane>
   );
 }
