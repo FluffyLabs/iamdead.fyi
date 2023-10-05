@@ -1,34 +1,14 @@
-import {
-  Alert,
-  Button,
-  Group,
-  Heading,
-  KeyIcon,
-  Link,
-  ListItem,
-  majorScale,
-  NewPersonIcon,
-  Pane,
-  Text,
-  TextInputField,
-  UnorderedList,
-} from 'evergreen-ui';
-import { useCallback, useState, MouseEvent, ReactNode, ChangeEvent, useMemo } from 'react';
+import { Button, Group, Heading, Link, ListItem, majorScale, Pane, Text, UnorderedList } from 'evergreen-ui';
+import { useCallback, useState, MouseEvent, ReactNode } from 'react';
 
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { ProgressBar } from '../../components/progress-bar';
 import { MessageEditor } from '../../components/message-editor';
-import { FUNNY } from './example_messages';
-import { useIsOnline } from '../../hooks/use-is-online';
-import {
-  MAX_NO_OF_ADDITIONAL_PIECES,
-  MAX_NO_OF_RECIPIENTS,
-  MIN_NO_OF_ADDITIONAL_PIECES,
-  MIN_NO_OF_RECIPIENTS,
-} from '../oldwizard/security/consts';
-import { DraggableNumberInput } from '../../components/draggable-number-input';
-import { SecureMessageResult } from './SecureMessageResult';
+import { FUNNY } from './example-messages';
+import { OfflineWarning } from './components/offline-warning';
+import { ChunksConfigurationEditor } from './components/chunks-configuration-editor';
+import { SecureMessageResult } from './components/secure-message-result';
 
 const useEditorState = () => {
   const [value, setValue] = useState('');
@@ -59,6 +39,10 @@ const useEditorState = () => {
 export const Secure = () => {
   const { value, handleChange } = useEditorState();
   const [step, setStep] = useState('editor' as Steps);
+  const [chunksConfiguration, setChunksConfiguration] = useState({
+    required: 2,
+    spare: 1,
+  });
   const nextStep = useCallback(() => {
     if (step === 'editor') {
       setStep('encrypt');
@@ -68,12 +52,13 @@ export const Secure = () => {
   const STEPS = {
     encrypt: () => (
       <>
-        <ChunkConfigurationEditor message={value} />
+        <ChunksConfigurationEditor configuration={chunksConfiguration} onChange={setChunksConfiguration} />
+        <SecureMessageResult chunksConfiguration={chunksConfiguration} message={value} />
       </>
     ),
     editor: () => (
       <>
-        <Editor value={value} handleChange={handleChange} nextStep={nextStep} />
+        <Editor value={value} onChange={handleChange} nextStep={nextStep} />
       </>
     ),
   };
@@ -127,35 +112,13 @@ const Progress = ({ step, setStep }: ProgressProps) => {
   );
 };
 
-const OfflineWarning = () => {
-  const isOnline = useIsOnline();
-  if (isOnline) {
-    return (
-      <Alert intent="warning" title="Watch out! You seem to be connected to the internet." marginBottom={majorScale(3)}>
-        <Text>
-          We recommend to stay off-line during message preparation.{' '}
-          <Link href="/safety">Learn more about the recommended setup.</Link>
-        </Text>
-      </Alert>
-    );
-  }
-
-  return (
-    <Alert intent="success" title="Your browser is off-line." marginBottom={majorScale(3)}>
-      <Text>
-        Make sure to read more about the <Link href="/safety">recommended setup.</Link>
-      </Text>
-    </Alert>
-  );
-};
-
 type EditorProps = {
   value: string;
-  handleChange: (a0: string, a1?: boolean) => void;
+  onChange: (a0: string, a1?: boolean) => void;
   nextStep: () => void;
 };
 
-const Editor = ({ value, handleChange, nextStep }: EditorProps) => {
+const Editor = ({ value, onChange, nextStep }: EditorProps) => {
   return (
     <>
       <Heading marginTop={majorScale(3)}>What message would you like to encrypt?</Heading>
@@ -164,7 +127,7 @@ const Editor = ({ value, handleChange, nextStep }: EditorProps) => {
       </Heading>
       <Pane display="flex" padding={0}>
         <Pane padding={0} margin={0} flex="6">
-          <MessageEditor value={value} onChange={handleChange} />
+          <MessageEditor value={value} onChange={onChange} />
         </Pane>
         <Pane margin="0" paddingTop="0" flex="2">
           <Text>If you need help writing the message you may try some of the templates below.</Text>
@@ -174,7 +137,7 @@ const Editor = ({ value, handleChange, nextStep }: EditorProps) => {
                 href="#"
                 onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault();
-                  handleChange(Examples.funny, true);
+                  onChange(Examples.funny, true);
                   return false;
                 }}
               >
@@ -192,104 +155,6 @@ const Editor = ({ value, handleChange, nextStep }: EditorProps) => {
     </>
   );
 };
-
-const ChunkConfigurationEditor = ({ message }: { message: string }) => {
-  const [requiredChunks, setRequiredChunks] = useState(2);
-  const [spareChunks, setSpareChunks] = useState(1);
-  const chunksConfiguration = useMemo(
-    () => ({
-      required: requiredChunks,
-      spare: spareChunks,
-    }),
-    [requiredChunks, spareChunks],
-  );
-
-  return (
-    <>
-      <Pane margin="0" padding="0" display="flex" alignItems="flex-start">
-        <RequiredChunks requiredChunks={requiredChunks} setRequiredChunks={setRequiredChunks} />
-        <SpareChunks spareChunks={spareChunks} setSpareChunks={setSpareChunks} />
-      </Pane>
-      <SecureMessageResult chunkConfiguration={chunksConfiguration} message={message} />
-    </>
-  );
-};
-
-const SpareChunks = ({
-  spareChunks,
-  setSpareChunks,
-}: {
-  spareChunks: number;
-  setSpareChunks: (a0: number) => void;
-}) => {
-  const spareChunksDescription = (
-    <>
-      I also need
-      <DraggableNumberInput
-        value={spareChunks}
-        onChange={setSpareChunks}
-        min={MIN_NO_OF_ADDITIONAL_PIECES}
-        max={MAX_NO_OF_ADDITIONAL_PIECES}
-      />
-      additional backup pieces.
-    </>
-  );
-  return (
-    <Pane flex="1" padding="0" display="flex" flexDirection="row" alignItems="flex-start">
-      <KeyIcon size={32} marginRight={majorScale(2)} />
-      <TextInputField
-        label="Number of backup pieces"
-        hint={spareChunksDescription}
-        type="number"
-        min={MIN_NO_OF_ADDITIONAL_PIECES}
-        max={MAX_NO_OF_ADDITIONAL_PIECES}
-        value={spareChunks}
-        onChange={(ev: ChangeEvent<HTMLInputElement>) => {
-          const val = parseInt(ev.target.value);
-          // TODO [ToDr] Clamp and validate
-          setSpareChunks(val);
-        }}
-      ></TextInputField>
-    </Pane>
-  );
-};
-
-const RequiredChunks = ({
-  requiredChunks,
-  setRequiredChunks,
-}: {
-  requiredChunks: number;
-  setRequiredChunks: (a0: number) => void;
-}) => {
-  const requiredChunksDescription = (
-    <>
-      I want any
-      <DraggableNumberInput
-        value={requiredChunks}
-        onChange={setRequiredChunks}
-        min={MIN_NO_OF_RECIPIENTS}
-        max={MAX_NO_OF_RECIPIENTS}
-      />
-      {requiredChunks > 1 ? 'recipients to come together ' : 'recipient to be able '}
-      to read the message.
-    </>
-  );
-  return (
-    <Pane flex="1" padding="0" marginRight={majorScale(2)} display="flex" flexDirection="row" alignItems="flex-start">
-      <NewPersonIcon size={32} marginRight={majorScale(2)} />
-      <TextInputField
-        label="Number of pieces required for restoration."
-        hint={requiredChunksDescription}
-        type="number"
-        min={MIN_NO_OF_RECIPIENTS}
-        max={MAX_NO_OF_RECIPIENTS}
-        value={requiredChunks}
-        onChange={(ev: any) => setRequiredChunks(ev.target.value)}
-      ></TextInputField>
-    </Pane>
-  );
-};
-
 const Examples = {
   funny: FUNNY,
 };
