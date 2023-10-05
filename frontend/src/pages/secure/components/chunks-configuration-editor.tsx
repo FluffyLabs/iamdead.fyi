@@ -1,5 +1,5 @@
-import { Text, Heading, KeyIcon, Link, NewPersonIcon, Pane, TextInputField, majorScale } from 'evergreen-ui';
-import { useState, ChangeEvent, useEffect } from 'react';
+import { Text, Heading, KeyIcon, Link, NewPersonIcon, Pane, majorScale } from 'evergreen-ui';
+import { useState, useEffect } from 'react';
 import { DraggableNumber } from '../../../components/draggable-number';
 import {
   MAX_NO_OF_ADDITIONAL_PIECES,
@@ -57,7 +57,6 @@ const SpareChunks = ({
   requiredChunks: number;
   setSpareChunks: (a0: number) => void;
 }) => {
-  const spareChunksDescription = <></>;
   const number = (
     <DraggableNumber
       value={spareChunks}

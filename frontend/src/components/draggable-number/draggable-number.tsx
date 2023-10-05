@@ -30,7 +30,7 @@ export const DraggableNumber = ({ onChange, min = DEFAULT_MIN, max = DEFAULT_MAX
       setDragged(true);
       inputProps.onMouseDown?.(e);
     },
-    [setStartPositon, setDragged, value],
+    [setStartPositon, setDragged, value, inputProps],
   );
 
   useEffect(() => {

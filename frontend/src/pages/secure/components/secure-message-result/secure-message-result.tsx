@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Card,
   Heading,
   Pane,
   Spinner,
