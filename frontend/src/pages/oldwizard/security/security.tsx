@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { useWizardContext } from '../wizard-context';
 import { KeyPerson } from '../icons';
 import { Key } from '../icons';
-import { DraggableNumberInput } from '../../../components/draggable-number-input';
+import { DraggableNumber } from '../../../components/draggable-number';
 import { MULTIPLICATION_CHAR } from '../common/consts';
 import { Cards } from '../common/components/cards';
 import { Recipient } from '../common/types';
@@ -36,7 +36,7 @@ export const Security = () => {
         counter={
           <>
             {MULTIPLICATION_CHAR}
-            <DraggableNumberInput
+            <DraggableNumber
               value={security.noOfRecipients.value}
               onChange={security.noOfRecipients.setValue}
               min={MIN_NO_OF_RECIPIENTS}
@@ -47,7 +47,7 @@ export const Security = () => {
       >
         <>
           I want any{' '}
-          <DraggableNumberInput
+          <DraggableNumber
             value={security.noOfRecipients.value}
             onChange={security.noOfRecipients.setValue}
             min={MIN_NO_OF_RECIPIENTS}
@@ -62,7 +62,7 @@ export const Security = () => {
         counter={
           <>
             +
-            <DraggableNumberInput
+            <DraggableNumber
               value={security.noOfAdditionalPieces.value}
               onChange={security.noOfAdditionalPieces.setValue}
             />

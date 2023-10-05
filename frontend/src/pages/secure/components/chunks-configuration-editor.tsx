@@ -1,6 +1,6 @@
-import { KeyIcon, NewPersonIcon, Pane, TextInputField, majorScale } from 'evergreen-ui';
-import { useState, ChangeEvent, useEffect } from 'react';
-import { DraggableNumberInput } from '../../../components/draggable-number-input';
+import { Text, Heading, KeyIcon, Link, NewPersonIcon, Pane, majorScale } from 'evergreen-ui';
+import { useState, useEffect } from 'react';
+import { DraggableNumber } from '../../../components/draggable-number';
 import {
   MAX_NO_OF_ADDITIONAL_PIECES,
   MAX_NO_OF_RECIPIENTS,
@@ -33,9 +33,16 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
 
   return (
     <>
-      <Pane margin="0" padding="0" display="flex" alignItems="flex-start">
-        <RequiredChunks requiredChunks={requiredChunks} setRequiredChunks={setRequiredChunks} />
-        <SpareChunks spareChunks={spareChunks} setSpareChunks={setSpareChunks} />
+      <Pane margin="0" padding="0">
+        <Heading marginTop={majorScale(3)}>How would you like us to split the encryption key?</Heading>
+        <Heading size={300} marginTop={majorScale(1)} marginBottom={majorScale(2)}>
+          Your message is going to be encrypted with a one-time, random key. The key will be then split using{' '}
+          <Link href="https://en.wikipedia.org/wiki/Shamir's_secret_sharing">Shamir's Secret Sharing</Link>.
+        </Heading>
+        <Pane background="tint2">
+          <RequiredChunks requiredChunks={requiredChunks} setRequiredChunks={setRequiredChunks} />
+          <SpareChunks spareChunks={spareChunks} requiredChunks={requiredChunks} setSpareChunks={setSpareChunks} />
+        </Pane>
       </Pane>
     </>
   );
@@ -43,39 +50,32 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
 
 const SpareChunks = ({
   spareChunks,
+  requiredChunks,
   setSpareChunks,
 }: {
   spareChunks: number;
+  requiredChunks: number;
   setSpareChunks: (a0: number) => void;
 }) => {
-  const spareChunksDescription = (
-    <>
-      I also need
-      <DraggableNumberInput
-        value={spareChunks}
-        onChange={setSpareChunks}
-        min={MIN_NO_OF_ADDITIONAL_PIECES}
-        max={MAX_NO_OF_ADDITIONAL_PIECES}
-      />
-      additional backup pieces.
-    </>
+  const number = (
+    <DraggableNumber
+      value={spareChunks}
+      onChange={setSpareChunks}
+      min={MIN_NO_OF_ADDITIONAL_PIECES}
+      max={MAX_NO_OF_ADDITIONAL_PIECES}
+    />
   );
   return (
     <Pane flex="1" padding="0" display="flex" flexDirection="row" alignItems="flex-start">
-      <KeyIcon size={32} marginRight={majorScale(2)} />
-      <TextInputField
-        label="Number of backup pieces"
-        hint={spareChunksDescription}
-        type="number"
-        min={MIN_NO_OF_ADDITIONAL_PIECES}
-        max={MAX_NO_OF_ADDITIONAL_PIECES}
-        value={spareChunks}
-        onChange={(ev: ChangeEvent<HTMLInputElement>) => {
-          const val = parseInt(ev.target.value);
-          // TODO [ToDr] Clamp and validate
-          setSpareChunks(val);
-        }}
-      ></TextInputField>
+      <NewPersonIcon size={32} marginRight={majorScale(2)} />
+      <Heading size={800}>{number}</Heading>
+      <Pane padding="0" margin="0" display="flex" flexDirection="column">
+        <Heading size={400}>Number of backup pieces.</Heading>
+        <Text>
+          I also need {number}
+          additional backup pieces, so {spareChunks + requiredChunks} pieces in total.
+        </Text>
+      </Pane>
     </Pane>
   );
 };
@@ -87,31 +87,25 @@ const RequiredChunks = ({
   requiredChunks: number;
   setRequiredChunks: (a0: number) => void;
 }) => {
-  const requiredChunksDescription = (
-    <>
-      I want any
-      <DraggableNumberInput
-        value={requiredChunks}
-        onChange={setRequiredChunks}
-        min={MIN_NO_OF_RECIPIENTS}
-        max={MAX_NO_OF_RECIPIENTS}
-      />
-      {requiredChunks > 1 ? 'recipients to come together ' : 'recipient to be able '}
-      to read the message.
-    </>
+  const number = (
+    <DraggableNumber
+      value={requiredChunks}
+      onChange={setRequiredChunks}
+      min={MIN_NO_OF_RECIPIENTS}
+      max={MAX_NO_OF_RECIPIENTS}
+    />
   );
   return (
     <Pane flex="1" padding="0" marginRight={majorScale(2)} display="flex" flexDirection="row" alignItems="flex-start">
-      <NewPersonIcon size={32} marginRight={majorScale(2)} />
-      <TextInputField
-        label="Number of pieces required for restoration."
-        hint={requiredChunksDescription}
-        type="number"
-        min={MIN_NO_OF_RECIPIENTS}
-        max={MAX_NO_OF_RECIPIENTS}
-        value={requiredChunks}
-        onChange={(ev: any) => setRequiredChunks(ev.target.value)}
-      ></TextInputField>
+      <KeyIcon size={32} marginRight={majorScale(2)} />
+      <Heading size={800}>{number}</Heading>
+      <Pane padding="0" margin="0" display="flex" flexDirection="column">
+        <Heading size={400}>Minimal number of pieces to read the message.</Heading>
+        <Text>
+          I want to read the message when any
+          {number} pieces are collected together.
+        </Text>
+      </Pane>
     </Pane>
   );
 };
