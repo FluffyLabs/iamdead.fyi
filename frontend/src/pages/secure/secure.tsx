@@ -91,7 +91,7 @@ const Progress = ({ step, setStep }: ProgressProps) => {
   const progress = {
     editor: '10%',
     chunks: '40%',
-    encrypt: '60%',
+    encrypt: '90%',
   };
 
   // TODO [ToDr] Validate random step transitions?
