@@ -29,7 +29,7 @@ export const Navigation = () => {
       </a>
       <Pane>
         <NavLink href="/secure">Secure Message</NavLink>
-        <NavLink href="/dev">Devtools</NavLink>
+        <NavLink href="/recover">Recover Message</NavLink>
         <NavLink href="/oldwizard">Wizard</NavLink>
         <NavLink href="/login">Login</NavLink>
       </Pane>

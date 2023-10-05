@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Result } from '@zxing/library';
-import { Chunk, Crypto, MessagePart } from '../../../services/crypto';
+import { Chunk, Crypto, MessagePart } from '../../services/crypto';
 import {
   Alert,
   Button,
@@ -17,8 +17,9 @@ import {
   Pre,
   Textarea,
 } from 'evergreen-ui';
-import { Container } from '../../../components/container';
+import { Container } from '../../components/container';
 import { isEqual } from 'lodash';
+import { Navigation } from '../../components/navigation';
 
 class PartsCollector {
   crypto: Promise<Crypto | void>;
@@ -175,12 +176,15 @@ export const Recover = () => {
       });
   }, [messageParts, chunks, partsCollector]);
   return (
-    <Container>
-      <Heading size="700">Recover the message</Heading>
-      <ChunkInput handlePart={handlePart} error={error} />
-      <RecoverySummary messageParts={messageParts} chunks={chunks} handleRestore={handleRestore} />
-      <RestorationResult restoredMessage={restoredMessage} />
-    </Container>
+    <>
+      <Navigation />
+      <Container>
+        <Heading size="700">Recover the message</Heading>
+        <ChunkInput handlePart={handlePart} error={error} />
+        <RecoverySummary messageParts={messageParts} chunks={chunks} handleRestore={handleRestore} />
+        <RestorationResult restoredMessage={restoredMessage} />
+      </Container>
+    </>
   );
 };
 

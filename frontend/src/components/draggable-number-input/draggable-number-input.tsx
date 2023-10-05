@@ -32,6 +32,7 @@ export const DraggableNumberInput = ({ onChange, min = DEFAULT_MIN, max = DEFAUL
   );
 
   useEffect(() => {
+    // TODO [ToDr] Use add/removeEventListener instead of ovewriting the globals.
     if (isDragged) {
       document.onmouseup = function (e: MouseEvent) {
         setDragged(false);
