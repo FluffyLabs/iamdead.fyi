@@ -1,4 +1,9 @@
-import init, { ChunksConfiguration, secure_message, identify, restore_message } from 'icod-crypto-js';
+import init, {
+  ChunksConfiguration as RustChunksConfiguration,
+  secure_message,
+  identify,
+  restore_message,
+} from 'icod-crypto-js';
 
 export type SecureMessageResult = {
   encryptedMessage: string[];
@@ -38,6 +43,11 @@ export type Chunk = {
   raw: string;
 };
 
+export type ChunksConfiguration = {
+  required: number;
+  spare: number;
+};
+
 type ChunkRust = {
   version: number;
   key_hash: string;
@@ -52,11 +62,8 @@ export class Crypto {
     return init().then(() => new Crypto());
   }
 
-  public async secureMessage(
-    message: string,
-    { required, spare }: { required: number; spare: number },
-  ): Promise<SecureMessageResult> {
-    const chunks = new ChunksConfiguration(required, spare);
+  public async secureMessage(message: string, { required, spare }: ChunksConfiguration): Promise<SecureMessageResult> {
+    const chunks = new RustChunksConfiguration(required, spare);
     const res = await secure_message(message, 368, chunks);
 
     return {

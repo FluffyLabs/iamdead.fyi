@@ -28,8 +28,9 @@ export const Navigation = () => {
         <img src={logoWide} alt="ICOD logo" style={{ borderRadius: `${majorScale(3)}px` }} width="256" height="118" />
       </a>
       <Pane>
-        <NavLink href="/wizard">Wizard</NavLink>
-        <NavLink href="/dev">Devtools</NavLink>
+        <NavLink href="/secure">Secure Message</NavLink>
+        <NavLink href="/recover">Recover Message</NavLink>
+        <NavLink href="/oldwizard">Wizard</NavLink>
         <NavLink href="/login">Login</NavLink>
       </Pane>
     </Pane>
