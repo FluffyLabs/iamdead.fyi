@@ -1,5 +1,5 @@
-import { MouseEvent, useEffect } from 'react';
-import { Button, Card, Heading, KeyIcon, Pane, Spinner, TextInputField, majorScale, Text, Alert } from 'evergreen-ui';
+import { useEffect } from 'react';
+import { Card, Heading, Pane, Spinner, TextInputField, majorScale, Alert } from 'evergreen-ui';
 import { QRCodeSVG } from 'qrcode.react';
 import { useSecureMessage } from '../../hooks/use-secure-message';
 import { SecureMessageResult as CryptoResult, ChunksConfiguration } from '../../services/crypto';
@@ -14,7 +14,7 @@ export const SecureMessageResult = ({ message, chunkConfiguration }: SecureMessa
 
   useEffect(() => {
     secureMessage(message, chunkConfiguration);
-  }, [message, chunkConfiguration]);
+  }, [message, chunkConfiguration, secureMessage]);
 
   return (
     <>
