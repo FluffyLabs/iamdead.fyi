@@ -12,11 +12,13 @@ const DEFAULT_MAX = 9;
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'min' | 'max'> & {
   onChange: (val: number) => void;
   value: number;
+  // TODO [ToDr] Add in a separate task.
+  buttons?: boolean;
   min?: number;
   max?: number;
 };
 
-export const DraggableNumberInput = ({ onChange, min = DEFAULT_MIN, max = DEFAULT_MAX, ...inputProps }: Props) => {
+export const DraggableNumber = ({ onChange, min = DEFAULT_MIN, max = DEFAULT_MAX, value, ...inputProps }: Props) => {
   const [startPosition, setStartPositon] = useState(0);
   const [isDragged, setDragged] = useState(false);
   const wasDragged = usePrevious(isDragged);
@@ -24,11 +26,11 @@ export const DraggableNumberInput = ({ onChange, min = DEFAULT_MIN, max = DEFAUL
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
       setStartPositon(e.clientX);
-      setValueWhenDragged(inputProps.value);
+      setValueWhenDragged(value);
       setDragged(true);
       inputProps.onMouseDown?.(e);
     },
-    [setStartPositon, setDragged, inputProps],
+    [setStartPositon, setDragged, value],
   );
 
   useEffect(() => {
@@ -56,13 +58,11 @@ export const DraggableNumberInput = ({ onChange, min = DEFAULT_MIN, max = DEFAUL
     }
   }, [isDragged, setDragged, startPosition, max, min, onChange, wasDragged, valueWhenDragged]);
 
-  return (
-    <input
-      {...inputProps}
-      className={clsx(styles.input, inputProps.className)}
-      onMouseDown={handleMouseDown}
-      readOnly
-      size={1}
-    />
+  const text = (
+    <span {...inputProps} className={clsx(styles.input, inputProps.className)} onMouseDown={handleMouseDown}>
+      {value}
+    </span>
   );
+
+  return text;
 };

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useWizardContext } from '../../wizard-context';
 import { ConfiguredAdapter } from '../../wizard-context/proof-of-life';
-import { DraggableNumberInput } from '../../../../components/draggable-number-input';
+import { DraggableNumber } from '../../../../components/draggable-number';
 import { isMessageAdapter, isSocialAdapter } from '../utils';
 
 const getText = (adapter: ConfiguredAdapter) => {
@@ -38,7 +38,7 @@ export const GroupSublistItem = ({ adapter, itemIndex, groupIndex }: Props) => {
   return (
     <li>
       {itemIndex > 0 && 'or '}
-      {getText(adapter)} <DraggableNumberInput value={item.time} onChange={handleChange} max={60} min={1} />
+      {getText(adapter)} <DraggableNumber value={item.time} onChange={handleChange} max={60} min={1} />
       {adapter.unit}
     </li>
   );

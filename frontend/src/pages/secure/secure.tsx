@@ -44,6 +44,9 @@ export const Secure = () => {
   });
   const nextStep = useCallback(() => {
     if (step === 'editor') {
+      setStep('chunks');
+    }
+    if (step === 'chunks') {
       setStep('encrypt');
     }
   }, [step]);
@@ -51,8 +54,12 @@ export const Secure = () => {
   const STEPS = {
     encrypt: () => (
       <>
-        <ChunksConfigurationEditor configuration={chunksConfiguration} onChange={setChunksConfiguration} />
         <SecureMessageResult chunksConfiguration={chunksConfiguration} message={value} />
+      </>
+    ),
+    chunks: () => (
+      <>
+        <ChunksConfigurationEditor configuration={chunksConfiguration} onChange={setChunksConfiguration} />
       </>
     ),
     editor: () => (
@@ -74,7 +81,7 @@ export const Secure = () => {
   );
 };
 
-type Steps = 'editor' | 'encrypt';
+type Steps = 'editor' | 'encrypt' | 'chunks';
 type ProgressProps = {
   step: Steps;
   setStep: (arg0: Steps) => void;
@@ -83,6 +90,7 @@ type ProgressProps = {
 const Progress = ({ step, setStep }: ProgressProps) => {
   const progress = {
     editor: '10%',
+    chunks: '40%',
     encrypt: '60%',
   };
 
@@ -105,7 +113,8 @@ const Progress = ({ step, setStep }: ProgressProps) => {
       <ProgressBar progress={progress[step]} />
       <Group display="flex">
         <Btn step="editor">1. Prepare the message</Btn>
-        <Btn step="encrypt">2. Configure encryption</Btn>
+        <Btn step="chunks">2. Configure encryption</Btn>
+        <Btn step="encrypt">3. Encrypt the message</Btn>
       </Group>
     </>
   );

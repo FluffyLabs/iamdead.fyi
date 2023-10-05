@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { useWizardContext } from '../../wizard-context';
-import { DraggableNumberInput } from '../../../../components/draggable-number-input';
+import { DraggableNumber } from '../../../../components/draggable-number';
 import { MAX_NO_OF_ADDITIONAL_PIECES } from '../consts';
 
 export const ManyRecipients = () => {
@@ -15,7 +15,7 @@ export const ManyRecipients = () => {
   );
   return (
     <>
-      <DraggableNumberInput
+      <DraggableNumber
         value={security.noOfAdditionalPieces.value + security.noOfRecipients.value}
         onChange={handleNoOfPiecesChange}
         min={security.noOfRecipients.value}
