@@ -24,6 +24,7 @@ import { useSecureMessage } from '../../../../hooks/use-secure-message';
 import { SecureMessageResult as CryptoResult, ChunksConfiguration } from '../../../../services/crypto';
 import { Summary } from './summary';
 import { QRWithClipboard } from './qr-with-clipboard';
+import { Slab } from '../../../../components/slab';
 
 export type Props = {
   message: string;
@@ -73,11 +74,11 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
   // TODO [ToDr] Add buttons to download raw files and pdfs.
   //
   return (
-    <Pane background="tint2">
-      <Pane padding="0" margin="0" display="flex" alignItems="center">
+    <Slab background="tint2">
+      <Pane display="flex" alignItems="center">
         <LockIcon size={majorScale(5)} marginRight={majorScale(2)} />
         <Heading marginRight={majorScale(1)}>
-          Encrypted message ({Math.floor(result.encryptedMessage.join('').length / 256)} bytes)
+          Encrypted message ({Math.ceil(result.encryptedMessage.join('').length / 256)} bytes)
         </Heading>
         <Group>
           <Button onClick={() => setIsShowingQr(true)} iconBefore={<HeatGridIcon />}>
@@ -94,7 +95,7 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
       {result.chunks.map((x: string, idx: number) => (
         <Chunk key={x} chunk={x} id={idx + 1} />
       ))}
-    </Pane>
+    </Slab>
   );
 };
 
@@ -126,8 +127,8 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
 
   return (
     <>
-      <Pane margin={0} padding={0} title={part} display="flex" flexDirection="column" alignItems="center">
-        <Heading size="300" textAlign="center" marginBottom={majorScale(1)}>
+      <Pane title={part} display="flex" flexDirection="column" alignItems="center">
+        <Heading size={300} textAlign="center" marginBottom={majorScale(1)}>
           Part {selectedPart + 1} / {data.length}
         </Heading>
         <QRWithClipboard value={part.toUpperCase()} />
@@ -151,7 +152,7 @@ function Chunk({ id, chunk }: { id: number; chunk: string }) {
   // TODO [ToDr] QR code value should rather be a link.
   const [isShowingQr, setIsShowingQr] = useState(false);
   return (
-    <Pane padding={0} marginY={majorScale(5)} title={chunk} display="flex">
+    <Slab padding={0} marginY={majorScale(5)} title={chunk} display="flex">
       <KeyIcon size={majorScale(5)} marginRight={majorScale(2)} />
       <Heading marginRight={majorScale(1)}>Chunk {id}</Heading>
       <Group>
@@ -164,6 +165,6 @@ function Chunk({ id, chunk }: { id: number; chunk: string }) {
       <Dialog isShown={isShowingQr} title={`Chunk ${id}`} onCloseComplete={() => setIsShowingQr(false)}>
         <QRWithClipboard value={chunk.toUpperCase()} />
       </Dialog>
-    </Pane>
+    </Slab>
   );
 }

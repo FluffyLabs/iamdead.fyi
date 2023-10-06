@@ -1,5 +1,6 @@
 import { Pane, Heading, Button, Text, majorScale, OrderedList, ListItem } from 'evergreen-ui';
 import heroImage from './hero.jpg';
+import { Slab } from '../../components/slab';
 
 export const MainPage = () => {
   return (
@@ -21,7 +22,7 @@ export const MainPage = () => {
         </Heading>
         <Text>Your final words, delivered when they matter most.</Text>
       </Pane>
-      <Pane display="flex" justifyContent="center" alignItems="center" flexDirection="column">
+      <Slab display="flex" justifyContent="center" alignItems="center" flexDirection="column">
         <Pane
           margin={majorScale(5)}
           padding={majorScale(5)}
@@ -43,11 +44,11 @@ export const MainPage = () => {
               Specify <em>Proof of Life</em> - the conditions under which the SSS chunks will be sent to recipients.
             </ListItem>
           </OrderedList>
-          <Button is="a" appearance="primary" href="/wizard" size="large">
+          <Button is="a" appearance="primary" href="/secure" size="large">
             Get Started
           </Button>
         </Pane>
-      </Pane>
+      </Slab>
     </>
   );
 };

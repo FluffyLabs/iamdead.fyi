@@ -9,7 +9,6 @@ import {
   CogIcon,
   Group,
   Heading,
-  Pane,
   TextInputField,
   UnlockIcon,
   majorScale,
@@ -20,6 +19,7 @@ import {
 import { Container } from '../../components/container';
 import { isEqual } from 'lodash';
 import { Navigation } from '../../components/navigation';
+import { Slab } from '../../components/slab';
 
 class PartsCollector {
   crypto: Promise<Crypto | void>;
@@ -179,7 +179,7 @@ export const Recover = () => {
     <>
       <Navigation />
       <Container>
-        <Heading size="700">Recover the message</Heading>
+        <Heading size={700}>Recover the message</Heading>
         <ChunkInput handlePart={handlePart} error={error} />
         <RecoverySummary messageParts={messageParts} chunks={chunks} handleRestore={handleRestore} />
         <RestorationResult restoredMessage={restoredMessage} />
@@ -204,7 +204,7 @@ function ChunkInput({ handlePart, error }: HandleChunkProps) {
   const [mode, setMode] = useState('manual');
 
   return (
-    <Pane padding="0">
+    <Slab padding="0">
       <Group>
         {options.map(({ label, value }) => (
           <Button key={label} isActive={mode === value} onClick={() => setMode(value)}>
@@ -214,11 +214,11 @@ function ChunkInput({ handlePart, error }: HandleChunkProps) {
       </Group>
       <br />
       <br />
-      <Pane marginTop="0" border height="300px">
+      <Slab marginTop="0" border height="300px">
         {mode === 'manual' && <ManualInput handlePart={handlePart} error={error} />}
         {mode === 'qr' && <QRScanner handlePart={handlePart} error={error} />}
-      </Pane>
-    </Pane>
+      </Slab>
+    </Slab>
   );
 }
 
@@ -297,7 +297,7 @@ function RecoverySummary({
   const isReadyForRestoration = missingParts !== null && missingChunks !== null && missingParts + missingChunks === 0;
   return (
     <>
-      <Pane border>
+      <Slab border>
         <Heading>Message:</Heading>
         {!!messageParts.length && (
           <details>
@@ -316,8 +316,8 @@ function RecoverySummary({
           </details>
         )}
         <div style={{ clear: 'both' }}></div>
-      </Pane>
-      <Pane border>
+      </Slab>
+      <Slab border>
         <Heading>Chunks:</Heading>
         {!!chunks.length && (
           <details>
@@ -336,7 +336,7 @@ function RecoverySummary({
           </details>
         )}
         <div style={{ clear: 'both' }}></div>
-      </Pane>
+      </Slab>
       <Button
         size="large"
         iconBefore={<UnlockIcon />}
@@ -363,10 +363,10 @@ function MessagePartDetails({ part }: { part: MessagePart }) {
       overflow="auto"
       border
     >
-      <Heading size="300">
+      <Heading size={300}>
         Message: {part.partIndex + 1} / {part.partsTotal}{' '}
       </Heading>
-      <Heading size="200" title={part.data}>
+      <Heading size={200} title={part.data}>
         {Math.floor((part.data.length / 8) * 5)} bytes
       </Heading>
       <Pre style={{ maxWidth: '100%' }}>{json}</Pre>
@@ -387,10 +387,10 @@ function ChunkDetails({ chunk }: { chunk: Chunk }) {
       overflow="auto"
       border
     >
-      <Heading size="300">
+      <Heading size={300}>
         Chunk {chunk.chunkIndex + 1} / {chunk.requiredChunks} ( + {chunk.spareChunks}){' '}
       </Heading>
-      <Heading size="200" title={chunk.keyHash}>
+      <Heading size={200} title={chunk.keyHash}>
         {chunk.keyHash.slice(0, 16)}...
       </Heading>
       <Pre style={{ maxWidth: '100%' }}>{json}</Pre>
@@ -404,9 +404,9 @@ function RestorationResult({ restoredMessage }: { restoredMessage: string | null
   }
 
   return (
-    <Pane marginTop={majorScale(2)} marginBottom={majorScale(3)} elevation={3} border>
+    <Slab marginTop={majorScale(2)} marginBottom={majorScale(3)} elevation={3} border>
       <Heading>Restored Message</Heading>
       <Textarea disabled value={restoredMessage}></Textarea>
-    </Pane>
+    </Slab>
   );
 }

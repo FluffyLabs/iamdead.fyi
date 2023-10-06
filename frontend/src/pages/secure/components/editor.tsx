@@ -2,6 +2,7 @@ import { Button, Heading, Link, ListItem, majorScale, Pane, Text, UnorderedList 
 import { MouseEvent } from 'react';
 import { MessageEditor } from '../../../components/message-editor';
 import { FUNNY } from './example-messages';
+import { Slab } from '../../../components/slab';
 
 const Examples = {
   funny: FUNNY,
@@ -20,11 +21,11 @@ export const Editor = ({ value, onChange, nextStep }: EditorProps) => {
       <Heading size={300} marginTop={majorScale(1)} marginBottom={majorScale(2)}>
         Fell free to start with something basic for now, you will have a chance to edit it any time.
       </Heading>
-      <Pane display="flex" padding={0}>
-        <Pane padding={0} margin={0} flex="6">
+      <Slab display="flex" padding={0}>
+        <Pane flex="6">
           <MessageEditor value={value} onChange={onChange} />
         </Pane>
-        <Pane margin="0" paddingTop="0" flex="2">
+        <Slab margin="0" paddingTop="0" flex="2">
           <Text>If you need help writing the message you may try some of the templates below.</Text>
           <UnorderedList>
             <ListItem>
@@ -40,13 +41,13 @@ export const Editor = ({ value, onChange, nextStep }: EditorProps) => {
               </Link>
             </ListItem>
           </UnorderedList>
-        </Pane>
-      </Pane>
-      <Pane display="flex" padding="0" justifyContent="center">
+        </Slab>
+      </Slab>
+      <Slab display="flex" padding="0" justifyContent="center">
         <Button appearance="primary" size="large" onClick={nextStep}>
           Encrypt the message
         </Button>
-      </Pane>
+      </Slab>
     </>
   );
 };

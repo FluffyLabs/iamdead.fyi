@@ -25,7 +25,7 @@ export function useStepsNavigation({ nextStep, previousStep }: { nextStep: Steps
         return;
       }
 
-      navigate(`/wizard/${stepName}`);
+      navigate(`/oldwizard/${stepName}`);
     },
     [navigate],
   );

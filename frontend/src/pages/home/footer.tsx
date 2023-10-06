@@ -1,11 +1,12 @@
-import { Pane, Heading, Link, majorScale, ListItem, UnorderedList } from 'evergreen-ui';
+import { Heading, Link, majorScale, ListItem, UnorderedList } from 'evergreen-ui';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
+import { Slab } from '../../components/slab';
 
 export const Footer = () => {
   return (
-    <Pane background="tint2" display="flex" justifyContent="space-around" marginBottom="0">
-      <Pane flexDirection="column">
+    <Slab background="tint2" display="flex" justifyContent="space-around" marginBottom="0">
+      <Slab flexDirection="column">
         <Heading size={300} marginBottom={majorScale(2)}>
           Legal
         </Heading>
@@ -17,8 +18,8 @@ export const Footer = () => {
             <Link href="/privacy">Privacy Policy</Link>
           </ListItem>
         </UnorderedList>
-      </Pane>
-      <Pane flexDirection="column">
+      </Slab>
+      <Slab flexDirection="column">
         <Heading size={300} marginBottom={majorScale(2)}>
           Contact
         </Heading>
@@ -30,8 +31,8 @@ export const Footer = () => {
             <Link href="/support">Support</Link>
           </ListItem>
         </UnorderedList>
-      </Pane>
-      <Pane flexDirection="column" alignItems="center">
+      </Slab>
+      <Slab flexDirection="column" alignItems="center">
         <Heading size={300} marginBottom={majorScale(2)}>
           Social
         </Heading>
@@ -44,7 +45,7 @@ export const Footer = () => {
         <Link href="https://instagram.com" margin={majorScale(1)}>
           <FontAwesomeIcon icon={faInstagram} size="2x" />
         </Link>
-      </Pane>
-    </Pane>
+      </Slab>
+    </Slab>
   );
 };

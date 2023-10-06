@@ -1,8 +1,8 @@
 import { PropsWithChildren } from 'react';
 
 import styles from './styles.module.scss';
-import { Pane } from 'evergreen-ui';
+import { Slab } from '../slab';
 
 type Props = PropsWithChildren<{}>;
 
-export const Container = ({ children }: Props) => <Pane className={styles.container}>{children}</Pane>;
+export const Container = ({ children }: Props) => <Slab className={styles.container}>{children}</Slab>;

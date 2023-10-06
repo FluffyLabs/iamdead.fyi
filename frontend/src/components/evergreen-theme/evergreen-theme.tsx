@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { ThemeProvider, defaultTheme, majorScale, mergeTheme } from 'evergreen-ui';
+import { ThemeProvider, defaultTheme, mergeTheme } from 'evergreen-ui';
 
 export const colors = {
   pane: '#fff',
@@ -37,22 +37,6 @@ const theme = mergeTheme(defaultTheme, {
           color: colors.pane,
         },
       },
-    },
-    Pane: {
-      baseStyle: ((theme: any, props: any) => {
-        const base = defaultTheme.components.Pane.baseStyle as any;
-        const baseStyle = base(theme, props);
-        if (!props.marginTop && !props.margin) {
-          baseStyle.marginTop = majorScale(3);
-        }
-        if (!props.marginBottom && !props.margin) {
-          baseStyle.marginBottom = majorScale(3);
-        }
-        if (!props.padding) {
-          baseStyle.padding = majorScale(3);
-        }
-        return baseStyle;
-      }) as any,
     },
   },
 });

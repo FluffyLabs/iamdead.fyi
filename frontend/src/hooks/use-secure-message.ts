@@ -26,7 +26,7 @@ export function useSecureMessage() {
           console.log(result.encryptedMessage);
         })
         .catch((e) => {
-          setError(e);
+          setError(e.message);
         })
         .finally(() => {
           setIsLoading(false);
