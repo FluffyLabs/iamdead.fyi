@@ -5,4 +5,4 @@ export enum Steps {
 }
 
 export const DEFAULT_STEP = Steps.Security;
-export const DEFAULT_WIZARD_ROUTE = `/wizard/${DEFAULT_STEP}`;
+export const DEFAULT_WIZARD_ROUTE = `/oldwizard/${DEFAULT_STEP}`;

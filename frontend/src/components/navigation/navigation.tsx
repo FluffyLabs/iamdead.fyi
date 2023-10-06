@@ -1,9 +1,10 @@
-import { Pane, majorScale, Link } from 'evergreen-ui';
+import { majorScale, Link } from 'evergreen-ui';
 import logoWide from './logo256-wide-transparent.png';
 import { ReactNode } from 'react';
 import styles from './styles.module.scss';
 import { useIsActive } from '../../hooks/use-is-active';
 import clsx from 'clsx';
+import { Slab } from '../slab';
 
 const NavLink = ({ href, children }: { href: string; children: ReactNode }) => {
   const isActive = useIsActive(href);
@@ -23,16 +24,16 @@ const NavLink = ({ href, children }: { href: string; children: ReactNode }) => {
 
 export const Navigation = () => {
   return (
-    <Pane display="flex" padding={majorScale(3)} justifyContent="space-between" alignItems="center" height="195px">
+    <Slab display="flex" padding={majorScale(3)} justifyContent="space-between" alignItems="center" height="195px">
       <a href="/">
         <img src={logoWide} alt="ICOD logo" style={{ borderRadius: `${majorScale(3)}px` }} width="256" height="118" />
       </a>
-      <Pane>
+      <Slab>
         <NavLink href="/secure">Secure Message</NavLink>
         <NavLink href="/recover">Recover Message</NavLink>
         <NavLink href="/oldwizard">Wizard</NavLink>
         <NavLink href="/login">Login</NavLink>
-      </Pane>
-    </Pane>
+      </Slab>
+    </Slab>
   );
 };
