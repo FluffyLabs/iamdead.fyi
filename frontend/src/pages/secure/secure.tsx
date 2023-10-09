@@ -1,4 +1,4 @@
-import { Button, Group } from 'evergreen-ui';
+import { Button, ChevronRightIcon, Group } from 'evergreen-ui';
 import { useCallback, useState, ReactNode } from 'react';
 
 import { Container } from '../../components/container';
@@ -8,6 +8,7 @@ import { OfflineWarning } from './components/offline-warning';
 import { ChunksConfigurationEditor } from './components/chunks-configuration-editor';
 import { SecureMessageResult } from './components/secure-message-result';
 import { Editor } from './components/editor';
+import { Slab } from '../../components/slab';
 
 const useEditorState = () => {
   const [value, setValue] = useState('');
@@ -55,16 +56,19 @@ export const Secure = () => {
     encrypt: () => (
       <>
         <SecureMessageResult chunksConfiguration={chunksConfiguration} message={value} />
+        <NextStepButton nextStep={nextStep}>Store pieces & configure distribution</NextStepButton>
       </>
     ),
     chunks: () => (
       <>
         <ChunksConfigurationEditor configuration={chunksConfiguration} onChange={setChunksConfiguration} />
+        <NextStepButton nextStep={nextStep}>Encrypt the message</NextStepButton>
       </>
     ),
     editor: () => (
       <>
-        <Editor value={value} onChange={handleChange} nextStep={nextStep} />
+        <Editor value={value} onChange={handleChange} />
+        <NextStepButton nextStep={nextStep}>Configure the encryption</NextStepButton>
       </>
     ),
   };
@@ -78,6 +82,16 @@ export const Secure = () => {
         {STEPS[step]()}
       </Container>
     </>
+  );
+};
+
+const NextStepButton = ({ nextStep, children }: { nextStep: () => void; children: ReactNode }) => {
+  return (
+    <Slab display="flex" padding="0" justifyContent="center">
+      <Button iconAfter={<ChevronRightIcon />} appearance="primary" size="large" onClick={nextStep}>
+        {children}
+      </Button>
+    </Slab>
   );
 };
 

@@ -19,6 +19,11 @@ import {
   KeyIcon,
   DownloadIcon,
   ManualIcon,
+  TextInputField,
+  EditIcon,
+  Link,
+  Card,
+  Paragraph,
 } from 'evergreen-ui';
 import { useSecureMessage } from '../../../../hooks/use-secure-message';
 import { SecureMessageResult as CryptoResult, ChunksConfiguration } from '../../../../services/crypto';
@@ -56,8 +61,6 @@ const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
 };
 
 const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: string | null }) => {
-  const [isShowingQr, setIsShowingQr] = useState(false);
-
   if (error) {
     return <Alert intent="danger" title={error} />;
   }
@@ -68,17 +71,119 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
     );
   }
 
-  // TODO [ToDr] Show Chunk QR codes in one dialog with nav similar to encrypted message.
   // TODO [ToDr] Allow editing the name (by default it's "Chunk {id}")
   // TODO [ToDr] Allow adding description.
-  // TODO [ToDr] Add buttons to download raw files and pdfs.
-  //
+
   return (
-    <Slab background="tint2">
-      <Pane display="flex" alignItems="center">
-        <LockIcon size={majorScale(5)} marginRight={majorScale(2)} />
-        <Heading marginRight={majorScale(1)}>
-          Encrypted message ({Math.ceil(result.encryptedMessage.join('').length / 256)} bytes)
+    <Slab background="tint2" display="flex">
+      <Pane flex="1">
+        <EncryptedMessage encryptedMessage={result.encryptedMessage} />
+        <Chunks chunks={result.chunks} />
+      </Pane>
+      <Card paddingX={majorScale(3)}>
+        <Paragraph>
+          Store the encrypted message safely and distributed the pieces according to your preference.
+        </Paragraph>
+        <br />
+        <Paragraph>
+          Note that encrypted message IS MANDATORY on top of the number of required pieces to restore the original
+          message.
+        </Paragraph>
+      </Card>
+    </Slab>
+  );
+};
+
+function CloseButton({ close }: { close: () => void }) {
+  return (
+    <Button appearance="primary" onClick={close}>
+      Done
+    </Button>
+  );
+}
+
+function Chunks({ chunks }: { chunks: string[] }) {
+  const [isShowingQrs, setIsShowingQrs] = useState(false);
+  const [activeChunkIdx, setActiveChunkIdx] = useState(0);
+  const showDialog = useCallback(
+    (id: number) => {
+      setActiveChunkIdx(id);
+      setIsShowingQrs(true);
+    },
+    [setActiveChunkIdx, setIsShowingQrs],
+  );
+
+  const chunk = chunks[activeChunkIdx];
+  const nextChunk = useCallback(() => {
+    setActiveChunkIdx((activeChunkIdx + 1) % chunks.length);
+  }, [activeChunkIdx, chunks]);
+  const prevChunk = useCallback(() => {
+    setActiveChunkIdx(activeChunkIdx === 0 ? chunks.length - 1 : activeChunkIdx - 1);
+  }, [activeChunkIdx, chunks]);
+
+  const chunkName = (id: number) => `Piece ${id + 1}/${chunks.length}`;
+  const activeName = chunkName(activeChunkIdx);
+
+  return (
+    <>
+      {chunks.map((x: string, idx: number) => (
+        <Chunk key={x} chunk={x} id={idx + 1} name={chunkName(idx)} showDialog={showDialog} />
+      ))}
+      {/* Not using footer, because it's not trivial to align buttons left/right */}
+      <Dialog
+        isShown={isShowingQrs}
+        title={activeName}
+        onCloseComplete={() => setIsShowingQrs(false)}
+        hasFooter={false}
+      >
+        {({ close }) => (
+          <Pane display="flex" flexDirection="column" alignItems="center">
+            <Pane display="flex" flexDirection="row" width="100%">
+              <Pane flex="1" display="flex" justifyContent="center">
+                <QRWithClipboard value={chunk.toUpperCase()} />
+              </Pane>
+              <Pane flex="1">
+                <TextInputField label="Piece name" value={activeName} autoFocus />
+                <Button onClick={() => {}} iconBefore={<DownloadIcon />} marginBottom={majorScale(1)}>
+                  Download
+                </Button>
+                <br />
+                <Button iconBefore={<ManualIcon />}>Certificate</Button>
+              </Pane>
+            </Pane>
+            <Pane width="100%" display="flex" justifyContent="space-between" marginY={majorScale(3)}>
+              <Button onClick={prevChunk} iconBefore={<ChevronLeftIcon />}>
+                Prev
+              </Button>
+              <Button appearance="primary" onClick={nextChunk} iconAfter={<ChevronRightIcon />}>
+                Next
+              </Button>
+            </Pane>
+          </Pane>
+        )}
+      </Dialog>
+    </>
+  );
+}
+
+function EncryptedMessage({ encryptedMessage }: { encryptedMessage: string[] }) {
+  const [isShowingQr, setIsShowingQr] = useState(false);
+
+  const Footer = ({ close }: Parameters<typeof CloseButton>[0]) => (
+    <Group>
+      <Button onClick={() => {}} iconBefore={<DownloadIcon />}>
+        Download
+      </Button>
+      <CloseButton close={close} />
+    </Group>
+  );
+
+  return (
+    <Pane display="flex" alignItems="flex-start">
+      <LockIcon size={majorScale(5)} marginRight={majorScale(2)} />
+      <Pane flex="1" display="flex" flexDirection="column">
+        <Heading marginRight={majorScale(1)} marginBottom={majorScale(1)}>
+          Encrypted message ({Math.ceil(encryptedMessage.join('').length / 256)} bytes)
         </Heading>
         <Group>
           <Button onClick={() => setIsShowingQr(true)} iconBefore={<HeatGridIcon />}>
@@ -88,16 +193,18 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
             Download
           </Button>
         </Group>
-        <Dialog isShown={isShowingQr} title="Encrypted Message" onCloseComplete={() => setIsShowingQr(false)}>
-          <EncryptedMessageQr data={result.encryptedMessage} />
-        </Dialog>
       </Pane>
-      {result.chunks.map((x: string, idx: number) => (
-        <Chunk key={x} chunk={x} id={idx + 1} />
-      ))}
-    </Slab>
+      <Dialog
+        isShown={isShowingQr}
+        title="Encrypted Message"
+        onCloseComplete={() => setIsShowingQr(false)}
+        footer={Footer}
+      >
+        <EncryptedMessageQr data={encryptedMessage} />
+      </Dialog>
+    </Pane>
   );
-};
+}
 
 function EncryptedMessageQr({ data }: { data: string[] }) {
   const [selectedPart, setSelectedPart] = useState(0);
@@ -148,23 +255,34 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
   );
 }
 
-function Chunk({ id, chunk }: { id: number; chunk: string }) {
+type ChunkProps = {
+  id: number;
+  name: string;
+  chunk: string;
+  showDialog: (a0: number) => void;
+};
+
+function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
-  const [isShowingQr, setIsShowingQr] = useState(false);
+  // TODO [ToDr] turn the heading into editable component.
   return (
     <Slab padding={0} marginY={majorScale(5)} title={chunk} display="flex">
       <KeyIcon size={majorScale(5)} marginRight={majorScale(2)} />
-      <Heading marginRight={majorScale(1)}>Chunk {id}</Heading>
-      <Group>
-        <Button iconBefore={<HeatGridIcon />} onClick={() => setIsShowingQr(true)}>
-          QR
-        </Button>
-        <Button iconBefore={<DownloadIcon />}>Download</Button>
-        <Button iconBefore={<ManualIcon />}>Certificate</Button>
-      </Group>
-      <Dialog isShown={isShowingQr} title={`Chunk ${id}`} onCloseComplete={() => setIsShowingQr(false)}>
-        <QRWithClipboard value={chunk.toUpperCase()} />
-      </Dialog>
+      <Pane display="flex" flexDirection="column">
+        <Heading marginRight={majorScale(1)} marginBottom={majorScale(1)}>
+          {name}
+          <Link marginLeft={majorScale(1)} href="#">
+            <EditIcon />
+          </Link>
+        </Heading>
+        <Group>
+          <Button iconBefore={<HeatGridIcon />} onClick={() => showDialog(id - 1)}>
+            QR
+          </Button>
+          <Button iconBefore={<DownloadIcon />}>Download</Button>
+          <Button iconBefore={<ManualIcon />}>Certificate</Button>
+        </Group>
+      </Pane>
     </Slab>
   );
 }

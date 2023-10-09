@@ -1,4 +1,4 @@
-import { Heading, Pane, majorScale, UnlockIcon, CogIcon, Link } from 'evergreen-ui';
+import { Heading, Pane, majorScale, UnlockIcon, CogIcon, Link, EditIcon } from 'evergreen-ui';
 import { Props } from './secure-message-result';
 import { Slab } from '../../../../components/slab';
 
@@ -10,21 +10,21 @@ export const Summary = ({ message, chunksConfiguration }: Props) => {
     <>
       <Slab background="tint2">
         <Pane display="flex" alignItems="center">
-          <UnlockIcon size={majorScale(5)} marginRight={majorScale(2)} />
-          <Heading>
+          <UnlockIcon size={majorScale(3)} marginRight={majorScale(2)} />
+          <Heading size={400}>
             Original Message: {message.length} characters ({Math.ceil(message.length / 256)} bytes)
             <Link marginLeft={majorScale(1)} href="#">
-              (edit)
+              <EditIcon />
             </Link>
           </Heading>
         </Pane>
         <Slab padding="0" marginY={majorScale(2)} display="flex" alignItems="center">
-          <CogIcon size={majorScale(5)} marginRight={majorScale(2)} />
-          <Heading>
+          <CogIcon size={majorScale(3)} marginRight={majorScale(2)} />
+          <Heading size={400}>
             Encryption: {chunksConfiguration.required} pieces required out of all{' '}
             {chunksConfiguration.required + chunksConfiguration.spare}
             <Link marginLeft={majorScale(1)} href="#">
-              (edit)
+              <EditIcon />
             </Link>
           </Heading>
         </Slab>
