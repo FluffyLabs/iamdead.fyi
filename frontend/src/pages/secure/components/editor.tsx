@@ -1,4 +1,4 @@
-import { Button, ChevronRightIcon, Heading, Link, ListItem, majorScale, Pane, Text, UnorderedList } from 'evergreen-ui';
+import { Heading, Link, ListItem, majorScale, Pane, Text, UnorderedList } from 'evergreen-ui';
 import { MouseEvent } from 'react';
 import { MessageEditor } from '../../../components/message-editor';
 import { FUNNY } from './example-messages';

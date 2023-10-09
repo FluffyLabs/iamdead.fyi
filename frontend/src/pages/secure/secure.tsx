@@ -44,6 +44,7 @@ export const Secure = () => {
     required: 2,
     spare: 1,
   });
+
   const navigate = useNavigate();
   const nextStep = useCallback(() => {
     if (step === 'editor') {
@@ -59,7 +60,7 @@ export const Secure = () => {
       // TODO [ToDr] Confirm transition and re-assure that the raw message is removed.
       navigate('/store');
     }
-  }, [step]);
+  }, [step, navigate]);
 
   const STEPS = {
     encrypt: () => (
