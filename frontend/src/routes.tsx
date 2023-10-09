@@ -10,6 +10,7 @@ import { ProofOfLife } from './pages/oldwizard/proof-of-life';
 import { Steps } from './pages/oldwizard/consts';
 import { Message } from './pages/oldwizard/message';
 import { Secure } from './pages/secure';
+import { Store } from './pages/store';
 
 export function Routes() {
   return (
@@ -18,6 +19,7 @@ export function Routes() {
         <Route index element={<Home />} />
 
         <Route element={<Secure />} path="secure" />
+        <Route element={<Store />} path="store" />
         <Route element={<Recover />} path="recover" />
 
         <Route element={<Login />} path="login">

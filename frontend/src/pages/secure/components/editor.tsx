@@ -1,4 +1,4 @@
-import { Button, Heading, Link, ListItem, majorScale, Pane, Text, UnorderedList } from 'evergreen-ui';
+import { Button, ChevronRightIcon, Heading, Link, ListItem, majorScale, Pane, Text, UnorderedList } from 'evergreen-ui';
 import { MouseEvent } from 'react';
 import { MessageEditor } from '../../../components/message-editor';
 import { FUNNY } from './example-messages';
@@ -11,10 +11,9 @@ const Examples = {
 type EditorProps = {
   value: string;
   onChange: (a0: string, a1?: boolean) => void;
-  nextStep: () => void;
 };
 
-export const Editor = ({ value, onChange, nextStep }: EditorProps) => {
+export const Editor = ({ value, onChange }: EditorProps) => {
   return (
     <>
       <Heading marginTop={majorScale(3)}>What message would you like to encrypt?</Heading>
@@ -42,11 +41,6 @@ export const Editor = ({ value, onChange, nextStep }: EditorProps) => {
             </ListItem>
           </UnorderedList>
         </Slab>
-      </Slab>
-      <Slab display="flex" padding="0" justifyContent="center">
-        <Button appearance="primary" size="large" onClick={nextStep}>
-          Encrypt the message
-        </Button>
       </Slab>
     </>
   );
