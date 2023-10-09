@@ -1,4 +1,4 @@
-import { Button, Group } from 'evergreen-ui';
+import { Button, ChevronRightIcon, Group } from 'evergreen-ui';
 import { useCallback, useState, ReactNode } from 'react';
 
 import { Container } from '../../components/container';
@@ -8,6 +8,8 @@ import { OfflineWarning } from './components/offline-warning';
 import { ChunksConfigurationEditor } from './components/chunks-configuration-editor';
 import { SecureMessageResult } from './components/secure-message-result';
 import { Editor } from './components/editor';
+import { Slab } from '../../components/slab';
+import { useNavigate } from 'react-router-dom';
 
 const useEditorState = () => {
   const [value, setValue] = useState('');
@@ -42,29 +44,41 @@ export const Secure = () => {
     required: 2,
     spare: 1,
   });
+
+  const navigate = useNavigate();
   const nextStep = useCallback(() => {
     if (step === 'editor') {
       setStep('chunks');
     }
+
     if (step === 'chunks') {
       setStep('encrypt');
     }
-  }, [step]);
+
+    if (step === 'encrypt') {
+      // TODO [ToDr] Pass Encrypted message & pieces information.
+      // TODO [ToDr] Confirm transition and re-assure that the raw message is removed.
+      navigate('/store');
+    }
+  }, [step, navigate]);
 
   const STEPS = {
     encrypt: () => (
       <>
         <SecureMessageResult chunksConfiguration={chunksConfiguration} message={value} />
+        <NextStepButton nextStep={nextStep}>Store pieces & configure distribution</NextStepButton>
       </>
     ),
     chunks: () => (
       <>
         <ChunksConfigurationEditor configuration={chunksConfiguration} onChange={setChunksConfiguration} />
+        <NextStepButton nextStep={nextStep}>Encrypt the message</NextStepButton>
       </>
     ),
     editor: () => (
       <>
-        <Editor value={value} onChange={handleChange} nextStep={nextStep} />
+        <Editor value={value} onChange={handleChange} />
+        <NextStepButton nextStep={nextStep}>Configure the encryption</NextStepButton>
       </>
     ),
   };
@@ -78,6 +92,16 @@ export const Secure = () => {
         {STEPS[step]()}
       </Container>
     </>
+  );
+};
+
+const NextStepButton = ({ nextStep, children }: { nextStep: () => void; children: ReactNode }) => {
+  return (
+    <Slab display="flex" padding="0" justifyContent="center">
+      <Button iconAfter={<ChevronRightIcon />} appearance="primary" size="large" onClick={nextStep}>
+        {children}
+      </Button>
+    </Slab>
   );
 };
 
