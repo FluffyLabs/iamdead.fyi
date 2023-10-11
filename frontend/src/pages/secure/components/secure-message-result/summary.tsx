@@ -5,7 +5,8 @@ import { Slab } from '../../../../components/slab';
 // TODO [ToDr] Summary should be editable:
 // 1. The message should open a dialog with editor
 // 2. The encryption should use DraggableNumber
-export const Summary = ({ message, chunksConfiguration }: Props) => {
+type SummaryProps = Omit<Props, 'setResult'>;
+export const Summary = ({ message, chunksConfiguration }: SummaryProps) => {
   return (
     <>
       <Slab background="tint2">

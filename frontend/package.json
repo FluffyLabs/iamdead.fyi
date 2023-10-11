@@ -18,6 +18,7 @@
     "add": "^2.0.6",
     "axios": "^1.5.1",
     "clsx": "^2.0.0",
+    "email-validator": "^2.0.4",
     "evergreen-ui": "^7.1.9",
     "http-proxy-middleware": "^2.0.6",
     "icod-crypto-js": "../crypto-js/pkg",

@@ -12,25 +12,26 @@ export function useSecureMessage() {
   }, [setResult, setError]);
 
   const secureMessage = useCallback(
-    (value: string, configuration: ChunksConfiguration) => {
+    async (value: string, configuration: ChunksConfiguration) => {
       setError(null);
       setIsLoading(true);
       console.log('Call into Rust with', value, configuration);
-      Crypto.initialize()
-        .then((crypto) => {
-          return crypto.secureMessage(value, configuration);
-        })
-        .then((result) => {
-          setResult(result);
-          console.log(result.chunks);
-          console.log(result.encryptedMessage);
-        })
-        .catch((e) => {
+
+      try {
+        try {
+          const crypto = await Crypto.initialize();
+          const result_1 = await crypto.secureMessage(value, configuration);
+          setResult(result_1);
+          console.log(result_1.chunks);
+          console.log(result_1.encryptedMessage);
+          return result_1;
+        } catch (e: any) {
           setError(e.message);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+      return null;
     },
     [setIsLoading, setResult, setError],
   );
