@@ -34,14 +34,44 @@ import { Slab } from '../../../../components/slab';
 export type Props = {
   message: string;
   chunksConfiguration: ChunksConfiguration;
+  setResult: (a0: Result | null) => void;
 };
 
-export const SecureMessageResult = ({ message, chunksConfiguration }: Props) => {
+export type Result = {
+  encryptedMessage: string[];
+  encryptedMessageBytes: number;
+  chunks: ChunksMeta[];
+};
+
+export type ChunksMeta = {
+  name: string;
+  description: string;
+  value: string;
+};
+
+export const SecureMessageResult = ({ message, chunksConfiguration, setResult }: Props) => {
   const { secureMessage, result, error, isLoading } = useSecureMessage();
 
   useEffect(() => {
-    secureMessage(message, chunksConfiguration);
-  }, [message, chunksConfiguration, secureMessage]);
+    secureMessage(message, chunksConfiguration).then((val) => {
+      if (!val) {
+        setResult(val);
+        return;
+      }
+
+      const { encryptedMessage } = val;
+      const chunks = val.chunks.map((c, idx) => ({
+        name: `Piece ${idx + 1}`,
+        description: '',
+        value: c,
+      }));
+      setResult({
+        encryptedMessage,
+        encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
+        chunks,
+      });
+    });
+  }, [message, chunksConfiguration, secureMessage, setResult]);
 
   return (
     <>
@@ -51,6 +81,10 @@ export const SecureMessageResult = ({ message, chunksConfiguration }: Props) => 
     </>
   );
 };
+
+function encryptedMessageBytes(encryptedMessage: string[]) {
+  return Math.ceil(encryptedMessage.join('').length / 256);
+}
 
 const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
   if (!isLoading) {
@@ -183,7 +217,7 @@ function EncryptedMessage({ encryptedMessage }: { encryptedMessage: string[] }) 
       <LockIcon size={majorScale(5)} marginRight={majorScale(2)} />
       <Pane flex="1" display="flex" flexDirection="column">
         <Heading marginRight={majorScale(1)} marginBottom={majorScale(1)}>
-          Encrypted message ({Math.ceil(encryptedMessage.join('').length / 256)} bytes)
+          Encrypted message ({encryptedMessageBytes(encryptedMessage)} bytes)
         </Heading>
         <Group>
           <Button onClick={() => setIsShowingQr(true)} iconBefore={<HeatGridIcon />}>
