@@ -1,8 +1,13 @@
-import { Checkbox, Combobox, Heading, KeyIcon, Pane, majorScale } from 'evergreen-ui';
+import { Checkbox, Combobox, Heading, InlineAlert, KeyIcon, Pane, majorScale } from 'evergreen-ui';
+import EmailValidator from 'email-validator';
 import { ChunksMeta } from '../../secure/components/secure-message-result/secure-message-result';
 import { Row } from './row';
 import { Recipient } from '../store';
 import { ChangeEvent, useCallback } from 'react';
+
+function isEmailAddress(val: string) {
+  return EmailValidator.validate(val);
+}
 
 type MaybeRecipient = Recipient | string | null;
 
@@ -16,6 +21,7 @@ type Props = {
   isSelected: boolean;
   setIsSelected: (a0: boolean) => void;
 };
+
 export const RecipientRow = ({
   chunk,
   idx,
@@ -33,6 +39,22 @@ export const RecipientRow = ({
     [setIsSelected],
   );
 
+  const isRecipientValid = (() => {
+    if (recipient === null) {
+      return false;
+    }
+    if (typeof recipient === 'string') {
+      return recipient.trim() !== '' && isEmailAddress(recipient);
+    }
+    return true;
+  })();
+  const isNewRecipient = typeof recipient === 'string' && isRecipientValid;
+
+  const inputProps = {
+    spellCheck: false,
+    autoFocus: true,
+    isInvalid: !isRecipientValid,
+  };
   return (
     <Row>
       <KeyIcon size={majorScale(5)} />
@@ -48,7 +70,7 @@ export const RecipientRow = ({
           <Combobox
             autocompleteProps={{ allowOtherValues: true }}
             initialSelectedItem={recipient}
-            inputProps={{ spellCheck: false, autoFocus: true, autoComplete: 'email' } as any}
+            inputProps={inputProps as any}
             itemToString={(item) => item?.toString()}
             items={predefinedRecipients}
             marginLeft={majorScale(2)}
@@ -58,6 +80,7 @@ export const RecipientRow = ({
           />
         </Pane>
       )}
+      {isSelected && isNewRecipient && <InlineAlert intent="info">A new recipient will be created.</InlineAlert>}
     </Row>
   );
 };
