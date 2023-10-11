@@ -1,15 +1,38 @@
-import { Card, Checkbox, Heading, KeyIcon, LockIcon, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
+import { Alert, Checkbox, Heading, LockIcon, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useLocation } from 'react-router-dom';
-import { ReactNode, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Progress } from './components/progress';
 import { Intro } from './components/intro';
 // TODO [ToDr] Move the type to some other place?
 import { ChunksMeta } from '../secure/components/secure-message-result/secure-message-result';
 import { Slab } from '../../components/slab';
+import { Row } from './components/row';
+import { RecipientRow } from './components/recipient-row';
+import { NextStepButton } from '../../components/next-step-button';
 
 export type Steps = 'recipients' | 'proof-of-life';
+export class Recipient {
+  id: number;
+  name: string;
+  email: string;
+
+  constructor(id: number, name: string, email: string) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+  }
+
+  toString() {
+    return `${this.name} <${this.email}>`;
+  }
+
+  // TODO [ToDr] To overcome issues with evergreen Combobox component
+  trim() {
+    this.toString().trim();
+  }
+}
 
 export const Store = () => {
   return (
@@ -30,6 +53,17 @@ const Storage = () => {
 
   const [step, setStep] = useState('recipients' as Steps);
   const [chunks] = useState(state.encryptionResult?.chunks);
+  const [predefinedRecipients] = useState([
+    new Recipient(1, 'Mommy', 'mommy@home.com'),
+    new Recipient(2, 'Dad', 'dad@home.com'),
+    new Recipient(3, 'Wife', 'wife@home.com'),
+  ]);
+
+  const nextStep = useCallback(() => {
+    if (step === 'recipients') {
+      setStep('proof-of-life');
+    }
+  }, [step, setStep]);
 
   if (!state) {
     return <Intro />;
@@ -38,7 +72,13 @@ const Storage = () => {
   const STEPS = {
     recipients: () => (
       <>
-        <Recipients chunks={chunks} messageBytes={state.encryptionResult?.encryptedMessageBytes} />
+        <Recipients
+          chunks={chunks}
+          requiredChunks={state.chunksConfiguration?.required}
+          messageBytes={state.encryptionResult?.encryptedMessageBytes}
+          predefinedRecipients={predefinedRecipients}
+        />
+        <NextStepButton nextStep={nextStep}>Configure Proof of Life</NextStepButton>
       </>
     ),
     'proof-of-life': () => <></>,
@@ -52,19 +92,73 @@ const Storage = () => {
   );
 };
 
-const Recipients = ({ chunks, messageBytes }: { chunks: ChunksMeta[]; messageBytes: number }) => {
+type RecipientsProps = {
+  chunks: ChunksMeta[];
+  requiredChunks: number;
+  messageBytes: number;
+  predefinedRecipients: Recipient[];
+};
+
+function newArray<T>(len: number, v: T) {
+  return Array(len).map(() => v);
+}
+
+const Recipients = ({ chunks, requiredChunks, messageBytes, predefinedRecipients }: RecipientsProps) => {
   const total = chunks.length;
+  const [isSelected, setIsSelected] = useState(newArray(total, false));
+  const [recipients, setRecipients] = useState(newArray(total, null as Recipient | string | null));
+
+  const handleSelected = useCallback(
+    (idx: number, v: boolean) => {
+      isSelected[idx] = v;
+      setIsSelected([...isSelected]);
+    },
+    [isSelected],
+  );
+  const handleRecipient = useCallback(
+    (idx: number, v: Recipient | string | null) => {
+      recipients[idx] = v;
+      setRecipients([...recipients]);
+    },
+    [recipients],
+  );
+
+  const selectedCount = isSelected.filter((x) => x).length;
   return (
     <Slab>
       <Paragraph>
-        Select only pieces that you wish to store to your on-line account. The remaining pieces will be available to
-        download as a <strong>recovery key</strong>.
+        Select only pieces that you wish to store to your on-line account and have them delivered to recipients. The
+        remaining pieces will be available to download as a <strong>recovery key</strong>.
       </Paragraph>
       <EncryptedMessageRow messageBytes={messageBytes} />
       {chunks.map((chunk, idx) => (
-        <RecipientRow chunk={chunk} idx={idx} total={total} />
+        <RecipientRow
+          key={idx}
+          chunk={chunk}
+          idx={idx}
+          total={total}
+          predefinedRecipients={predefinedRecipients}
+          recipient={recipients[idx]}
+          isSelected={isSelected[idx]}
+          setIsSelected={(v) => handleSelected(idx, v)}
+          setRecipient={(v) => handleRecipient(idx, v)}
+        />
       ))}
+      {selectedCount >= requiredChunks && <TooManyPiecesWarning count={selectedCount} limit={requiredChunks} />}
     </Slab>
+  );
+};
+
+const TooManyPiecesWarning = ({ count, limit }: { count: number; limit: number }) => {
+  return (
+    <Alert intent="warning" title="😱 We can read your message!" marginTop={majorScale(3)}>
+      <Paragraph>
+        You've selected {count} pieces to be stored on-line, while {limit} is enough to decrypt the message.
+      </Paragraph>
+      <Paragraph>
+        Your message will not be safe with us, please consider storing only up to {limit - 1} pieces.
+      </Paragraph>
+    </Alert>
   );
 };
 
@@ -81,28 +175,5 @@ const EncryptedMessageRow = ({ messageBytes }: { messageBytes: number }) => {
         <Checkbox marginLeft={majorScale(2)} disabled checked />
       </Tooltip>
     </Row>
-  );
-};
-
-const RecipientRow = ({ chunk, idx, total }: { chunk: ChunksMeta; idx: number; total: number }) => {
-  return (
-    <Row>
-      <KeyIcon size={majorScale(5)} />
-      <Heading size={400} marginLeft={majorScale(2)}>
-        {idx}/{total}
-      </Heading>
-      <Heading size={400} marginLeft={majorScale(2)}>
-        {chunk.name}
-      </Heading>
-      <Checkbox marginLeft={majorScale(2)} />
-    </Row>
-  );
-};
-
-const Row = ({ children }: { children: ReactNode }) => {
-  return (
-    <Card elevation={1} display="flex" padding={majorScale(2)} marginY={majorScale(3)} alignItems="center">
-      {children}
-    </Card>
   );
 };

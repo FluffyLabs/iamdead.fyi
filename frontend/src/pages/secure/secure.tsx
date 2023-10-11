@@ -1,4 +1,4 @@
-import { Button, ChevronRightIcon, Group } from 'evergreen-ui';
+import { Button, Group } from 'evergreen-ui';
 import { useCallback, useState, ReactNode } from 'react';
 
 import { Container } from '../../components/container';
@@ -8,9 +8,9 @@ import { OfflineWarning } from './components/offline-warning';
 import { ChunksConfigurationEditor } from './components/chunks-configuration-editor';
 import { SecureMessageResult, Result as CryptoResult } from './components/secure-message-result';
 import { Editor } from './components/editor';
-import { Slab } from '../../components/slab';
 import { useNavigate } from 'react-router-dom';
 import { useIsOnline } from '../../hooks/use-is-online';
+import { NextStepButton } from '../../components/next-step-button';
 
 const useEditorState = () => {
   const [value, setValue] = useState('');
@@ -109,24 +109,6 @@ export const Secure = () => {
         {STEPS[step]()}
       </Container>
     </>
-  );
-};
-
-const NextStepButton = ({
-  nextStep,
-  children,
-  disabled,
-}: {
-  nextStep: () => void;
-  children: ReactNode;
-  disabled?: boolean;
-}) => {
-  return (
-    <Slab display="flex" padding="0" justifyContent="center">
-      <Button iconAfter={<ChevronRightIcon />} appearance="primary" size="large" onClick={nextStep} disabled={disabled}>
-        {children}
-      </Button>
-    </Slab>
   );
 };
 
