@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 
-import { useWizardContext } from '../../wizard-context';
 import { ConfiguredAdapter, Units } from '../../wizard-context/proof-of-life';
 import { GroupSublistItem } from '../group-sublist-item';
 import { NewAdapterPopover } from '../new-adapter-popover';
@@ -9,20 +8,34 @@ import { Adapter } from '../../../../services/adapters';
 
 import styles from './styles.module.scss';
 
-export const GroupSublist = ({ items, groupIndex }: { items: Array<ConfiguredAdapter>; groupIndex: number }) => {
-  const { proofOfLife } = useWizardContext();
-
+export const GroupSublist = ({
+  items,
+  groupIndex,
+  addToGroup,
+  updateGroupItem,
+}: {
+  items: Array<ConfiguredAdapter>;
+  groupIndex: number;
+  addToGroup: (arg0: { adapter: Adapter; adapterId: string; groupIndex: number }) => void;
+  updateGroupItem: (arg0: { item: ConfiguredAdapter; groupIndex: number; itemIndex: number }) => void;
+}) => {
   const addNewAdapter = useCallback(
     ({ adapter, adapterId }: { adapter: Adapter; adapterId: string }) => {
-      proofOfLife.addToGroup({ ...adapter, adapterId, time: 5, unit: Units.Months }, groupIndex);
+      addToGroup({ adapter, adapterId, groupIndex });
     },
-    [proofOfLife, groupIndex],
+    [addToGroup, groupIndex],
   );
 
   return (
     <ul className={styles.subList}>
       {items.map((adapter, i) => (
-        <GroupSublistItem adapter={adapter} itemIndex={i} groupIndex={groupIndex} key={i} />
+        <GroupSublistItem
+          adapter={adapter}
+          itemIndex={i}
+          groupIndex={groupIndex}
+          key={i}
+          updateGroupItem={updateGroupItem}
+        />
       ))}
       <li>
         <NewAdapterPopover onNewAdapter={addNewAdapter}>

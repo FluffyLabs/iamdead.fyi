@@ -12,10 +12,9 @@ const createAdapter = (name: string, image: string, type: AdapterType): Adapter 
   type,
 });
 
-export const getAdapters = () =>
-  Promise.resolve([
-    createAdapter('Telegram', telegramImage, AdapterType.MESSAGE),
-    createAdapter('Whatsapp', whatsappImage, AdapterType.MESSAGE),
-    createAdapter('Email', emailImage, AdapterType.MESSAGE),
-    createAdapter('Twitter', twitterImage, AdapterType.SOCIAL_NETWORK),
-  ]);
+export const getAdapters = () => [
+  createAdapter('Telegram', telegramImage, AdapterType.MESSAGE),
+  createAdapter('Whatsapp', whatsappImage, AdapterType.MESSAGE),
+  createAdapter('Email', emailImage, AdapterType.MESSAGE),
+  createAdapter('Twitter', twitterImage, AdapterType.SOCIAL_NETWORK),
+];
