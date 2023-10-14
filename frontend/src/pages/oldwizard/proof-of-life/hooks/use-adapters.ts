@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-
 import { getAdapters } from '../../../../services';
 import { isMessageAdapter, isSocialAdapter } from '../utils';
 

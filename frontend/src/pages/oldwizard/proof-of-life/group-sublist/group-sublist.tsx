@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { ConfiguredAdapter, Units } from '../../wizard-context/proof-of-life';
+import { ConfiguredAdapter } from '../../wizard-context/proof-of-life';
 import { GroupSublistItem } from '../group-sublist-item';
 import { NewAdapterPopover } from '../new-adapter-popover';
 import { PlusButton } from '../plus-button';

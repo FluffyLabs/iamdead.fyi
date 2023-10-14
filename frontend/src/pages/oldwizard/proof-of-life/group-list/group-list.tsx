@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { ConfiguredAdapter } from '../../wizard-context/proof-of-life';
 import { NewAdapterPopover } from '../new-adapter-popover';
