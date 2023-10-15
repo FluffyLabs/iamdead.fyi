@@ -11,6 +11,9 @@ import { Slab } from '../../components/slab';
 import { Row } from './components/row';
 import { RecipientRow } from './components/recipient-row';
 import { NextStepButton } from '../../components/next-step-button';
+import { ProofOfLifeComponent } from './proof-of-life/proof-of-life';
+import { ConfiguredAdapter, Units, useProofOfLifeStep } from './wizard-context/proof-of-life';
+import { Adapter } from '../../services/adapters';
 
 export type Steps = 'recipients' | 'proof-of-life';
 export class Recipient {
@@ -81,7 +84,11 @@ const Storage = () => {
         <NextStepButton nextStep={nextStep}>Configure Proof of Life</NextStepButton>
       </>
     ),
-    'proof-of-life': () => <></>,
+    'proof-of-life': () => (
+      <>
+        <ProofOfLife />
+      </>
+    ),
   };
 
   return (
@@ -175,5 +182,44 @@ const EncryptedMessageRow = ({ messageBytes }: { messageBytes: number }) => {
         <Checkbox marginLeft={majorScale(2)} disabled checked />
       </Tooltip>
     </Row>
+  );
+};
+
+const ProofOfLife = () => {
+  const proofOfLife = useProofOfLifeStep();
+
+  const addNewAdapterGroup = useCallback(
+    ({ adapter, adapterId }: { adapter: Adapter; adapterId: string }) => {
+      proofOfLife.addNewGroup({ ...adapter, adapterId, time: 5, unit: Units.Months });
+    },
+    [proofOfLife],
+  );
+
+  const addToGroup = useCallback(
+    ({ adapter, adapterId, groupIndex }: { adapter: Adapter; adapterId: string; groupIndex: number }) => {
+      proofOfLife.addToGroup({ ...adapter, adapterId, time: 5, unit: Units.Months }, groupIndex);
+    },
+    [proofOfLife],
+  );
+
+  const updateGroupItem = useCallback(
+    ({ item, groupIndex, itemIndex }: { item: ConfiguredAdapter; groupIndex: number; itemIndex: number }) => {
+      proofOfLife.updateGroupItem(item, groupIndex, itemIndex);
+    },
+    [proofOfLife],
+  );
+
+  return (
+    <>
+      <Slab>
+        <Paragraph>Decide under what conditions the pieces will be distributed to the recipients.</Paragraph>
+        <ProofOfLifeComponent
+          adapters={proofOfLife.listOfAdapters}
+          addNewAdapterGroup={addNewAdapterGroup}
+          addToGroup={addToGroup}
+          updateGroupItem={updateGroupItem}
+        />
+      </Slab>
+    </>
   );
 };

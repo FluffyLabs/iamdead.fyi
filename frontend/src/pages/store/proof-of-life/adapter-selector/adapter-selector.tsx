@@ -15,10 +15,12 @@ export const AdapterSelector = ({ onChange }: Props) => {
   const adapters = useAdapters();
   const [selectedAdapter, setSelectedAdapter] = useState<null | Adapter>(null);
   const [adapterId, setAdapterId] = useState<string>('');
+
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setAdapterId(event.target.value),
     [setAdapterId],
   );
+
   const changeAdapter = useCallback(() => {
     setAdapterId('');
     setSelectedAdapter(null);
@@ -29,21 +31,18 @@ export const AdapterSelector = ({ onChange }: Props) => {
       return onChange({ adapter: selectedAdapter, adapterId });
     }
   }, [onChange, selectedAdapter, adapterId]);
+
   return (
     <div className={styles.container}>
-      {!selectedAdapter && adapters.data && (
+      {!selectedAdapter && adapters && (
         <>
           <h1 className={styles.title}>Select an adapter</h1>
           <AdaptersSection
             title="Social media adapters"
-            adapters={adapters.data.socialMediaAdapters}
+            adapters={adapters.socialMediaAdapters}
             onClick={setSelectedAdapter}
           />
-          <AdaptersSection
-            title="Message adapters"
-            adapters={adapters.data.messageAdapters}
-            onClick={setSelectedAdapter}
-          />
+          <AdaptersSection title="Message adapters" adapters={adapters.messageAdapters} onClick={setSelectedAdapter} />
         </>
       )}
 

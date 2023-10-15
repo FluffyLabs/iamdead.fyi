@@ -6,7 +6,7 @@ import {
   MAX_NO_OF_RECIPIENTS,
   MIN_NO_OF_ADDITIONAL_PIECES,
   MIN_NO_OF_RECIPIENTS,
-} from '../../oldwizard/security/consts';
+} from '../consts';
 import { ChunksConfiguration } from '../../../services/crypto';
 import { Slab } from '../../../components/slab';
 
