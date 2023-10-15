@@ -44,7 +44,7 @@ export const MainPage = () => {
               Specify <em>Proof of Life</em> - the conditions under which the SSS chunks will be sent to recipients.
             </ListItem>
           </OrderedList>
-          <Button is="a" appearance="primary" href="/secure" size="large">
+          <Button is="a" appearance="primary" href="/store" size="large">
             Get Started
           </Button>
         </Pane>

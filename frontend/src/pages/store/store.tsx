@@ -11,8 +11,8 @@ import { Slab } from '../../components/slab';
 import { Row } from './components/row';
 import { RecipientRow } from './components/recipient-row';
 import { NextStepButton } from '../../components/next-step-button';
-import { ProofOfLifeComponent } from '../oldwizard/proof-of-life/proof-of-life';
-import { ConfiguredAdapter, Units, useProofOfLifeStep } from '../oldwizard/wizard-context/proof-of-life';
+import { ProofOfLifeComponent } from './proof-of-life/proof-of-life';
+import { ConfiguredAdapter, Units, useProofOfLifeStep } from './wizard-context/proof-of-life';
 import { Adapter } from '../../services/adapters';
 
 export type Steps = 'recipients' | 'proof-of-life';
