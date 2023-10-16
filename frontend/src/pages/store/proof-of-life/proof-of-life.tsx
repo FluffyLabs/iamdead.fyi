@@ -22,10 +22,17 @@ export const ProofOfLifeComponent = ({
 
   return (
     <>
-      <Heading size={500} marginTop={majorScale(3)} marginBottom={majorScale(1)}>
+      <Heading
+        size={500}
+        marginTop={majorScale(3)}
+        marginBottom={majorScale(1)}
+      >
         The pieces should be sent out when:
       </Heading>
-      <Pane display="flex" flexWrap="wrap">
+      <Pane
+        display="flex"
+        flexWrap="wrap"
+      >
         {adapters.length > 0 ? (
           <GroupList
             adapters={adapters}
@@ -39,8 +46,17 @@ export const ProofOfLifeComponent = ({
           </Box>
         )}
       </Pane>
-      <Heading size={400} marginTop={majorScale(2)}>
-        followed by a grace period of <DraggableNumber value={gracePeriod} onChange={setGracePeriod} min={1} max={24} />{' '}
+      <Heading
+        size={400}
+        marginTop={majorScale(2)}
+      >
+        followed by a grace period of{' '}
+        <DraggableNumber
+          value={gracePeriod}
+          onChange={setGracePeriod}
+          min={1}
+          max={24}
+        />{' '}
         {gracePeriod === 1 ? 'month' : 'months'}.
         <Tooltip content="During the grace period we will notify you about Proof of Life conditions being met on all possible channels, and you will still have a chance to cancel.">
           <Text opacity="0.5">

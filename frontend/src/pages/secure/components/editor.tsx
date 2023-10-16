@@ -17,14 +17,28 @@ export const Editor = ({ value, onChange }: EditorProps) => {
   return (
     <>
       <Heading marginTop={majorScale(3)}>What message would you like to encrypt?</Heading>
-      <Heading size={300} marginTop={majorScale(1)} marginBottom={majorScale(2)}>
+      <Heading
+        size={300}
+        marginTop={majorScale(1)}
+        marginBottom={majorScale(2)}
+      >
         Fell free to start with something basic for now, you will have a chance to edit it any time.
       </Heading>
-      <Slab display="flex" padding={0}>
+      <Slab
+        display="flex"
+        padding={0}
+      >
         <Pane flex="6">
-          <MessageEditor value={value} onChange={onChange} />
+          <MessageEditor
+            value={value}
+            onChange={onChange}
+          />
         </Pane>
-        <Slab margin="0" paddingTop="0" flex="2">
+        <Slab
+          margin="0"
+          paddingTop="0"
+          flex="2"
+        >
           <Text>If you need help writing the message you may try some of the templates below.</Text>
           <UnorderedList>
             <ListItem>

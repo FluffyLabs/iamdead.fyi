@@ -19,8 +19,15 @@ export function QRWithClipboard({ value }: { value: string }) {
   }, [showTooltip]);
 
   return (
-    <Tooltip isShown={showTooltip} content="Copied to clipboard" position={Position.TOP}>
-      <Link onClick={copyToClipboard} style={{ cursor: 'copy' }}>
+    <Tooltip
+      isShown={showTooltip}
+      content="Copied to clipboard"
+      position={Position.TOP}
+    >
+      <Link
+        onClick={copyToClipboard}
+        style={{ cursor: 'copy' }}
+      >
         <QRCodeSVG value={value} />
       </Link>
     </Tooltip>

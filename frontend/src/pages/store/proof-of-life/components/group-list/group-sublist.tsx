@@ -42,7 +42,10 @@ export const GroupSublist = ({
   );
 
   const and = (
-    <Heading size={300} marginY={majorScale(1)}>
+    <Heading
+      size={300}
+      marginY={majorScale(1)}
+    >
       and
     </Heading>
   );
@@ -50,10 +53,18 @@ export const GroupSublist = ({
   const addMore = showMore ? (
     <>
       {and}
-      <AdapterSelector short filterOut={isAlreadyAdded} onChange={addNewAdapter} />
+      <AdapterSelector
+        short
+        filterOut={isAlreadyAdded}
+        onChange={addNewAdapter}
+      />
     </>
   ) : (
-    <Button appearance="minimal" iconBefore={<PlusIcon />} onClick={handleClick}>
+    <Button
+      appearance="minimal"
+      iconBefore={<PlusIcon />}
+      onClick={handleClick}
+    >
       and
     </Button>
   );

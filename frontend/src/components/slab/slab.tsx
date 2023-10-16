@@ -6,7 +6,11 @@ type Props = PaneProps & {
 };
 
 export const Slab = ({ children, ...props }: Props) => (
-  <Pane padding={majorScale(3)} marginY={majorScale(3)} {...props}>
+  <Pane
+    padding={majorScale(3)}
+    marginY={majorScale(3)}
+    {...props}
+  >
     {children}
   </Pane>
 );

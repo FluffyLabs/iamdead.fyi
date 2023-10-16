@@ -75,9 +75,15 @@ export const SecureMessageResult = ({ message, chunksConfiguration, setResult }:
 
   return (
     <>
-      <Summary message={message} chunksConfiguration={chunksConfiguration} />
+      <Summary
+        message={message}
+        chunksConfiguration={chunksConfiguration}
+      />
       <IsLoading isLoading={isLoading} />
-      <DisplayResult result={result} error={error} />
+      <DisplayResult
+        result={result}
+        error={error}
+      />
     </>
   );
 };
@@ -91,17 +97,31 @@ const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
     return null;
   }
   // TODO [ToDr] Spinner should only be displayed after some timeout.
-  return <Spinner marginX="auto" marginY={majorScale(2)} />;
+  return (
+    <Spinner
+      marginX="auto"
+      marginY={majorScale(2)}
+    />
+  );
 };
 
 const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: string | null }) => {
   if (error) {
-    return <Alert intent="danger" title={error} />;
+    return (
+      <Alert
+        intent="danger"
+        title={error}
+      />
+    );
   }
 
   if (!result) {
     return (
-      <EmptyState title="Encryption results are not available yet." icon={<SmallCrossIcon />} iconBgColor="tint" />
+      <EmptyState
+        title="Encryption results are not available yet."
+        icon={<SmallCrossIcon />}
+        iconBgColor="tint"
+      />
     );
   }
 
@@ -109,7 +129,10 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
   // TODO [ToDr] Allow adding description.
 
   return (
-    <Slab background="tint2" display="flex">
+    <Slab
+      background="tint2"
+      display="flex"
+    >
       <Pane flex="1">
         <EncryptedMessage encryptedMessage={result.encryptedMessage} />
         <Chunks chunks={result.chunks} />
@@ -130,7 +153,10 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
 
 function CloseButton({ close }: { close: () => void }) {
   return (
-    <Button appearance="primary" onClick={close}>
+    <Button
+      appearance="primary"
+      onClick={close}
+    >
       Done
     </Button>
   );
@@ -161,7 +187,13 @@ function Chunks({ chunks }: { chunks: string[] }) {
   return (
     <>
       {chunks.map((x: string, idx: number) => (
-        <Chunk key={x} chunk={x} id={idx + 1} name={chunkName(idx)} showDialog={showDialog} />
+        <Chunk
+          key={x}
+          chunk={x}
+          id={idx + 1}
+          name={chunkName(idx)}
+          showDialog={showDialog}
+        />
       ))}
       {/* Not using footer, because it's not trivial to align buttons left/right */}
       <Dialog
@@ -171,25 +203,57 @@ function Chunks({ chunks }: { chunks: string[] }) {
         hasFooter={false}
       >
         {({ close }) => (
-          <Pane display="flex" flexDirection="column" alignItems="center">
-            <Pane display="flex" flexDirection="row" width="100%">
-              <Pane flex="1" display="flex" justifyContent="center">
+          <Pane
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+          >
+            <Pane
+              display="flex"
+              flexDirection="row"
+              width="100%"
+            >
+              <Pane
+                flex="1"
+                display="flex"
+                justifyContent="center"
+              >
                 <QRWithClipboard value={chunk.toUpperCase()} />
               </Pane>
               <Pane flex="1">
-                <TextInputField label="Piece name" value={activeName} autoFocus />
-                <Button onClick={() => {}} iconBefore={<DownloadIcon />} marginBottom={majorScale(1)}>
+                <TextInputField
+                  label="Piece name"
+                  value={activeName}
+                  autoFocus
+                />
+                <Button
+                  onClick={() => {}}
+                  iconBefore={<DownloadIcon />}
+                  marginBottom={majorScale(1)}
+                >
                   Download
                 </Button>
                 <br />
                 <Button iconBefore={<ManualIcon />}>Certificate</Button>
               </Pane>
             </Pane>
-            <Pane width="100%" display="flex" justifyContent="space-between" marginY={majorScale(3)}>
-              <Button onClick={prevChunk} iconBefore={<ChevronLeftIcon />}>
+            <Pane
+              width="100%"
+              display="flex"
+              justifyContent="space-between"
+              marginY={majorScale(3)}
+            >
+              <Button
+                onClick={prevChunk}
+                iconBefore={<ChevronLeftIcon />}
+              >
                 Prev
               </Button>
-              <Button appearance="primary" onClick={nextChunk} iconAfter={<ChevronRightIcon />}>
+              <Button
+                appearance="primary"
+                onClick={nextChunk}
+                iconAfter={<ChevronRightIcon />}
+              >
                 Next
               </Button>
             </Pane>
@@ -205,7 +269,10 @@ function EncryptedMessage({ encryptedMessage }: { encryptedMessage: string[] }) 
 
   const Footer = ({ close }: Parameters<typeof CloseButton>[0]) => (
     <Group>
-      <Button onClick={() => {}} iconBefore={<DownloadIcon />}>
+      <Button
+        onClick={() => {}}
+        iconBefore={<DownloadIcon />}
+      >
         Download
       </Button>
       <CloseButton close={close} />
@@ -213,17 +280,36 @@ function EncryptedMessage({ encryptedMessage }: { encryptedMessage: string[] }) 
   );
 
   return (
-    <Pane display="flex" alignItems="flex-start">
-      <LockIcon size={majorScale(5)} marginRight={majorScale(2)} />
-      <Pane flex="1" display="flex" flexDirection="column">
-        <Heading marginRight={majorScale(1)} marginBottom={majorScale(1)}>
+    <Pane
+      display="flex"
+      alignItems="flex-start"
+    >
+      <LockIcon
+        size={majorScale(5)}
+        marginRight={majorScale(2)}
+      />
+      <Pane
+        flex="1"
+        display="flex"
+        flexDirection="column"
+      >
+        <Heading
+          marginRight={majorScale(1)}
+          marginBottom={majorScale(1)}
+        >
           Encrypted message ({encryptedMessageBytes(encryptedMessage)} bytes)
         </Heading>
         <Group>
-          <Button onClick={() => setIsShowingQr(true)} iconBefore={<HeatGridIcon />}>
+          <Button
+            onClick={() => setIsShowingQr(true)}
+            iconBefore={<HeatGridIcon />}
+          >
             QR codes
           </Button>
-          <Button onClick={() => {}} iconBefore={<DownloadIcon />}>
+          <Button
+            onClick={() => {}}
+            iconBefore={<DownloadIcon />}
+          >
             Download
           </Button>
         </Group>
@@ -268,19 +354,37 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
 
   return (
     <>
-      <Pane title={part} display="flex" flexDirection="column" alignItems="center">
-        <Heading size={300} textAlign="center" marginBottom={majorScale(1)}>
+      <Pane
+        title={part}
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+      >
+        <Heading
+          size={300}
+          textAlign="center"
+          marginBottom={majorScale(1)}
+        >
           Part {selectedPart + 1} / {data.length}
         </Heading>
         <QRWithClipboard value={part.toUpperCase()} />
         <Group size="small">
-          <Button onClick={prev} disabled={!hasPrev || isPlaying}>
+          <Button
+            onClick={prev}
+            disabled={!hasPrev || isPlaying}
+          >
             <ChevronLeftIcon />
           </Button>
-          <Button onClick={toggle} disabled={!hasPrev && !hasNext}>
+          <Button
+            onClick={toggle}
+            disabled={!hasPrev && !hasNext}
+          >
             {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </Button>
-          <Button onClick={next} disabled={!hasNext || isPlaying}>
+          <Button
+            onClick={next}
+            disabled={!hasNext || isPlaying}
+          >
             <ChevronRightIcon />
           </Button>
         </Group>
@@ -300,17 +404,37 @@ function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
   // TODO [ToDr] turn the heading into editable component.
   return (
-    <Slab padding={0} marginY={majorScale(5)} title={chunk} display="flex">
-      <KeyIcon size={majorScale(5)} marginRight={majorScale(2)} />
-      <Pane display="flex" flexDirection="column">
-        <Heading marginRight={majorScale(1)} marginBottom={majorScale(1)}>
+    <Slab
+      padding={0}
+      marginY={majorScale(5)}
+      title={chunk}
+      display="flex"
+    >
+      <KeyIcon
+        size={majorScale(5)}
+        marginRight={majorScale(2)}
+      />
+      <Pane
+        display="flex"
+        flexDirection="column"
+      >
+        <Heading
+          marginRight={majorScale(1)}
+          marginBottom={majorScale(1)}
+        >
           {name}
-          <Link marginLeft={majorScale(1)} href="#">
+          <Link
+            marginLeft={majorScale(1)}
+            href="#"
+          >
             <EditIcon />
           </Link>
         </Heading>
         <Group>
-          <Button iconBefore={<HeatGridIcon />} onClick={() => showDialog(id - 1)}>
+          <Button
+            iconBefore={<HeatGridIcon />}
+            onClick={() => showDialog(id - 1)}
+          >
             QR
           </Button>
           <Button iconBefore={<DownloadIcon />}>Download</Button>

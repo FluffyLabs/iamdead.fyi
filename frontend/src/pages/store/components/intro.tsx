@@ -23,16 +23,28 @@ export const Intro = () => {
   return (
     <Slab display="flex">
       <Btn intent="success">
-        <OfflineIcon size={majorScale(5)} marginBottom={majorScale(2)} />
+        <OfflineIcon
+          size={majorScale(5)}
+          marginBottom={majorScale(2)}
+        />
         <Heading size={400}>I've prepared the message off-line (recommended).</Heading>
-        <Paragraph size={300} marginTop={majorScale(1)}>
+        <Paragraph
+          size={300}
+          marginTop={majorScale(1)}
+        >
           The encryption process happens on an off-line device, and QR codes are scanned to continue the process here.
         </Paragraph>
       </Btn>
       <Btn onClick={() => navigate('/secure')}>
-        <UnlockIcon size={majorScale(5)} marginBottom={majorScale(2)} />
+        <UnlockIcon
+          size={majorScale(5)}
+          marginBottom={majorScale(2)}
+        />
         <Heading size={400}>Let me prepare the message now.</Heading>
-        <Paragraph size={100} marginTop={majorScale(1)}>
+        <Paragraph
+          size={100}
+          marginTop={majorScale(1)}
+        >
           You'll prepare the message on the current device. Note that it is not recommended to do so for security
           reasons.
         </Paragraph>

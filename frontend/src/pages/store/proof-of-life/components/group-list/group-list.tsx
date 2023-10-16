@@ -29,7 +29,11 @@ export const GroupList = ({ adapters, addNewAdapterGroup, addToGroup, updateGrou
   }, [adapters]);
 
   const or = (
-    <Heading size={400} margin={majorScale(2)} alignSelf="center">
+    <Heading
+      size={400}
+      margin={majorScale(2)}
+      alignSelf="center"
+    >
       or
     </Heading>
   );
@@ -59,7 +63,12 @@ export const GroupList = ({ adapters, addNewAdapterGroup, addToGroup, updateGrou
         <React.Fragment key={i}>
           {i > 0 && or}
           <Box textAlign="center">
-            <GroupSublist items={group} groupIndex={i} addToGroup={addToGroup} updateGroupItem={updateGroupItem} />
+            <GroupSublist
+              items={group}
+              groupIndex={i}
+              addToGroup={addToGroup}
+              updateGroupItem={updateGroupItem}
+            />
           </Box>
         </React.Fragment>
       ))}

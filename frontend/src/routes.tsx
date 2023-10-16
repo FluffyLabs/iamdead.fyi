@@ -11,15 +11,37 @@ export function Routes() {
   return (
     <>
       <ReactRoutes>
-        <Route index element={<Home />} />
+        <Route
+          index
+          element={<Home />}
+        />
 
-        <Route element={<Secure />} path="secure" />
-        <Route element={<Store />} path="store" />
-        <Route element={<Recover />} path="recover" />
+        <Route
+          element={<Secure />}
+          path="secure"
+        />
+        <Route
+          element={<Store />}
+          path="store"
+        />
+        <Route
+          element={<Recover />}
+          path="recover"
+        />
 
-        <Route element={<Login />} path="login">
-          <Route index element={<IndieAuthForm />} path="indie-auth" />
-          <Route element={<IndieAuthRedirect />} path="indie-auth-redirect" />
+        <Route
+          element={<Login />}
+          path="login"
+        >
+          <Route
+            index
+            element={<IndieAuthForm />}
+            path="indie-auth"
+          />
+          <Route
+            element={<IndieAuthRedirect />}
+            path="indie-auth-redirect"
+          />
         </Route>
       </ReactRoutes>
       <Outlet />

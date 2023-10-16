@@ -27,5 +27,11 @@ export const AdapterSelector = ({ short, filterOut, onChange }: Props) => {
 
   const filteredAdapters = filterOut ? adapters.filter((x) => !filterOut(x)) : adapters;
 
-  return <AdaptersList short={short} adapters={filteredAdapters} onClick={onConfirm} />;
+  return (
+    <AdaptersList
+      short={short}
+      adapters={filteredAdapters}
+      onClick={onConfirm}
+    />
+  );
 };

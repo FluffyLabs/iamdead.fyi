@@ -26,12 +26,25 @@ export const GroupSublistItem = ({ adapter, itemIndex, groupIndex, updateGroupIt
   }, [updateGroupItem, groupIndex, itemIndex]);
 
   return (
-    <Pane textOverflow="ellipsis" className={styles.pane}>
+    <Pane
+      textOverflow="ellipsis"
+      className={styles.pane}
+    >
       <Heading size={300}>
         {adapter.text} {adapter.icon} {adapter.name} for
-        <DraggableNumber value={adapter.months} onChange={handleChange} max={60} min={1} />
+        <DraggableNumber
+          value={adapter.months}
+          onChange={handleChange}
+          max={60}
+          min={1}
+        />
         {adapter.months === 1 ? 'month' : 'months'}
-        <IconButton className={styles.button} onClick={removeAdapter} appearance="minimal" icon={<CrossIcon />} />
+        <IconButton
+          className={styles.button}
+          onClick={removeAdapter}
+          appearance="minimal"
+          icon={<CrossIcon />}
+        />
       </Heading>
     </Pane>
   );

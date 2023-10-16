@@ -59,7 +59,11 @@ export const DraggableNumber = ({ onChange, min = DEFAULT_MIN, max = DEFAULT_MAX
   }, [isDragged, setDragged, startPosition, max, min, onChange, wasDragged, valueWhenDragged]);
 
   const text = (
-    <span {...inputProps} className={clsx(styles.input, inputProps.className)} onMouseDown={handleMouseDown}>
+    <span
+      {...inputProps}
+      className={clsx(styles.input, inputProps.className)}
+      onMouseDown={handleMouseDown}
+    >
       {value}
     </span>
   );
