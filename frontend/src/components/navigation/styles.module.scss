@@ -1,19 +1,28 @@
 @import '../../colors.scss';
 
 a.navLink {
-  background: $pane;
-  border: 1px solid $extra;
   color: $tertiary;
-
-  &.active {
-    background: $background;
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid $extra;
-  }
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: 2px solid transparent;
 
   &:active {
     text-decoration: underline;
+  }
+
+  &.active,
+  &:hover,
+  &.fill {
+    background: $background;
+    border-top-color: $pane;
+    border-left-color: $pane;
+    border-bottom-color: $extra;
+    border-right-color: $extra;
+  }
+
+  &.active,
+  &.fill {
+    background: $pane;
   }
 
   &:hover {

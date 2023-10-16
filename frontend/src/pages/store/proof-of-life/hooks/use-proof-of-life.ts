@@ -6,13 +6,7 @@ export type ConfiguredAdapter = Adapter & {
 };
 
 export const getAdapterText = (adapter: Adapter) => {
-  if (adapter.type === 'message') {
-    return `I don't respond on ${adapter.name}`;
-  }
-
-  if (adapter.type === 'social') {
-    return `I am not active on ${adapter.name}`;
-  }
+  return adapter.text;
 };
 
 export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapter => ({
@@ -20,10 +14,10 @@ export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapt
   months,
 });
 
-const list: Array<Array<ConfiguredAdapter>> = [];
+const list: ConfiguredAdapter[][] = [];
 
 export function useProofOfLife() {
-  const [listOfAdapters, setListOfAdapters] = useState<Array<Array<ConfiguredAdapter>>>(list);
+  const [listOfAdapters, setListOfAdapters] = useState<ConfiguredAdapter[][]>(list);
 
   const addNewGroup = useCallback(
     (item: ConfiguredAdapter) => {
@@ -49,6 +43,9 @@ export function useProofOfLife() {
         const newList = [...previousList];
         newList[groupIndex] = [...newList[groupIndex]];
         newList[groupIndex].splice(itemIndex, 1);
+        if (newList[groupIndex].length === 0) {
+          newList.splice(groupIndex, 1);
+        }
         return newList;
       });
     },

@@ -1,13 +1,15 @@
 import { useCallback } from 'react';
 import { ConfiguredAdapter, getAdapterText } from '../../hooks/use-proof-of-life';
 import { DraggableNumber } from '../../../../../components/draggable-number';
-import { CrossIcon, Heading, Pane } from 'evergreen-ui';
+import { CrossIcon, Heading, IconButton, Pane } from 'evergreen-ui';
+
+import styles from './group-sublist-item.module.scss';
 
 type Props = {
   adapter: ConfiguredAdapter;
   itemIndex: number;
   groupIndex: number;
-  updateGroupItem: (arg0: { groupIndex: number; itemIndex: number; item: ConfiguredAdapter }) => void;
+  updateGroupItem: (arg0: { groupIndex: number; itemIndex: number; item: ConfiguredAdapter | null }) => void;
 };
 
 export const GroupSublistItem = ({ adapter, itemIndex, groupIndex, updateGroupItem }: Props) => {
@@ -19,13 +21,17 @@ export const GroupSublistItem = ({ adapter, itemIndex, groupIndex, updateGroupIt
     [updateGroupItem, adapter, groupIndex, itemIndex],
   );
 
+  const removeAdapter = useCallback(() => {
+    updateGroupItem({ groupIndex, itemIndex, item: null });
+  }, [updateGroupItem, groupIndex, itemIndex]);
+
   return (
-    <Pane textOverflow="ellipsis">
+    <Pane textOverflow="ellipsis" className={styles.pane}>
       <Heading size={300}>
         {getAdapterText(adapter)} for
         <DraggableNumber value={adapter.months} onChange={handleChange} max={60} min={1} />
         {adapter.months === 1 ? 'month' : 'months'}
-        <CrossIcon />
+        <IconButton className={styles.button} onClick={removeAdapter} appearance="minimal" icon={<CrossIcon />} />
       </Heading>
     </Pane>
   );

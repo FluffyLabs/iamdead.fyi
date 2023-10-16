@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { GroupSublistItem } from './group-sublist-item';
-import { Adapter, MAX_ADAPTERS } from '../../../../../services/adapters';
-import { Heading, majorScale } from 'evergreen-ui';
+import { Adapter, MAX_AND_ITEMS } from '../../../../../services/adapters';
+import { Button, Heading, PlusIcon, majorScale } from 'evergreen-ui';
 import { ConfiguredAdapter } from '../../hooks/use-proof-of-life';
 import { AdapterSelector } from '../adapter-selector';
 
@@ -15,8 +15,18 @@ export const GroupSublist = ({
   items: ConfiguredAdapter[];
   groupIndex: number;
   addToGroup: (arg0: { adapter: Adapter; groupIndex: number }) => void;
-  updateGroupItem: (arg0: { item: ConfiguredAdapter; groupIndex: number; itemIndex: number }) => void;
+  updateGroupItem: (arg0: { item: ConfiguredAdapter | null; groupIndex: number; itemIndex: number }) => void;
 }) => {
+  const [showMore, setShowMore] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setShowMore(true);
+  }, [setShowMore]);
+  // reset show more after items change.
+  useEffect(() => {
+    setShowMore(false);
+  }, [items]);
+
   const addNewAdapter = useCallback(
     ({ adapter }: { adapter: Adapter }) => {
       addToGroup({ adapter, groupIndex });
@@ -37,6 +47,17 @@ export const GroupSublist = ({
     </Heading>
   );
 
+  const addMore = showMore ? (
+    <>
+      {and}
+      <AdapterSelector short filterOut={isAlreadyAdded} onChange={addNewAdapter} />
+    </>
+  ) : (
+    <Button appearance="minimal" iconBefore={<PlusIcon />} onClick={handleClick}>
+      and
+    </Button>
+  );
+
   return (
     <>
       {items.map((adapter, i) => (
@@ -51,8 +72,7 @@ export const GroupSublist = ({
           />
         </>
       ))}
-      {items.length < MAX_ADAPTERS && and}
-      <AdapterSelector short filterOut={isAlreadyAdded} onChange={addNewAdapter} />
+      {items.length < MAX_AND_ITEMS && addMore}
     </>
   );
 };

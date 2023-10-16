@@ -88,6 +88,7 @@ const Storage = () => {
     'proof-of-life': () => (
       <>
         <ProofOfLife />
+        <NextStepButton nextStep={nextStep}>Login to save the setup</NextStepButton>
       </>
     ),
   };
@@ -204,8 +205,12 @@ const ProofOfLife = () => {
   );
 
   const updateGroupItem = useCallback(
-    ({ item, groupIndex, itemIndex }: { item: ConfiguredAdapter; groupIndex: number; itemIndex: number }) => {
-      proofOfLife.updateGroupItem(item, groupIndex, itemIndex);
+    ({ item, groupIndex, itemIndex }: { item: ConfiguredAdapter | null; groupIndex: number; itemIndex: number }) => {
+      if (item === null) {
+        proofOfLife.removeFromGroup(groupIndex, itemIndex);
+      } else {
+        proofOfLife.updateGroupItem(item, groupIndex, itemIndex);
+      }
     },
     [proofOfLife],
   );

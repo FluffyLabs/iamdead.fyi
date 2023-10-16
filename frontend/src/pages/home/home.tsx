@@ -5,7 +5,7 @@ import { Navigation } from '../../components/navigation';
 export const Home = () => {
   return (
     <>
-      <Navigation />
+      <Navigation fill />
       <MainPage />
       <Footer />
     </>
