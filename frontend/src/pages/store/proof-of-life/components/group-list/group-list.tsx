@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Adapter } from '../../../../../services/adapters';
-import { Button, PlusIcon } from 'evergreen-ui';
+import { PlusIcon } from 'evergreen-ui';
 import { Box } from '../box';
 import { ConfiguredAdapter } from '../../hooks/use-proof-of-life';
 import { AdapterSelector } from '../adapter-selector';

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { ConfiguredAdapter, getAdapterText } from '../../hooks/use-proof-of-life';
 import { DraggableNumber } from '../../../../../components/draggable-number';
-import { CrossIcon, Heading, Pane, RemoveIcon } from 'evergreen-ui';
+import { CrossIcon, Heading, Pane } from 'evergreen-ui';
 
 type Props = {
   adapter: ConfiguredAdapter;

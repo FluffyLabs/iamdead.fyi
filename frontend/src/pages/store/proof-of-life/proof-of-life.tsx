@@ -1,7 +1,7 @@
 import { AdapterSelector } from './components/adapter-selector';
 import { GroupList } from './components/group-list';
 import { Adapter } from '../../../services/adapters';
-import { Card, Heading, Pane, majorScale } from 'evergreen-ui';
+import { Heading, Pane, majorScale } from 'evergreen-ui';
 import { Box } from './components/box';
 import { ConfiguredAdapter } from './hooks/use-proof-of-life';
 

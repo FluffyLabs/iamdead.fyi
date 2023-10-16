@@ -26,6 +26,6 @@ export const AdapterSelector = ({ short, filterOut, onChange }: Props) => {
   }
 
   const filteredAdapters = filterOut ? adapters.filter((x) => !filterOut(x)) : adapters;
-  // TODO [ToDr] don't display adapters already configured in section.
+
   return <AdaptersList short={short} adapters={filteredAdapters} onClick={onConfirm} />;
 };
