@@ -81,20 +81,29 @@ export const Secure = () => {
           message={value}
           setResult={setEncryptionResult}
         />
-        <NextStepButton nextStep={nextStep} disabled={!encryptionResult || !isOnline}>
+        <NextStepButton
+          nextStep={nextStep}
+          disabled={!encryptionResult || !isOnline}
+        >
           Store pieces & configure distribution
         </NextStepButton>
       </>
     ),
     chunks: () => (
       <>
-        <ChunksConfigurationEditor configuration={chunksConfiguration} onChange={setChunksConfiguration} />
+        <ChunksConfigurationEditor
+          configuration={chunksConfiguration}
+          onChange={setChunksConfiguration}
+        />
         <NextStepButton nextStep={nextStep}>Encrypt the message</NextStepButton>
       </>
     ),
     editor: () => (
       <>
-        <Editor value={value} onChange={handleChange} />
+        <Editor
+          value={value}
+          onChange={handleChange}
+        />
         <NextStepButton nextStep={nextStep}>Configure the encryption</NextStepButton>
       </>
     ),
@@ -105,7 +114,10 @@ export const Secure = () => {
       <Navigation />
       <Container>
         <OfflineWarning />
-        <Progress step={step} setStep={setStep} />
+        <Progress
+          step={step}
+          setStep={setStep}
+        />
         {STEPS[step]()}
       </Container>
     </>

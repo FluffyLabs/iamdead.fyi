@@ -10,7 +10,12 @@ type Props = {
 
 export const AdaptersList = ({ adapters, onClick, short }: Props) => {
   const items = adapters.map((adapter: Adapter) => (
-    <AdapterItem key={adapter.id} short={short} adapter={adapter} onClick={onClick} />
+    <AdapterItem
+      key={adapter.id}
+      short={short}
+      adapter={adapter}
+      onClick={onClick}
+    />
   ));
 
   if (short) {
@@ -29,7 +34,12 @@ type ItemProps = {
 export const AdapterItem = ({ adapter, onClick, short }: ItemProps) => {
   const handleClick = useCallback(() => onClick(adapter), [adapter, onClick]);
   return (
-    <Button iconBefore={adapter.icon} onClick={handleClick} marginY={majorScale(1)} width="100%">
+    <Button
+      iconBefore={adapter.icon}
+      onClick={handleClick}
+      marginY={majorScale(1)}
+      width="100%"
+    >
       {short ? adapter.name : `${adapter.text} ${adapter.name}`}
     </Button>
   );

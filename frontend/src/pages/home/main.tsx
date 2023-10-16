@@ -17,12 +17,20 @@ export const MainPage = () => {
         backgroundSize="cover"
         height="100vh"
       >
-        <Heading size={900} marginBottom={majorScale(2)}>
+        <Heading
+          size={900}
+          marginBottom={majorScale(2)}
+        >
           FYI: I am dead!
         </Heading>
         <Text>Your final words, delivered when they matter most.</Text>
       </Pane>
-      <Slab display="flex" justifyContent="center" alignItems="center" flexDirection="column">
+      <Slab
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        flexDirection="column"
+      >
         <Pane
           margin={majorScale(5)}
           padding={majorScale(5)}
@@ -44,7 +52,12 @@ export const MainPage = () => {
               Specify <em>Proof of Life</em> - the conditions under which the SSS chunks will be sent to recipients.
             </ListItem>
           </OrderedList>
-          <Button is="a" appearance="primary" href="/store" size="large">
+          <Button
+            is="a"
+            appearance="primary"
+            href="/store"
+            size="large"
+          >
             Get Started
           </Button>
         </Pane>

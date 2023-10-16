@@ -12,8 +12,18 @@ export const NextStepButton = ({
   disabled?: boolean;
 }) => {
   return (
-    <Slab display="flex" padding="0" justifyContent="center">
-      <Button iconAfter={<ChevronRightIcon />} appearance="primary" size="large" onClick={nextStep} disabled={disabled}>
+    <Slab
+      display="flex"
+      padding="0"
+      justifyContent="center"
+    >
+      <Button
+        iconAfter={<ChevronRightIcon />}
+        appearance="primary"
+        size="large"
+        onClick={nextStep}
+        disabled={disabled}
+      >
         {children}
       </Button>
     </Slab>

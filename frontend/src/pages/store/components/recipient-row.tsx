@@ -58,13 +58,23 @@ export const RecipientRow = ({
   return (
     <Row>
       <KeyIcon size={majorScale(5)} />
-      <Heading size={400} marginLeft={majorScale(2)}>
+      <Heading
+        size={400}
+        marginLeft={majorScale(2)}
+      >
         {idx + 1}/{total}
       </Heading>
-      <Heading size={400} marginLeft={majorScale(2)}>
+      <Heading
+        size={400}
+        marginLeft={majorScale(2)}
+      >
         {chunk.name}
       </Heading>
-      <Checkbox marginLeft={majorScale(2)} checked={isSelected} onChange={handleSelected} />
+      <Checkbox
+        marginLeft={majorScale(2)}
+        checked={isSelected}
+        onChange={handleSelected}
+      />
       {isSelected && (
         <Pane width="400px">
           <Combobox

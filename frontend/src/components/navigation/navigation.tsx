@@ -24,21 +24,45 @@ const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; 
 
 export const Navigation = ({ fill }: { fill?: boolean }) => {
   return (
-    <Slab display="flex" padding={majorScale(3)} justifyContent="space-between" alignItems="center" height="195px">
+    <Slab
+      display="flex"
+      padding={majorScale(3)}
+      justifyContent="space-between"
+      alignItems="center"
+      height="195px"
+    >
       <a href="/">
-        <img src={logoWide} alt="ICOD logo" style={{ borderRadius: `${majorScale(3)}px` }} width="256" height="118" />
+        <img
+          src={logoWide}
+          alt="ICOD logo"
+          style={{ borderRadius: `${majorScale(3)}px` }}
+          width="256"
+          height="118"
+        />
       </a>
       <Slab>
-        <NavLink fill={fill} href="/store">
+        <NavLink
+          fill={fill}
+          href="/store"
+        >
           Start
         </NavLink>
-        <NavLink fill={fill} href="/secure">
+        <NavLink
+          fill={fill}
+          href="/secure"
+        >
           Secure Message
         </NavLink>
-        <NavLink fill={fill} href="/recover">
+        <NavLink
+          fill={fill}
+          href="/recover"
+        >
           Recover Message
         </NavLink>
-        <NavLink fill={fill} href="/login">
+        <NavLink
+          fill={fill}
+          href="/login"
+        >
           Login
         </NavLink>
       </Slab>

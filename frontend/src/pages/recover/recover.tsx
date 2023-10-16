@@ -180,8 +180,15 @@ export const Recover = () => {
       <Navigation />
       <Container>
         <Heading size={700}>Recover the message</Heading>
-        <ChunkInput handlePart={handlePart} error={error} />
-        <RecoverySummary messageParts={messageParts} chunks={chunks} handleRestore={handleRestore} />
+        <ChunkInput
+          handlePart={handlePart}
+          error={error}
+        />
+        <RecoverySummary
+          messageParts={messageParts}
+          chunks={chunks}
+          handleRestore={handleRestore}
+        />
         <RestorationResult restoredMessage={restoredMessage} />
       </Container>
     </>
@@ -207,16 +214,34 @@ function ChunkInput({ handlePart, error }: HandleChunkProps) {
     <Slab padding="0">
       <Group>
         {options.map(({ label, value }) => (
-          <Button key={label} isActive={mode === value} onClick={() => setMode(value)}>
+          <Button
+            key={label}
+            isActive={mode === value}
+            onClick={() => setMode(value)}
+          >
             {label}
           </Button>
         ))}
       </Group>
       <br />
       <br />
-      <Slab marginTop="0" border height="300px">
-        {mode === 'manual' && <ManualInput handlePart={handlePart} error={error} />}
-        {mode === 'qr' && <QRScanner handlePart={handlePart} error={error} />}
+      <Slab
+        marginTop="0"
+        border
+        height="300px"
+      >
+        {mode === 'manual' && (
+          <ManualInput
+            handlePart={handlePart}
+            error={error}
+          />
+        )}
+        {mode === 'qr' && (
+          <QRScanner
+            handlePart={handlePart}
+            error={error}
+          />
+        )}
       </Slab>
     </Slab>
   );
@@ -311,7 +336,12 @@ function RecoverySummary({
               )}
             </summary>
             {messageParts.map((part) => {
-              return <MessagePartDetails key={part.partIndex} part={part} />;
+              return (
+                <MessagePartDetails
+                  key={part.partIndex}
+                  part={part}
+                />
+              );
             })}
           </details>
         )}
@@ -331,7 +361,12 @@ function RecoverySummary({
               )}
             </summary>
             {chunks.map((chunk) => {
-              return <ChunkDetails key={chunk.chunkIndex} chunk={chunk} />;
+              return (
+                <ChunkDetails
+                  key={chunk.chunkIndex}
+                  chunk={chunk}
+                />
+              );
             })}
           </details>
         )}
@@ -366,7 +401,10 @@ function MessagePartDetails({ part }: { part: MessagePart }) {
       <Heading size={300}>
         Message: {part.partIndex + 1} / {part.partsTotal}{' '}
       </Heading>
-      <Heading size={200} title={part.data}>
+      <Heading
+        size={200}
+        title={part.data}
+      >
         {Math.floor((part.data.length / 8) * 5)} bytes
       </Heading>
       <Pre style={{ maxWidth: '100%' }}>{json}</Pre>
@@ -390,7 +428,10 @@ function ChunkDetails({ chunk }: { chunk: Chunk }) {
       <Heading size={300}>
         Chunk {chunk.chunkIndex + 1} / {chunk.requiredChunks} ( + {chunk.spareChunks}){' '}
       </Heading>
-      <Heading size={200} title={chunk.keyHash}>
+      <Heading
+        size={200}
+        title={chunk.keyHash}
+      >
         {chunk.keyHash.slice(0, 16)}...
       </Heading>
       <Pre style={{ maxWidth: '100%' }}>{json}</Pre>
@@ -404,9 +445,17 @@ function RestorationResult({ restoredMessage }: { restoredMessage: string | null
   }
 
   return (
-    <Slab marginTop={majorScale(2)} marginBottom={majorScale(3)} elevation={3} border>
+    <Slab
+      marginTop={majorScale(2)}
+      marginBottom={majorScale(3)}
+      elevation={3}
+      border
+    >
       <Heading>Restored Message</Heading>
-      <Textarea disabled value={restoredMessage}></Textarea>
+      <Textarea
+        disabled
+        value={restoredMessage}
+      ></Textarea>
     </Slab>
   );
 }

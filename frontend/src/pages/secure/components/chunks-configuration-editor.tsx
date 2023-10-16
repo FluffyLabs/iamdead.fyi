@@ -36,13 +36,24 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
     <>
       <Pane>
         <Heading marginTop={majorScale(3)}>How would you like us to split the encryption key?</Heading>
-        <Heading size={300} marginTop={majorScale(1)} marginBottom={majorScale(2)}>
+        <Heading
+          size={300}
+          marginTop={majorScale(1)}
+          marginBottom={majorScale(2)}
+        >
           Your message is going to be encrypted with a one-time, random key. The key will be then split using{' '}
           <Link href="https://en.wikipedia.org/wiki/Shamir's_secret_sharing">Shamir's Secret Sharing</Link>.
         </Heading>
         <Slab background="tint2">
-          <RequiredChunks requiredChunks={requiredChunks} setRequiredChunks={setRequiredChunks} />
-          <SpareChunks spareChunks={spareChunks} requiredChunks={requiredChunks} setSpareChunks={setSpareChunks} />
+          <RequiredChunks
+            requiredChunks={requiredChunks}
+            setRequiredChunks={setRequiredChunks}
+          />
+          <SpareChunks
+            spareChunks={spareChunks}
+            requiredChunks={requiredChunks}
+            setSpareChunks={setSpareChunks}
+          />
         </Slab>
       </Pane>
     </>
@@ -67,10 +78,22 @@ const SpareChunks = ({
     />
   );
   return (
-    <Slab flex="1" padding="0" display="flex" flexDirection="row" alignItems="flex-start">
-      <NewPersonIcon size={32} marginRight={majorScale(2)} />
+    <Slab
+      flex="1"
+      padding="0"
+      display="flex"
+      flexDirection="row"
+      alignItems="flex-start"
+    >
+      <NewPersonIcon
+        size={32}
+        marginRight={majorScale(2)}
+      />
       <Heading size={800}>{number}</Heading>
-      <Pane display="flex" flexDirection="column">
+      <Pane
+        display="flex"
+        flexDirection="column"
+      >
         <Heading size={400}>Number of backup pieces.</Heading>
         <Text>
           I also need {number}
@@ -97,10 +120,23 @@ const RequiredChunks = ({
     />
   );
   return (
-    <Slab flex="1" padding="0" marginRight={majorScale(2)} display="flex" flexDirection="row" alignItems="flex-start">
-      <KeyIcon size={32} marginRight={majorScale(2)} />
+    <Slab
+      flex="1"
+      padding="0"
+      marginRight={majorScale(2)}
+      display="flex"
+      flexDirection="row"
+      alignItems="flex-start"
+    >
+      <KeyIcon
+        size={32}
+        marginRight={majorScale(2)}
+      />
       <Heading size={800}>{number}</Heading>
-      <Pane display="flex" flexDirection="column">
+      <Pane
+        display="flex"
+        flexDirection="column"
+      >
         <Heading size={400}>Minimal number of pieces to read the message.</Heading>
         <Text>
           I want to read the message when any

@@ -43,7 +43,10 @@ export const Store = () => {
     <>
       <Navigation />
       <Container>
-        <Heading size={700} marginBottom={majorScale(5)}>
+        <Heading
+          size={700}
+          marginBottom={majorScale(5)}
+        >
           Configure on-line account & proof of life.
         </Heading>
         <Storage />
@@ -95,7 +98,10 @@ const Storage = () => {
 
   return (
     <>
-      <Progress step={step} setStep={setStep} />
+      <Progress
+        step={step}
+        setStep={setStep}
+      />
       {STEPS[step]()}
     </>
   );
@@ -153,14 +159,23 @@ const Recipients = ({ chunks, requiredChunks, messageBytes, predefinedRecipients
           setRecipient={(v) => handleRecipient(idx, v)}
         />
       ))}
-      {selectedCount >= requiredChunks && <TooManyPiecesWarning count={selectedCount} limit={requiredChunks} />}
+      {selectedCount >= requiredChunks && (
+        <TooManyPiecesWarning
+          count={selectedCount}
+          limit={requiredChunks}
+        />
+      )}
     </Slab>
   );
 };
 
 const TooManyPiecesWarning = ({ count, limit }: { count: number; limit: number }) => {
   return (
-    <Alert intent="warning" title="😱 We can read your message!" marginTop={majorScale(3)}>
+    <Alert
+      intent="warning"
+      title="😱 We can read your message!"
+      marginTop={majorScale(3)}
+    >
       <Paragraph>
         You've selected {count} pieces to be stored on-line, while {limit} is enough to decrypt the message.
       </Paragraph>
@@ -177,11 +192,21 @@ const EncryptedMessageRow = ({ messageBytes }: { messageBytes: number }) => {
   return (
     <Row>
       <LockIcon size={majorScale(5)} />
-      <Heading size={400} marginLeft={majorScale(2)}>
+      <Heading
+        size={400}
+        marginLeft={majorScale(2)}
+      >
         Encrypted message ({messageBytes} bytes)
       </Heading>
-      <Tooltip content={'Storing the encrypted message is currently mandatory.'} position={Position.TOP}>
-        <Checkbox marginLeft={majorScale(2)} disabled checked />
+      <Tooltip
+        content={'Storing the encrypted message is currently mandatory.'}
+        position={Position.TOP}
+      >
+        <Checkbox
+          marginLeft={majorScale(2)}
+          disabled
+          checked
+        />
       </Tooltip>
     </Row>
   );
