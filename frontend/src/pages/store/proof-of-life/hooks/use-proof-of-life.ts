@@ -1,31 +1,28 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Adapter } from '../../../services/adapters';
+import { Adapter } from '../../../../services/adapters';
 
 export type ConfiguredAdapter = Adapter & {
-  adapterId: string;
-  time: number;
-  unit: Units;
+  months: number;
 };
 
-export enum Units {
-  Months = 'months',
-}
+export const getAdapterText = (adapter: Adapter) => {
+  if (adapter.type === 'message') {
+    return `I don't respond on ${adapter.name}`;
+  }
 
-export const createAdapter = (
-  adapter: Adapter,
-  adapterId: string,
-  time: number,
-  unit = Units.Months,
-): ConfiguredAdapter => ({
+  if (adapter.type === 'social') {
+    return `I am not active on ${adapter.name}`;
+  }
+};
+
+export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapter => ({
   ...adapter,
-  time,
-  unit,
-  adapterId,
+  months,
 });
 
 const list: Array<Array<ConfiguredAdapter>> = [];
 
-export function useProofOfLifeStep() {
+export function useProofOfLife() {
   const [listOfAdapters, setListOfAdapters] = useState<Array<Array<ConfiguredAdapter>>>(list);
 
   const addNewGroup = useCallback(

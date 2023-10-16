@@ -12,10 +12,11 @@ import { Row } from './components/row';
 import { RecipientRow } from './components/recipient-row';
 import { NextStepButton } from '../../components/next-step-button';
 import { ProofOfLifeComponent } from './proof-of-life/proof-of-life';
-import { ConfiguredAdapter, Units, useProofOfLifeStep } from './wizard-context/proof-of-life';
 import { Adapter } from '../../services/adapters';
+import { ConfiguredAdapter, useProofOfLife } from './proof-of-life/hooks/use-proof-of-life';
 
 export type Steps = 'recipients' | 'proof-of-life';
+
 export class Recipient {
   id: number;
   name: string;
@@ -55,7 +56,7 @@ const Storage = () => {
   const { state } = useLocation();
 
   const [step, setStep] = useState('recipients' as Steps);
-  const [chunks] = useState(state.encryptionResult?.chunks);
+  const [chunks] = useState(state?.encryptionResult?.chunks);
   const [predefinedRecipients] = useState([
     new Recipient(1, 'Mommy', 'mommy@home.com'),
     new Recipient(2, 'Dad', 'dad@home.com'),
@@ -132,7 +133,7 @@ const Recipients = ({ chunks, requiredChunks, messageBytes, predefinedRecipients
 
   const selectedCount = isSelected.filter((x) => x).length;
   return (
-    <Slab>
+    <Slab marginTop={0}>
       <Paragraph>
         Select only pieces that you wish to store to your on-line account and have them delivered to recipients. The
         remaining pieces will be available to download as a <strong>recovery key</strong>.
@@ -186,18 +187,18 @@ const EncryptedMessageRow = ({ messageBytes }: { messageBytes: number }) => {
 };
 
 const ProofOfLife = () => {
-  const proofOfLife = useProofOfLifeStep();
+  const proofOfLife = useProofOfLife();
 
   const addNewAdapterGroup = useCallback(
-    ({ adapter, adapterId }: { adapter: Adapter; adapterId: string }) => {
-      proofOfLife.addNewGroup({ ...adapter, adapterId, time: 5, unit: Units.Months });
+    ({ adapter }: { adapter: Adapter }) => {
+      proofOfLife.addNewGroup({ ...adapter, months: 2 });
     },
     [proofOfLife],
   );
 
   const addToGroup = useCallback(
-    ({ adapter, adapterId, groupIndex }: { adapter: Adapter; adapterId: string; groupIndex: number }) => {
-      proofOfLife.addToGroup({ ...adapter, adapterId, time: 5, unit: Units.Months }, groupIndex);
+    ({ adapter, groupIndex }: { adapter: Adapter; groupIndex: number }) => {
+      proofOfLife.addToGroup({ ...adapter, months: 2 }, groupIndex);
     },
     [proofOfLife],
   );
@@ -211,7 +212,7 @@ const ProofOfLife = () => {
 
   return (
     <>
-      <Slab>
+      <Slab marginTop={0}>
         <Paragraph>Decide under what conditions the pieces will be distributed to the recipients.</Paragraph>
         <ProofOfLifeComponent
           adapters={proofOfLife.listOfAdapters}
