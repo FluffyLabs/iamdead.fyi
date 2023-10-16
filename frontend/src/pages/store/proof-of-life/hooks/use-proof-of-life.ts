@@ -1,32 +1,19 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Adapter } from '../../../services/adapters';
+import { Adapter } from '../../../../services/adapters';
 
 export type ConfiguredAdapter = Adapter & {
-  adapterId: string;
-  time: number;
-  unit: Units;
+  months: number;
 };
 
-export enum Units {
-  Months = 'months',
-}
-
-export const createAdapter = (
-  adapter: Adapter,
-  adapterId: string,
-  time: number,
-  unit = Units.Months,
-): ConfiguredAdapter => ({
+export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapter => ({
   ...adapter,
-  time,
-  unit,
-  adapterId,
+  months,
 });
 
-const list: Array<Array<ConfiguredAdapter>> = [];
+const list: ConfiguredAdapter[][] = [];
 
-export function useProofOfLifeStep() {
-  const [listOfAdapters, setListOfAdapters] = useState<Array<Array<ConfiguredAdapter>>>(list);
+export function useProofOfLife() {
+  const [listOfAdapters, setListOfAdapters] = useState<ConfiguredAdapter[][]>(list);
 
   const addNewGroup = useCallback(
     (item: ConfiguredAdapter) => {
@@ -52,6 +39,9 @@ export function useProofOfLifeStep() {
         const newList = [...previousList];
         newList[groupIndex] = [...newList[groupIndex]];
         newList[groupIndex].splice(itemIndex, 1);
+        if (newList[groupIndex].length === 0) {
+          newList.splice(groupIndex, 1);
+        }
         return newList;
       });
     },

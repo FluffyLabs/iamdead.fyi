@@ -6,11 +6,11 @@ import { useIsActive } from '../../hooks/use-is-active';
 import clsx from 'clsx';
 import { Slab } from '../slab';
 
-const NavLink = ({ href, children }: { href: string; children: ReactNode }) => {
+const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; fill?: boolean }) => {
   const isActive = useIsActive(href);
   return (
     <Link
-      className={clsx(styles.navLink, isActive ? styles.active : null)}
+      className={clsx(styles.navLink, isActive ? styles.active : null, fill ? styles.fill : null)}
       borderRadius={majorScale(1)}
       margin={majorScale(1)}
       href={href}
@@ -22,17 +22,25 @@ const NavLink = ({ href, children }: { href: string; children: ReactNode }) => {
   );
 };
 
-export const Navigation = () => {
+export const Navigation = ({ fill }: { fill?: boolean }) => {
   return (
     <Slab display="flex" padding={majorScale(3)} justifyContent="space-between" alignItems="center" height="195px">
       <a href="/">
         <img src={logoWide} alt="ICOD logo" style={{ borderRadius: `${majorScale(3)}px` }} width="256" height="118" />
       </a>
       <Slab>
-        <NavLink href="/store">Start</NavLink>
-        <NavLink href="/secure">Secure Message</NavLink>
-        <NavLink href="/recover">Recover Message</NavLink>
-        <NavLink href="/login">Login</NavLink>
+        <NavLink fill={fill} href="/store">
+          Start
+        </NavLink>
+        <NavLink fill={fill} href="/secure">
+          Secure Message
+        </NavLink>
+        <NavLink fill={fill} href="/recover">
+          Recover Message
+        </NavLink>
+        <NavLink fill={fill} href="/login">
+          Login
+        </NavLink>
       </Slab>
     </Slab>
   );

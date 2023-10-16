@@ -25,7 +25,7 @@ export const Intro = () => {
       <Btn intent="success">
         <OfflineIcon size={majorScale(5)} marginBottom={majorScale(2)} />
         <Heading size={400}>I've prepared the message off-line (recommended).</Heading>
-        <Paragraph size={100} marginTop={majorScale(1)}>
+        <Paragraph size={300} marginTop={majorScale(1)}>
           The encryption process happens on an off-line device, and QR codes are scanned to continue the process here.
         </Paragraph>
       </Btn>
