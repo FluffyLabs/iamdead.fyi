@@ -20,10 +20,10 @@ const createAdapter = (name: string, text: string, icon: IconDefinition, type: A
 });
 
 export const getAdapters = () => [
-  createAdapter('Telegram', `I don't reply on Telegram`, faTelegram, 'message'),
-  createAdapter('Whatsapp', `I don't reply on Whatsapp`, faWhatsapp, 'message'),
-  createAdapter('E-mail', `I don't respond to e-mails`, faMailchimp, 'message'),
-  createAdapter('Twitter', `I'm not active on Twitter`, faTwitter, 'social'),
+  createAdapter('Telegram', `I don't reply on`, faTelegram, 'message'),
+  createAdapter('Whatsapp', `I don't reply on`, faWhatsapp, 'message'),
+  createAdapter('E-mail', `I don't respond to`, faMailchimp, 'message'),
+  createAdapter('Twitter', `I'm not active on`, faTwitter, 'social'),
 ];
 
 export const MAX_AND_ITEMS = getAdapters().length;

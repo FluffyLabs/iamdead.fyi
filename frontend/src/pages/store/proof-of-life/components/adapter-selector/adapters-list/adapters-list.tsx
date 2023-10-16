@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Adapter } from '../../../../../../services/adapters';
 import { Button, Group, majorScale } from 'evergreen-ui';
-import { getAdapterText } from '../../../hooks/use-proof-of-life';
 
 type Props = {
   adapters: Adapter[];
@@ -31,7 +30,7 @@ export const AdapterItem = ({ adapter, onClick, short }: ItemProps) => {
   const handleClick = useCallback(() => onClick(adapter), [adapter, onClick]);
   return (
     <Button iconBefore={adapter.icon} onClick={handleClick} marginY={majorScale(1)} width="100%">
-      {short ? adapter.name : getAdapterText(adapter)}
+      {short ? adapter.name : `${adapter.text} ${adapter.name}`}
     </Button>
   );
 };

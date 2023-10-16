@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { ConfiguredAdapter, getAdapterText } from '../../hooks/use-proof-of-life';
+import { ConfiguredAdapter } from '../../hooks/use-proof-of-life';
 import { DraggableNumber } from '../../../../../components/draggable-number';
 import { CrossIcon, Heading, IconButton, Pane } from 'evergreen-ui';
 
@@ -28,7 +28,7 @@ export const GroupSublistItem = ({ adapter, itemIndex, groupIndex, updateGroupIt
   return (
     <Pane textOverflow="ellipsis" className={styles.pane}>
       <Heading size={300}>
-        {getAdapterText(adapter)} for
+        {adapter.text} {adapter.icon} {adapter.name} for
         <DraggableNumber value={adapter.months} onChange={handleChange} max={60} min={1} />
         {adapter.months === 1 ? 'month' : 'months'}
         <IconButton className={styles.button} onClick={removeAdapter} appearance="minimal" icon={<CrossIcon />} />

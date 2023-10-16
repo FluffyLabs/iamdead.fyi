@@ -5,10 +5,6 @@ export type ConfiguredAdapter = Adapter & {
   months: number;
 };
 
-export const getAdapterText = (adapter: Adapter) => {
-  return adapter.text;
-};
-
 export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapter => ({
   ...adapter,
   months,
