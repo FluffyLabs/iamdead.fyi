@@ -35,6 +35,11 @@ const theme = mergeTheme(defaultTheme, {
         primary: {
           backgroundColor: colors.primary,
           color: colors.pane,
+          selectors: {
+            _disabled: {
+              backgroundColor: '#c8c8c8',
+            },
+          },
         },
       },
     },

@@ -2,14 +2,20 @@ import { Checkbox, Combobox, Heading, InlineAlert, KeyIcon, Pane, majorScale } f
 import EmailValidator from 'email-validator';
 import { ChunksMeta } from '../../secure/components/secure-message-result/secure-message-result';
 import { Row } from './row';
-import { Recipient } from '../store';
 import { ChangeEvent, useCallback } from 'react';
+import { Recipient, MaybeRecipient } from './recipients';
 
 function isEmailAddress(val: string) {
-  return EmailValidator.validate(val);
+  const emailStart = val.indexOf('<');
+  const emailEnd = val.indexOf('>');
+  if (emailStart !== -1 && emailEnd !== -1) {
+    return EmailValidator.validate(val.substring(emailStart + 1, emailEnd));
+  }
+  if (emailStart === -1 && emailEnd === -1) {
+    return EmailValidator.validate(val);
+  }
+  return false;
 }
-
-type MaybeRecipient = Recipient | string | null;
 
 type Props = {
   chunk: ChunksMeta;
