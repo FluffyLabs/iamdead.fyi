@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { ChunksMeta } from '../../secure/components/secure-message-result/secure-message-result';
 import { Alert, Checkbox, Heading, Link, LockIcon, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
 import { Row } from './row';
@@ -55,14 +55,14 @@ export const Recipients = ({
       chunks[idx].isSelected = v;
       setChunks([...chunks]);
     },
-    [chunks],
+    [chunks, setChunks],
   );
   const handleRecipient = useCallback(
     (idx: number, v: MaybeRecipient) => {
       chunks[idx].recipient = v;
       setChunks([...chunks]);
     },
-    [chunks],
+    [chunks, setChunks],
   );
 
   const selectedCount = chunks.filter((x) => x.isSelected).length;
