@@ -6,6 +6,7 @@ import { Box } from './components/box';
 import { ConfiguredAdapter } from './hooks/use-proof-of-life';
 import { DraggableNumber } from '../../../components/draggable-number';
 import { useState } from 'react';
+import { Slab } from '../../../components/slab';
 
 export const ProofOfLifeComponent = ({
   adapters,
@@ -21,10 +22,9 @@ export const ProofOfLifeComponent = ({
   const [gracePeriod, setGracePeriod] = useState(1);
 
   return (
-    <>
+    <Slab background="tint2">
       <Heading
         size={500}
-        marginTop={majorScale(3)}
         marginBottom={majorScale(1)}
       >
         The pieces should be sent out when:
@@ -64,6 +64,6 @@ export const ProofOfLifeComponent = ({
           </Text>
         </Tooltip>
       </Heading>
-    </>
+    </Slab>
   );
 };

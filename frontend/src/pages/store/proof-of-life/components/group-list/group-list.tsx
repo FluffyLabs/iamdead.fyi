@@ -41,7 +41,7 @@ export const GroupList = ({ adapters, addNewAdapterGroup, addToGroup, updateGrou
   const addMore = showMore ? (
     <>
       {or}
-      <Box>
+      <Box background="white">
         <AdapterSelector onChange={addNewAdapterGroup} />
       </Box>
     </>
@@ -62,7 +62,10 @@ export const GroupList = ({ adapters, addNewAdapterGroup, addToGroup, updateGrou
       {adapters.map((group, i) => (
         <React.Fragment key={i}>
           {i > 0 && or}
-          <Box textAlign="center">
+          <Box
+            textAlign="center"
+            background="white"
+          >
             <GroupSublist
               items={group}
               groupIndex={i}
