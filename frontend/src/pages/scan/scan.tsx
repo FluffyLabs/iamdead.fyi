@@ -23,7 +23,6 @@ import { NextStepButton } from '../../components/next-step-button';
 import { useNavigate } from 'react-router-dom';
 import { State } from '../store/store';
 import { MessageEditor } from '../../components/message-editor';
-import { Slab } from '../../components/slab';
 
 export const Scan = () => {
   return (
@@ -84,7 +83,7 @@ const Import = () => {
       }
       setChunks([...chunks]);
     },
-    [chunks, setChunks, partsCollector],
+    [chunks, setChunks],
   );
 
   return (
@@ -147,7 +146,7 @@ const DisplayResults = ({
         encryptionResult,
       } as State,
     });
-  }, [messageParts, chunks]);
+  }, [messageParts, chunks, navigate]);
 
   return (
     <>
