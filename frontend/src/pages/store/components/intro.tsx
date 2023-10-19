@@ -19,10 +19,12 @@ export const Intro = () => {
     </Button>
   );
 
-  // TODO [ToDr] create scan subpage.
   return (
     <Slab display="flex">
-      <Btn intent="success">
+      <Btn
+        intent="success"
+        onClick={() => navigate('/scan')}
+      >
         <OfflineIcon
           size={majorScale(5)}
           marginBottom={majorScale(2)}

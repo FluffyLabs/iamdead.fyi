@@ -6,6 +6,7 @@ import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Secure } from './pages/secure';
 import { Store } from './pages/store';
+import { Scan } from './pages/scan';
 
 export function Routes() {
   return (
@@ -23,6 +24,10 @@ export function Routes() {
         <Route
           element={<Store />}
           path="store"
+        />
+        <Route
+          element={<Scan />}
+          path="scan"
         />
         <Route
           element={<Recover />}
