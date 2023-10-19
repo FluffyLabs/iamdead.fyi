@@ -1,7 +1,7 @@
 import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Result } from '@zxing/library';
-import { Chunk, Crypto, MessagePart } from '../../services/crypto';
+import { Chunk, MessagePart } from '../../services/crypto';
 import {
   Alert,
   Button,

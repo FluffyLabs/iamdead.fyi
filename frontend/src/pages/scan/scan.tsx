@@ -200,7 +200,7 @@ const FileImport = ({ onImport, error }: { onImport: OnImport; error: string | n
         e.target.setSelectionRange(0, value.length);
       }
     },
-    [setManualValue, isPaste],
+    [setManualValue, isPaste, onImport],
   );
 
   const handleManualPaste = useCallback(

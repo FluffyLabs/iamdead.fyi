@@ -1,9 +1,8 @@
-import { Checkbox, Combobox, Heading, InlineAlert, KeyIcon, Pane, majorScale } from 'evergreen-ui';
+import { Checkbox, Combobox, InlineAlert, Pane, majorScale } from 'evergreen-ui';
 import EmailValidator from 'email-validator';
-import { ChunksMeta } from '../../secure/components/secure-message-result/secure-message-result';
-import { Row } from './row';
 import { ChangeEvent, useCallback } from 'react';
 import { Recipient, MaybeRecipient } from './recipients';
+import { ChunksMeta, PieceView } from '../../../components/piece-view';
 
 function isEmailAddress(val: string) {
   const emailStart = val.indexOf('<');
@@ -62,20 +61,11 @@ export const RecipientRow = ({
     isInvalid: !isRecipientValid,
   };
   return (
-    <Row>
-      <KeyIcon size={majorScale(5)} />
-      <Heading
-        size={400}
-        marginLeft={majorScale(2)}
-      >
-        {idx + 1}/{total}
-      </Heading>
-      <Heading
-        size={400}
-        marginLeft={majorScale(2)}
-      >
-        {chunk.name}
-      </Heading>
+    <PieceView
+      chunk={chunk}
+      index={idx}
+      total={total}
+    >
       <Checkbox
         marginLeft={majorScale(2)}
         checked={isSelected}
@@ -97,6 +87,6 @@ export const RecipientRow = ({
         </Pane>
       )}
       {isSelected && isNewRecipient && <InlineAlert intent="info">A new recipient will be created.</InlineAlert>}
-    </Row>
+    </PieceView>
   );
 };
