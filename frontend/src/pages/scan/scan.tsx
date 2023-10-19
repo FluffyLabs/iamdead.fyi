@@ -1,28 +1,29 @@
 import {
   Alert,
   Button,
-  CameraIcon,
-  Card,
-  EmptyState,
-  FileUploader,
+  Dialog,
   Group,
   Heading,
-  Label,
+  IconButton,
   Pane,
   Paragraph,
-  Popover,
-  TextInput,
-  UploadIcon,
+  Tooltip,
+  TrashIcon,
   majorScale,
 } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { ChangeEvent, ClipboardEvent, useCallback, useMemo, useState } from 'react';
-import { QrReader } from 'react-qr-reader';
-import { Result as QrResult } from '@zxing/library';
-import { Slab } from '../../components/slab';
+import { useCallback, useMemo, useState } from 'react';
 import { PartsCollector } from '../../services/parts-collector';
 import { Chunk, MessagePart } from '../../services/crypto';
+import { ImportMethods } from './components/import-methods';
+import { EncryptedMessageView, encryptedMessageBytes } from '../../components/encrypted-message-view';
+import { PieceView } from '../../components/piece-view';
+import { NextStepButton } from '../../components/next-step-button';
+import { useNavigate } from 'react-router-dom';
+import { State } from '../store/store';
+import { MessageEditor } from '../../components/message-editor';
+import { Slab } from '../../components/slab';
 
 export const Scan = () => {
   return (
@@ -40,8 +41,6 @@ export const Scan = () => {
     </>
   );
 };
-
-type OnImport = (err: Error | null, input: string | null) => void;
 
 const Import = () => {
   const [error, setError] = useState(null as string | null);
@@ -77,6 +76,17 @@ const Import = () => {
     [setError, setChunks, setMessageParts, partsCollector, messageParts, chunks],
   );
 
+  const removeChunk = useCallback(
+    (chunk: Chunk) => {
+      const idx = chunks.indexOf(chunk);
+      if (idx !== -1) {
+        chunks.splice(idx, 1);
+      }
+      setChunks([...chunks]);
+    },
+    [chunks, setChunks, partsCollector],
+  );
+
   return (
     <>
       <Paragraph>Drag &amp; drop the pieces and encrypted message or scan QR codes from an offline device.</Paragraph>
@@ -90,190 +100,236 @@ const Import = () => {
         />
       </Pane>
       {error && <Alert intent="danger">{error}</Alert>}
+      <DisplayResults
+        messageParts={messageParts}
+        chunks={chunks}
+        removeChunk={removeChunk}
+      />
+      <Restore
+        messageParts={messageParts}
+        chunks={chunks}
+        partsCollector={partsCollector}
+      />
     </>
   );
 };
 
-const ImportMethods = ({ onImport, error }: { onImport: OnImport; error: string | null }) => {
+const DisplayResults = ({
+  messageParts,
+  chunks,
+  removeChunk,
+}: {
+  messageParts: MessagePart[];
+  chunks: Chunk[];
+  removeChunk: (a0: Chunk) => void;
+}) => {
+  const messagePartsAvailable = messageParts.length;
+  const messagePartsTotal = messageParts[0]?.partsTotal || 0;
+  const messageBytes = messageParts.length > 0 ? encryptedMessageBytes(messageParts.map((x) => x.data)) : '???';
+
+  const notEnoughMessageParts = messagePartsAvailable < messagePartsTotal || messagePartsAvailable === 0;
+
+  const navigate = useNavigate();
+  const handleNextStep = useCallback(() => {
+    const chunksConfiguration = {
+      required: chunks[0].requiredChunks,
+      spare: chunks[0].spareChunks,
+    };
+    const encryptedMessage = messageParts.map((x) => x.data);
+    const encryptionResult = {
+      encryptedMessage,
+      encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
+      chunks: chunks.map(chunkToMeta),
+    };
+    navigate('/store', {
+      state: {
+        chunksConfiguration,
+        encryptionResult,
+      } as State,
+    });
+  }, [messageParts, chunks]);
+
   return (
     <>
-      <Card
-        elevation={1}
-        flex="1"
-        padding={majorScale(2)}
-        marginRight={majorScale(3)}
-        textAlign="center"
-      >
-        <FileImport
-          onImport={onImport}
-          error={error}
+      <EncryptedMessageView messageBytes={messageBytes}>
+        {!!messagePartsAvailable && (
+          <Pane
+            display="flex"
+            justifyContent="flex-end"
+            flex="1"
+          >
+            <MessageProgress
+              values={messageParts.map((x) => x.partIndex)}
+              max={messagePartsTotal}
+            />
+            <Heading size={400}>
+              {messagePartsAvailable}/{messagePartsTotal}
+            </Heading>
+          </Pane>
+        )}
+      </EncryptedMessageView>
+      {chunks.map((chunk) => (
+        <ChunkView
+          key={chunk.chunkIndex}
+          chunk={chunk}
+          removeChunk={removeChunk}
         />
-      </Card>
-      <Card
-        elevation={1}
-        flex="1"
-        padding={majorScale(2)}
-        textAlign="center"
+      ))}
+
+      <NextStepButton
+        disabled={notEnoughMessageParts}
+        nextStep={handleNextStep}
       >
-        <QrImport onImport={onImport} />
-      </Card>
+        Store pieces & configure distribution
+      </NextStepButton>
     </>
   );
 };
 
-const QrImport = ({ onImport }: { onImport: OnImport }) => {
-  const [isQrEnabled, setQrEnabled] = useState(false);
-  const toggleQrEnabled = useCallback(() => {
-    setQrEnabled(!isQrEnabled);
-  }, [isQrEnabled, setQrEnabled]);
+function chunkToMeta(chunk: Chunk) {
+  const total = chunk.requiredChunks + chunk.spareChunks;
+  return {
+    // TODO [ToDr] replace with name from chunk
+    name: `Piece ${chunk.chunkIndex + 1} / ${total}`,
+    description: '',
+    value: chunk.raw,
+  };
+}
 
-  const handleQrResult = useCallback(
-    (data?: QrResult | null, err?: Error | null) => {
-      if (err) {
-        onImport(err, null);
-        return;
-      }
+const ChunkView = ({ chunk, removeChunk }: { chunk: Chunk; removeChunk: (a0: Chunk) => void }) => {
+  const total = chunk.requiredChunks + chunk.spareChunks;
+  const chunkMeta = useMemo(() => {
+    return chunkToMeta(chunk);
+  }, [chunk]);
 
-      if (data) {
-        console.log(data);
-        onImport(null, data.getText());
-        return;
-      }
-    },
-    [onImport],
-  );
-
-  if (isQrEnabled) {
-    return (
-      <>
-        <Button
-          marginBottom={majorScale(2)}
-          onClick={toggleQrEnabled}
-        >
-          Disable camera
-        </Button>
-        <QrReader
-          constraints={{ facingMode: 'environment' }}
-          scanDelay={300}
-          onResult={handleQrResult}
-          videoStyle={{ height: 'auto' }}
-        />
-      </>
-    );
-  }
+  const handleClick = useCallback(() => {
+    removeChunk(chunk);
+  }, [chunk, removeChunk]);
   return (
-    <Pane marginTop={majorScale(2)}>
-      <EmptyState
-        background="light"
-        title="Turn on your camera to scan QR codes"
-        orientation="vertical"
-        icon={<CameraIcon color="#EBAC91" />}
-        iconBgColor="#F8E3DA"
-        primaryCta={
-          <EmptyState.PrimaryButton
-            onClick={toggleQrEnabled}
-            appearance="primary"
-          >
-            Enable camera
-          </EmptyState.PrimaryButton>
-        }
-      />
-    </Pane>
+    <PieceView
+      chunk={chunkMeta}
+      index={chunk.chunkIndex}
+      total={total}
+    >
+      <Pane
+        flex="1"
+        display="flex"
+        justifyContent="flex-end"
+      >
+        <IconButton
+          appearance="minimal"
+          icon={<TrashIcon color="#B0B0B0" />}
+          onClick={handleClick}
+        />
+      </Pane>
+    </PieceView>
   );
 };
 
-const FileImport = ({ onImport, error }: { onImport: OnImport; error: string | null }) => {
-  const [manualValue, setManualValue] = useState('');
-  const [isPaste, setIsPaste] = useState(false);
+const MessageProgress = ({ values, max }: { values: number[]; max: number }) => {
+  const progress = useMemo(() => {
+    const progress = Array(max).fill(false);
+    values.forEach((x) => (progress[x] = true));
+    return progress;
+  }, [values, max]);
 
-  const handleManualClick = useCallback(() => {
-    onImport(null, manualValue);
-  }, [manualValue, onImport]);
-
-  const handleManualChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setManualValue(value);
-      if (isPaste) {
-        onImport(null, value);
-        setIsPaste(false);
-        e.target.setSelectionRange(0, value.length);
-      }
-    },
-    [setManualValue, isPaste, onImport],
+  return (
+    <Group marginX={majorScale(3)}>
+      {progress.map((v, idx) => (
+        <Tooltip
+          content={`Part ${idx + 1}`}
+          key={idx}
+        >
+          <Button
+            height="30px"
+            width="30px"
+            background={!v ? '#FFADAD' : '#A8E6CF'}
+          ></Button>
+        </Tooltip>
+      ))}
+    </Group>
   );
+};
 
-  const handleManualPaste = useCallback(
-    (e: ClipboardEvent<HTMLInputElement>) => {
-      setIsPaste(true);
-    },
-    [setIsPaste],
-  );
+const Restore = ({
+  messageParts,
+  chunks,
+  partsCollector,
+}: {
+  messageParts: MessagePart[];
+  chunks: Chunk[];
+  partsCollector: PartsCollector;
+}) => {
+  const hasAllMessageParts = messageParts.length === messageParts[0]?.partsTotal;
+  const hasEnoughChunks = chunks.length >= chunks[0]?.requiredChunks;
 
-  const handleChange = useCallback(
-    (files: any[]) => {
-      files.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const res = event?.target?.result;
-          if (typeof res === 'string') {
-            onImport(null, res);
-          } else {
-            onImport(new Error(`Unable to read file: ${file.name}`), null);
-          }
-        };
-        reader.onerror = (event) => {
-          const error = event?.target?.error;
-          if (error) {
-            onImport(error, null);
-          }
-        };
-        reader.readAsText(file);
-      });
-      console.log(files);
-    },
-    [onImport],
-  );
+  const [isShowingMessage, setIsShowingMessage] = useState(false);
+  const [originalMessage, setOriginalMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const handleRejected = useCallback((fileRejections: any) => {
-    console.error(fileRejections);
+  const clearResults = useCallback(() => {
+    setIsShowingMessage(false);
+    setOriginalMessage('');
+    setError('');
   }, []);
 
+  const handleClick = useCallback(() => {
+    partsCollector
+      .restoreMessage(messageParts, chunks)
+      .then((res) => {
+        setIsShowingMessage(true);
+        setOriginalMessage(res);
+      })
+      .catch((e: Error) => {
+        console.error(e);
+        setIsShowingMessage(true);
+        setError(e.message);
+      });
+  }, [partsCollector, messageParts, chunks]);
+
+  if (!(hasAllMessageParts && hasEnoughChunks)) {
+    return null;
+  }
+
   return (
     <>
-      <FileUploader
-        maxSizeInBytes={16 * 1024 ** 2}
-        onAccepted={handleChange}
-        onRejected={handleRejected}
-      />
-      <Popover
-        bringFocusInside
-        content={
-          <Slab>
-            <Label>Paste a string to import</Label>
-            <br />
-            <Group marginTop={majorScale(1)}>
-              <TextInput
-                width="200px"
-                placeholder="ICOD-???:"
-                value={manualValue}
-                onChange={handleManualChange}
-                onPaste={handleManualPaste}
-                isInvalid={!!error}
-              />
-              <Button
-                appearance="primary"
-                onClick={handleManualClick}
-                disabled={manualValue.trim().length === 0}
-              >
-                <UploadIcon />
-              </Button>
-            </Group>
-          </Slab>
-        }
+      <Dialog
+        isShown={isShowingMessage}
+        title="Restored message"
+        onCloseComplete={clearResults}
+        hasCancel={false}
+        confirmLabel="Done"
       >
-        <Button>Manual input</Button>
-      </Popover>
+        {error ? (
+          <Alert
+            title="Restoration error"
+            intent="danger"
+          >
+            {error}
+          </Alert>
+        ) : (
+          <MessageEditor
+            value={originalMessage}
+            readOnly
+          />
+        )}
+      </Dialog>
+      <Alert
+        marginTop={majorScale(5)}
+        intent="success"
+        title="You can read the message now."
+      >
+        <Paragraph marginY={majorScale(2)}>
+          You've uploaded the encrypted message and enough pieces to restore the original message. Click the button
+          below to decrypt and view the message.
+        </Paragraph>
+        <Pane
+          display="flex"
+          justifyContent="center"
+        >
+          <Button onClick={handleClick}>Restore the message</Button>
+        </Pane>
+      </Alert>
     </>
   );
 };

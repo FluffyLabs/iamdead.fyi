@@ -31,6 +31,7 @@ import { Summary } from './summary';
 import { QRWithClipboard } from './qr-with-clipboard';
 import { Slab } from '../../../../components/slab';
 import { ChunksMeta } from '../../../../components/piece-view';
+import { encryptedMessageBytes } from '../../../../components/encrypted-message-view';
 
 export type Props = {
   message: string;
@@ -82,10 +83,6 @@ export const SecureMessageResult = ({ message, chunksConfiguration, setResult }:
     </>
   );
 };
-
-function encryptedMessageBytes(encryptedMessage: string[]) {
-  return Math.ceil(encryptedMessage.join('').length / 256);
-}
 
 const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
   if (!isLoading) {
