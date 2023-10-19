@@ -44,7 +44,7 @@ export const Intro = () => {
         />
         <Heading size={400}>Let me prepare the message now.</Heading>
         <Paragraph
-          size={100}
+          size={300}
           marginTop={majorScale(1)}
         >
           You'll prepare the message on the current device. Note that it is not recommended to do so for security

@@ -17,10 +17,12 @@ import {
 } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { ChangeEvent, useCallback, useState } from 'react';
+import { ChangeEvent, ClipboardEvent, useCallback, useMemo, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import { Result as QrResult } from '@zxing/library';
 import { Slab } from '../../components/slab';
+import { PartsCollector } from '../../services/parts-collector';
+import { Chunk, MessagePart } from '../../services/crypto';
 
 export const Scan = () => {
   return (
@@ -43,34 +45,56 @@ type OnImport = (err: Error | null, input: string | null) => void;
 
 const Import = () => {
   const [error, setError] = useState(null as string | null);
+  const [messageParts, setMessageParts] = useState([] as MessagePart[]);
+  const [chunks, setChunks] = useState([] as Chunk[]);
+
+  const partsCollector = useMemo(() => new PartsCollector(setError), []);
 
   const handleImport = useCallback(
-    ((err, input) => {
+    (err: Error | null, input: string | null) => {
       if (err) {
         console.error(err);
         setError(err.message);
         return;
       }
       setError(null);
-    }) as OnImport,
-    [setError],
+      if (!input) {
+        console.warn('onImport callback with no error nor input');
+        return;
+      }
+
+      partsCollector
+        .handlePart(messageParts, chunks, input)
+        .then((res) => {
+          setChunks(res.chunks);
+          setMessageParts(res.messageParts);
+        })
+        .catch((e: Error) => {
+          setError(e.message);
+          console.error(e);
+        });
+    },
+    [setError, setChunks, setMessageParts, partsCollector, messageParts, chunks],
   );
 
   return (
     <>
       <Paragraph>Drag &amp; drop the pieces and encrypted message or scan QR codes from an offline device.</Paragraph>
       <Pane
-        marginTop={majorScale(2)}
+        marginY={majorScale(2)}
         display="flex"
       >
-        <ImportMethods onImport={handleImport} />
-        {error && <Alert intent="danger">{error}</Alert>}
+        <ImportMethods
+          onImport={handleImport}
+          error={error}
+        />
       </Pane>
+      {error && <Alert intent="danger">{error}</Alert>}
     </>
   );
 };
 
-const ImportMethods = ({ onImport }: { onImport: OnImport }) => {
+const ImportMethods = ({ onImport, error }: { onImport: OnImport; error: string | null }) => {
   return (
     <>
       <Card
@@ -80,7 +104,10 @@ const ImportMethods = ({ onImport }: { onImport: OnImport }) => {
         marginRight={majorScale(3)}
         textAlign="center"
       >
-        <FileImport onImport={onImport} />
+        <FileImport
+          onImport={onImport}
+          error={error}
+        />
       </Card>
       <Card
         elevation={1}
@@ -121,7 +148,7 @@ const QrImport = ({ onImport }: { onImport: OnImport }) => {
       <>
         <Button
           marginBottom={majorScale(2)}
-          onClick={() => toggleQrEnabled()}
+          onClick={toggleQrEnabled}
         >
           Disable camera
         </Button>
@@ -144,7 +171,7 @@ const QrImport = ({ onImport }: { onImport: OnImport }) => {
         iconBgColor="#F8E3DA"
         primaryCta={
           <EmptyState.PrimaryButton
-            onClick={() => toggleQrEnabled()}
+            onClick={toggleQrEnabled}
             appearance="primary"
           >
             Enable camera
@@ -155,15 +182,33 @@ const QrImport = ({ onImport }: { onImport: OnImport }) => {
   );
 };
 
-const FileImport = ({ onImport }: { onImport: OnImport }) => {
-  const [files, setFiles] = useState([] as any[]);
+const FileImport = ({ onImport, error }: { onImport: OnImport; error: string | null }) => {
   const [manualValue, setManualValue] = useState('');
+  const [isPaste, setIsPaste] = useState(false);
 
   const handleManualClick = useCallback(() => {
-    // TODO [ToDr] some preliminary validation?
     onImport(null, manualValue);
-    setManualValue('');
   }, [manualValue, onImport]);
+
+  const handleManualChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setManualValue(value);
+      if (isPaste) {
+        onImport(null, value);
+        setIsPaste(false);
+        e.target.setSelectionRange(0, value.length);
+      }
+    },
+    [setManualValue, isPaste],
+  );
+
+  const handleManualPaste = useCallback(
+    (e: ClipboardEvent<HTMLInputElement>) => {
+      setIsPaste(true);
+    },
+    [setIsPaste],
+  );
 
   const handleChange = useCallback(
     (files: any[]) => {
@@ -186,9 +231,8 @@ const FileImport = ({ onImport }: { onImport: OnImport }) => {
         reader.readAsText(file);
       });
       console.log(files);
-      setFiles(files);
     },
-    [setFiles, onImport],
+    [onImport],
   );
 
   const handleRejected = useCallback((fileRejections: any) => {
@@ -199,26 +243,28 @@ const FileImport = ({ onImport }: { onImport: OnImport }) => {
     <>
       <FileUploader
         maxSizeInBytes={16 * 1024 ** 2}
-        onChange={handleChange}
+        onAccepted={handleChange}
         onRejected={handleRejected}
       />
       <Popover
         bringFocusInside
         content={
           <Slab>
-            <Label>Paste the string to import</Label>
+            <Label>Paste a string to import</Label>
             <br />
             <Group marginTop={majorScale(1)}>
               <TextInput
                 width="200px"
                 placeholder="ICOD-???:"
                 value={manualValue}
-                // TODO [ToDr] On Paste - perform onImport already.
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setManualValue(e.target.value)}
+                onChange={handleManualChange}
+                onPaste={handleManualPaste}
+                isInvalid={!!error}
               />
               <Button
                 appearance="primary"
                 onClick={handleManualClick}
+                disabled={manualValue.trim().length === 0}
               >
                 <UploadIcon />
               </Button>
