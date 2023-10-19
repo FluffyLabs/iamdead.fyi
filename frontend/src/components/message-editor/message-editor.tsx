@@ -14,18 +14,24 @@ const modules = {
   ],
 };
 
-type Props = {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
+const noToolbar = {
+  toolbar: [],
 };
 
-export const MessageEditor = ({ onChange, value, placeholder }: Props) => {
+type Props = {
+  value: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  readOnly?: boolean;
+};
+
+export const MessageEditor = ({ onChange, value, placeholder, readOnly }: Props) => {
   return (
     <ReactQuill
+      readOnly={readOnly}
       theme="snow"
       value={value}
-      modules={modules}
+      modules={readOnly ? noToolbar : modules}
       onChange={onChange}
       className={styles.editor}
       placeholder={placeholder}

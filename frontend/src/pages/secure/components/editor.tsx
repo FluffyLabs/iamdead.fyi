@@ -22,7 +22,7 @@ export const Editor = ({ value, onChange }: EditorProps) => {
         marginTop={majorScale(1)}
         marginBottom={majorScale(2)}
       >
-        Fell free to start with something basic for now, you will have a chance to edit it any time.
+        Fell free to start with something basic for now, you will still have a chance to edit it.
       </Heading>
       <Slab
         display="flex"

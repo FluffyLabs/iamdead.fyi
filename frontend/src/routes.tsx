@@ -1,11 +1,11 @@
 import { Routes as ReactRoutes, Route, Outlet } from 'react-router-dom';
 
 import { Home } from './pages/home';
-import { Recover } from './pages/recover';
 import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Secure } from './pages/secure';
 import { Store } from './pages/store';
+import { Scan } from './pages/scan';
 
 export function Routes() {
   return (
@@ -25,7 +25,11 @@ export function Routes() {
           path="store"
         />
         <Route
-          element={<Recover />}
+          element={<Scan />}
+          path="scan"
+        />
+        <Route
+          element={<Scan />}
           path="recover"
         />
 

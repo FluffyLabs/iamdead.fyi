@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
-import { ChunksMeta } from '../../secure/components/secure-message-result/secure-message-result';
-import { Alert, Checkbox, Heading, Link, LockIcon, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
-import { Row } from './row';
+import { Alert, Checkbox, Link, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
 import { RecipientRow } from './recipient-row';
+import { ChunksMeta } from '../../../components/piece-view';
+import { EncryptedMessageView } from '../../../components/encrypted-message-view';
 
 export class Recipient {
   id: number;
@@ -66,6 +66,9 @@ export const Recipients = ({
   );
 
   const selectedCount = chunks.filter((x) => x.isSelected).length;
+
+  // TODO [ToDr] Make storing encrypted message optional. in such case
+  // it has to be provided separately for recovery.
   return (
     <>
       <Paragraph>
@@ -75,7 +78,18 @@ export const Recipients = ({
       <Paragraph>
         If you already have an account, <Link href="#">sign in now</Link>.
       </Paragraph>
-      <EncryptedMessageRow messageBytes={messageBytes} />
+      <EncryptedMessageView messageBytes={messageBytes}>
+        <Tooltip
+          content={'Storing the encrypted message is currently mandatory.'}
+          position={Position.TOP}
+        >
+          <Checkbox
+            marginLeft={majorScale(2)}
+            disabled
+            checked
+          />
+        </Tooltip>
+      </EncryptedMessageView>
       {chunks.map((chunk, idx) => (
         <RecipientRow
           key={idx}
@@ -113,31 +127,5 @@ const TooManyPiecesWarning = ({ count, limit }: { count: number; limit: number }
         Your message will not be safe with us, please consider storing only up to {limit - 1} pieces.
       </Paragraph>
     </Alert>
-  );
-};
-
-const EncryptedMessageRow = ({ messageBytes }: { messageBytes: number }) => {
-  // TODO [ToDr] Make storing encrypted message optional. in such case
-  // it has to be provided separately for recovery.
-  return (
-    <Row>
-      <LockIcon size={majorScale(5)} />
-      <Heading
-        size={400}
-        marginLeft={majorScale(2)}
-      >
-        Encrypted message ({messageBytes} bytes)
-      </Heading>
-      <Tooltip
-        content={'Storing the encrypted message is currently mandatory.'}
-        position={Position.TOP}
-      >
-        <Checkbox
-          marginLeft={majorScale(2)}
-          disabled
-          checked
-        />
-      </Tooltip>
-    </Row>
   );
 };
