@@ -1,8 +1,7 @@
-import { Button, CameraIcon, EmptyState, Pane, majorScale } from 'evergreen-ui';
+import { Button, CameraIcon, EmptyState, InlineAlert, Pane, majorScale } from 'evergreen-ui';
 import { useCallback, useState } from 'react';
-import { QrReader } from 'react-qr-reader';
-import { Result as QrResult } from '@zxing/library';
 import { OnImport } from './import-methods';
+import { QrReader } from './qr-reader';
 
 export const QrImport = ({ onImport }: { onImport: OnImport }) => {
   const [isQrEnabled, setQrEnabled] = useState(false);
@@ -11,39 +10,36 @@ export const QrImport = ({ onImport }: { onImport: OnImport }) => {
   }, [isQrEnabled, setQrEnabled]);
 
   const handleQrResult = useCallback(
-    (data?: QrResult | null, err?: Error | null) => {
-      if (err) {
-        onImport(err, null);
-        return;
-      }
-
-      if (data) {
-        console.log(data);
-        onImport(null, data.getText());
-        return;
-      }
+    (data: string) => {
+      console.log(data);
+      onImport(null, data);
     },
     [onImport],
   );
 
+  // TODO message parts
+  const hasAllMessageParts = false;
+
   if (isQrEnabled) {
     return (
-      <>
+      <Pane marginTop={majorScale(1)}>
+        <QrReader
+          delay={300}
+          onResult={handleQrResult}
+        >
+          <InlineAlert intent="danger">We are not able to access a camera.</InlineAlert>
+        </QrReader>
         <Button
+          marginTop={majorScale(3)}
           marginBottom={majorScale(2)}
           onClick={toggleQrEnabled}
         >
           Disable camera
         </Button>
-        <QrReader
-          constraints={{ facingMode: 'environment' }}
-          scanDelay={300}
-          onResult={handleQrResult}
-          videoStyle={{ height: 'auto' }}
-        />
-      </>
+      </Pane>
     );
   }
+
   return (
     <Pane marginTop={majorScale(2)}>
       <EmptyState

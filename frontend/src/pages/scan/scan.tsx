@@ -10,6 +10,7 @@ import {
   Tooltip,
   TrashIcon,
   majorScale,
+  toaster,
 } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
@@ -45,6 +46,7 @@ const Import = () => {
   const [error, setError] = useState(null as string | null);
   const [messageParts, setMessageParts] = useState([] as MessagePart[]);
   const [chunks, setChunks] = useState([] as Chunk[]);
+  const [lastPart, setLastPart] = useState(null as string | null);
 
   const partsCollector = useMemo(() => new PartsCollector(setError), []);
 
@@ -55,15 +57,25 @@ const Import = () => {
         setError(err.message);
         return;
       }
-      setError(null);
+
       if (!input) {
         console.warn('onImport callback with no error nor input');
         return;
       }
 
+      if (input === lastPart) {
+        console.log('Got the same part again. Ignoring');
+        return;
+      }
+
+      setError(null);
+      setLastPart(input);
+
       partsCollector
         .handlePart(messageParts, chunks, input)
         .then((res) => {
+          const newChunk = chunks.length !== res.chunks.length;
+          toaster.success(newChunk ? 'Piece imported successfuly.' : 'Message Part imported successfuly.');
           setChunks(res.chunks);
           setMessageParts(res.messageParts);
         })
@@ -72,7 +84,7 @@ const Import = () => {
           console.error(e);
         });
     },
-    [setError, setChunks, setMessageParts, partsCollector, messageParts, chunks],
+    [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks, toaster],
   );
 
   const removeChunk = useCallback(
@@ -127,6 +139,7 @@ const DisplayResults = ({
   const messageBytes = messageParts.length > 0 ? encryptedMessageBytes(messageParts.map((x) => x.data)) : '???';
 
   const notEnoughMessageParts = messagePartsAvailable < messagePartsTotal || messagePartsAvailable === 0;
+  const notEnoughChunks = chunks.length === 0;
 
   const navigate = useNavigate();
   const handleNextStep = useCallback(() => {
@@ -176,7 +189,7 @@ const DisplayResults = ({
       ))}
 
       <NextStepButton
-        disabled={notEnoughMessageParts}
+        disabled={notEnoughMessageParts || notEnoughChunks}
         nextStep={handleNextStep}
       >
         Store pieces & configure distribution

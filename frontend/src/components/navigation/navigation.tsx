@@ -51,13 +51,13 @@ export const Navigation = ({ fill }: { fill?: boolean }) => {
           fill={fill}
           href="/secure"
         >
-          Secure Message
+          Secure
         </NavLink>
         <NavLink
           fill={fill}
-          href="/recover"
+          href="/restore"
         >
-          Recover Message
+          Restore
         </NavLink>
         <NavLink
           fill={fill}
