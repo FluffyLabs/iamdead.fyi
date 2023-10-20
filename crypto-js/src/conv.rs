@@ -25,10 +25,7 @@ pub fn bytes_to_prefixed_str(prefix: &str, b: &[u8]) -> String {
 
 pub fn bytes_to_prefixed_str_js(prefix: &str, b: &[u8]) -> JsValueOrString {
   let result = bytes_to_prefixed_str(prefix, b);
-  #[cfg(test)]
-  return result;
-  #[cfg(not(test))]
-  return wasm_bindgen::JsValue::from_str(&result);
+  js_value_or_string(result)
 }
 
 pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValueOrString) -> Result<Vec<u8>, Error> {
@@ -36,4 +33,11 @@ pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValueOrString) -> Result<Vec<
   let v = v.as_string().ok_or(Error::ValueError)?;
   let s = v.strip_prefix(prefix).ok_or(Error::PrefixError)?;
   decode(&s).map_err(|_| Error::DecodingError)
+}
+
+pub fn js_value_or_string(s: String) -> JsValueOrString {
+ #[cfg(test)]
+  return s;
+  #[cfg(not(test))]
+  return wasm_bindgen::JsValue::from_str(&s);
 }
