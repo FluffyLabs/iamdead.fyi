@@ -17,9 +17,6 @@ export const QrImport = ({ onImport }: { onImport: OnImport }) => {
     [onImport],
   );
 
-  // TODO message parts
-  const hasAllMessageParts = false;
-
   if (isQrEnabled) {
     return (
       <Pane marginTop={majorScale(1)}>

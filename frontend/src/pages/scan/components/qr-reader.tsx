@@ -49,7 +49,7 @@ export const QrReader = ({ delay = 100, onResult, children, videoStyles }: Props
     QrScanner.hasCamera().then((hasCamera) => {
       setHasCamera(hasCamera);
     });
-  }, [QrScanner, setHasCamera]);
+  }, [setHasCamera]);
 
   // start scanning after delay.
   useEffect(() => {

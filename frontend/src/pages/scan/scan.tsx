@@ -84,7 +84,7 @@ const Import = () => {
           console.error(e);
         });
     },
-    [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks, toaster],
+    [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks],
   );
 
   const removeChunk = useCallback(
