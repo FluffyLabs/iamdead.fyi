@@ -5,7 +5,7 @@ use icod_crypto::{encryption::EncryptedMessagePart, shamir::Chunk};
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 
-use crate::{encryption::MSG_PREFIX, shamir::CHUNK_PREFIX, JsValueOrString, conv};
+use crate::{conv, encryption::MSG_PREFIX, shamir::CHUNK_PREFIX, JsValueOrString};
 
 /// Error occuring during identification.
 #[derive(Debug)]
@@ -97,7 +97,9 @@ pub fn identify(item: String) -> Result<IdentificationOrJsValue, Error> {
     let total_chunks = chunk.configuration().total();
 
     return Ok(serialize(Identification::Chunk {
-      name: name.map(Into::into).unwrap_or_else(|| format!("Piece {}/{}", chunk.index() + 1, total_chunks)),
+      name: name
+        .map(Into::into)
+        .unwrap_or_else(|| format!("Piece {}/{}", chunk.index() + 1, total_chunks)),
       version: chunk.version(),
       key_hash: crate::conv::encode(&chunk.key_hash().to_bytes()),
       required_chunks: chunk.configuration().required() as u8,
@@ -127,7 +129,10 @@ const MAX_CHUNKS_NAME_LEN: usize = 16;
 /// Given an encoded chunk (potentially with a name) and new name, alters the
 /// chunk to have given name.
 #[cfg_attr(not(test), wasm_bindgen)]
-pub fn alter_chunks_name(chunk: String, new_name: String) -> Result<JsValueOrString, AlterChunksNameError> {
+pub fn alter_chunks_name(
+  chunk: String,
+  new_name: String,
+) -> Result<JsValueOrString, AlterChunksNameError> {
   if let Some((_name, chunk)) = identify_chunk(&chunk) {
     if new_name.find(":").is_some() {
       return Err(AlterChunksNameError::InvalidCharacters);
@@ -137,7 +142,10 @@ pub fn alter_chunks_name(chunk: String, new_name: String) -> Result<JsValueOrStr
       return Err(AlterChunksNameError::NameTooLong);
     }
 
-    Ok(conv::js_value_or_string(format!("{}{}:{}", CHUNK_PREFIX, new_name, chunk)))
+    Ok(conv::js_value_or_string(format!(
+      "{}{}:{}",
+      CHUNK_PREFIX, new_name, chunk
+    )))
   } else {
     Err(AlterChunksNameError::NotAChunk)
   }
@@ -160,9 +168,11 @@ impl From<AlterChunksNameError> for JsValue {
     use AlterChunksNameError::*;
     let r = match value {
       NotAChunk => "Given string does not look like encoded piece.".into(),
-      NameTooLong => format!("The name has too many characters. Max: {}", MAX_CHUNKS_NAME_LEN),
+      NameTooLong => format!(
+        "The name has too many characters. Max: {}",
+        MAX_CHUNKS_NAME_LEN
+      ),
       InvalidCharacters => "The name cannot contain `:`.".into(),
-
     };
     JsValue::from_str(&r)
   }

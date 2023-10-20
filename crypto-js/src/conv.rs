@@ -36,7 +36,7 @@ pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValueOrString) -> Result<Vec<
 }
 
 pub fn js_value_or_string(s: String) -> JsValueOrString {
- #[cfg(test)]
+  #[cfg(test)]
   return s;
   #[cfg(not(test))]
   return wasm_bindgen::JsValue::from_str(&s);
