@@ -1,24 +1,15 @@
 import { Heading, KeyIcon, majorScale } from 'evergreen-ui';
 import { Row } from './row';
 import { ReactNode } from 'react';
+import { Chunk } from '../services/crypto';
 
 export type ChunksMeta = {
-  name: string;
   description: string;
-  value: string;
+  chunk: Chunk;
 };
 
-export const PieceView = ({
-  chunk,
-  index,
-  total,
-  children,
-}: {
-  chunk: ChunksMeta;
-  index: number;
-  total: number;
-  children: ReactNode;
-}) => {
+export const PieceView = ({ chunk, children }: { chunk: ChunksMeta; children: ReactNode }) => {
+  const total = chunk.chunk.requiredChunks + chunk.chunk.spareChunks;
   return (
     <Row>
       <KeyIcon size={majorScale(5)} />
@@ -26,13 +17,13 @@ export const PieceView = ({
         size={400}
         marginLeft={majorScale(2)}
       >
-        {index + 1}/{total}
+        {chunk.chunk.chunkIndex + 1}/{total}
       </Heading>
       <Heading
         size={400}
         marginLeft={majorScale(2)}
       >
-        {chunk.name}
+        {chunk.chunk.name}
       </Heading>
       {children}
     </Row>

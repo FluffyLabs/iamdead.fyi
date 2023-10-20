@@ -199,17 +199,13 @@ const DisplayResults = ({
 };
 
 function chunkToMeta(chunk: Chunk) {
-  const total = chunk.requiredChunks + chunk.spareChunks;
   return {
-    // TODO [ToDr] replace with name from chunk
-    name: `Piece ${chunk.chunkIndex + 1} / ${total}`,
     description: '',
-    value: chunk.raw,
+    chunk,
   };
 }
 
 const ChunkView = ({ chunk, removeChunk }: { chunk: Chunk; removeChunk: (a0: Chunk) => void }) => {
-  const total = chunk.requiredChunks + chunk.spareChunks;
   const chunkMeta = useMemo(() => {
     return chunkToMeta(chunk);
   }, [chunk]);
@@ -218,11 +214,7 @@ const ChunkView = ({ chunk, removeChunk }: { chunk: Chunk; removeChunk: (a0: Chu
     removeChunk(chunk);
   }, [chunk, removeChunk]);
   return (
-    <PieceView
-      chunk={chunkMeta}
-      index={chunk.chunkIndex}
-      total={total}
-    >
+    <PieceView chunk={chunkMeta}>
       <Pane
         flex="1"
         display="flex"

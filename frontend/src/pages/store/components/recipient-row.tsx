@@ -18,8 +18,6 @@ function isEmailAddress(val: string) {
 
 type Props = {
   chunk: ChunksMeta;
-  idx: number;
-  total: number;
   predefinedRecipients: Recipient[];
   recipient: MaybeRecipient;
   setRecipient: (a0: MaybeRecipient) => void;
@@ -29,8 +27,6 @@ type Props = {
 
 export const RecipientRow = ({
   chunk,
-  idx,
-  total,
   predefinedRecipients,
   recipient,
   setRecipient,
@@ -61,11 +57,7 @@ export const RecipientRow = ({
     isInvalid: !isRecipientValid,
   };
   return (
-    <PieceView
-      chunk={chunk}
-      index={idx}
-      total={total}
-    >
+    <PieceView chunk={chunk}>
       <Checkbox
         marginLeft={majorScale(2)}
         checked={isSelected}

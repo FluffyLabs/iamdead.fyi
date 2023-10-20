@@ -25,8 +25,8 @@ import {
   Card,
   Paragraph,
 } from 'evergreen-ui';
-import { useSecureMessage } from '../../../../hooks/use-secure-message';
-import { SecureMessageResult as CryptoResult, ChunksConfiguration } from '../../../../services/crypto';
+import { RichSecureMessageResult, useSecureMessage } from '../../../../hooks/use-secure-message';
+import { ChunksConfiguration, Chunk as ChunkT } from '../../../../services/crypto';
 import { Summary } from './summary';
 import { QRWithClipboard } from './qr-with-clipboard';
 import { Slab } from '../../../../components/slab';
@@ -57,9 +57,8 @@ export const SecureMessageResult = ({ message, chunksConfiguration, setResult }:
 
       const { encryptedMessage } = val;
       const chunks = val.chunks.map((c, idx) => ({
-        name: `Piece ${idx + 1}`,
         description: '',
-        value: c,
+        chunk: c,
       }));
       setResult({
         encryptedMessage,
@@ -97,7 +96,7 @@ const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
   );
 };
 
-const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: string | null }) => {
+const DisplayResult = ({ result, error }: { result: RichSecureMessageResult | null; error: string | null }) => {
   if (error) {
     return (
       <Alert
@@ -154,7 +153,7 @@ function CloseButton({ close }: { close: () => void }) {
   );
 }
 
-function Chunks({ chunks }: { chunks: string[] }) {
+function Chunks({ chunks }: { chunks: ChunkT[] }) {
   const [isShowingQrs, setIsShowingQrs] = useState(false);
   const [activeChunkIdx, setActiveChunkIdx] = useState(0);
   const showDialog = useCallback(
@@ -173,24 +172,19 @@ function Chunks({ chunks }: { chunks: string[] }) {
     setActiveChunkIdx(activeChunkIdx === 0 ? chunks.length - 1 : activeChunkIdx - 1);
   }, [activeChunkIdx, chunks]);
 
-  const chunkName = (id: number) => `Piece ${id + 1}/${chunks.length}`;
-  const activeName = chunkName(activeChunkIdx);
-
   return (
     <>
-      {chunks.map((x: string, idx: number) => (
+      {chunks.map((x: ChunkT) => (
         <Chunk
-          key={x}
+          key={x.chunkIndex}
           chunk={x}
-          id={idx + 1}
-          name={chunkName(idx)}
           showDialog={showDialog}
         />
       ))}
       {/* Not using footer, because it's not trivial to align buttons left/right */}
       <Dialog
         isShown={isShowingQrs}
-        title={activeName}
+        title={chunk.name}
         onCloseComplete={() => setIsShowingQrs(false)}
         hasFooter={false}
       >
@@ -210,12 +204,12 @@ function Chunks({ chunks }: { chunks: string[] }) {
                 display="flex"
                 justifyContent="center"
               >
-                <QRWithClipboard value={chunk.toUpperCase()} />
+                <QRWithClipboard value={chunk.raw.toUpperCase()} />
               </Pane>
               <Pane flex="1">
                 <TextInputField
                   label="Piece name"
-                  value={activeName}
+                  value={chunk.name}
                   autoFocus
                 />
                 <Button
@@ -386,20 +380,18 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
 }
 
 type ChunkProps = {
-  id: number;
-  name: string;
-  chunk: string;
+  chunk: ChunkT;
   showDialog: (a0: number) => void;
 };
 
-function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
+function Chunk({ chunk, showDialog }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
   // TODO [ToDr] turn the heading into editable component.
   return (
     <Slab
       padding={0}
       marginY={majorScale(5)}
-      title={chunk}
+      title={chunk.raw}
       display="flex"
     >
       <KeyIcon
@@ -414,7 +406,7 @@ function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
           marginRight={majorScale(1)}
           marginBottom={majorScale(1)}
         >
-          {name}
+          {chunk.name}
           <Link
             marginLeft={majorScale(1)}
             href="#"
@@ -425,7 +417,7 @@ function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
         <Group>
           <Button
             iconBefore={<HeatGridIcon />}
-            onClick={() => showDialog(id - 1)}
+            onClick={() => showDialog(chunk.chunkIndex)}
           >
             QR
           </Button>

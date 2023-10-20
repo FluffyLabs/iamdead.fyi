@@ -1,10 +1,15 @@
 import { useCallback, useState } from 'react';
-import { ChunksConfiguration, Crypto, SecureMessageResult } from '../services/crypto';
+import { Chunk, ChunksConfiguration, Crypto } from '../services/crypto';
+
+export type RichSecureMessageResult = {
+  encryptedMessage: string[];
+  chunks: Chunk[];
+};
 
 export function useSecureMessage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [result, setResult] = useState<SecureMessageResult | null>(null);
+  const [result, setResult] = useState<RichSecureMessageResult | null>(null);
 
   const clear = useCallback(() => {
     setResult(null);
@@ -21,10 +26,14 @@ export function useSecureMessage() {
         try {
           const crypto = await Crypto.initialize();
           const result_1 = await crypto.secureMessage(value, configuration);
-          setResult(result_1);
-          console.log(result_1.chunks);
-          console.log(result_1.encryptedMessage);
-          return result_1;
+          const { chunks, encryptedMessage } = result_1;
+          const identifiedChunks = await Promise.all(chunks.map((c) => crypto.identify(c)));
+          const result = {
+            chunks: identifiedChunks.filter((c) => c.chunk).map((c) => c.chunk as Chunk),
+            encryptedMessage: encryptedMessage,
+          };
+          setResult(result);
+          return result;
         } catch (e: any) {
           setError(e.message);
         }
