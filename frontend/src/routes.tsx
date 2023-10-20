@@ -30,7 +30,7 @@ export function Routes() {
         />
         <Route
           element={<Scan />}
-          path="recover"
+          path="restore"
         />
 
         <Route

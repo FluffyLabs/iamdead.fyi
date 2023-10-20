@@ -336,7 +336,7 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
   }, [isPlaying]);
 
   useEffect(() => {
-    const id = isPlaying ? window.setInterval(nextWrap, 500) : null;
+    const id = isPlaying ? window.setInterval(nextWrap, 1000) : null;
     return () => {
       if (id) {
         window.clearInterval(id);
