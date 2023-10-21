@@ -1,4 +1,4 @@
-import { Heading, Pane, majorScale, UnlockIcon, CogIcon, Link, EditIcon, Button, minorScale } from 'evergreen-ui';
+import { Heading, Pane, majorScale, UnlockIcon, CogIcon, EditIcon, Button, minorScale } from 'evergreen-ui';
 import { Slab } from '../../../../components/slab';
 import { ChunksConfiguration } from '../../../../services/crypto';
 import { Steps } from '../../secure';
