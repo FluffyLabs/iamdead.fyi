@@ -90,6 +90,7 @@ export const Secure = () => {
           setResult={setEncryptionResult}
           userDefined={userDefined}
           setUserDefined={setUserDefined}
+          goToStep={setStep}
         />
         <NextStepButton
           nextStep={nextStep}
@@ -134,7 +135,8 @@ export const Secure = () => {
   );
 };
 
-type Steps = 'editor' | 'encrypt' | 'chunks';
+export type Steps = 'editor' | 'encrypt' | 'chunks';
+
 type ProgressProps = {
   step: Steps;
   setStep: (arg0: Steps) => void;

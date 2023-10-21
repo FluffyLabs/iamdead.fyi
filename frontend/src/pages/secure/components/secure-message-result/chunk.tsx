@@ -8,9 +8,11 @@ import {
   KeyIcon,
   DownloadIcon,
   ManualIcon,
+  toaster,
 } from 'evergreen-ui';
 import { Slab } from '../../../../components/slab';
 import { Chunk as ChunkT } from '../../../../services/crypto';
+import { useCallback } from 'react';
 
 type ChunkProps = {
   chunk: ChunkT;
@@ -19,6 +21,11 @@ type ChunkProps = {
 
 export function Chunk({ chunk, showDialog }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
+
+  const handleCertificate = useCallback(() => {
+    toaster.notify('Downloading certificate is not implemented yet.');
+  }, []);
+
   return (
     <Slab
       padding={0}
@@ -50,7 +57,12 @@ export function Chunk({ chunk, showDialog }: ChunkProps) {
             QR
           </Button>
           <Button iconBefore={<DownloadIcon />}>Download</Button>
-          <Button iconBefore={<ManualIcon />}>Certificate</Button>
+          <Button
+            iconBefore={<ManualIcon />}
+            onClick={handleCertificate}
+          >
+            Certificate
+          </Button>
         </Group>
       </Pane>
     </Slab>
