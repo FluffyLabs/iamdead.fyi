@@ -118,7 +118,7 @@ pub(crate) mod conv {
     parts
       .into_iter()
       .map(|part| {
-        crate::conv::prefixed_str_js_to_bytes(MSG_PREFIX, part).map(icod_crypto::Bytes::from)
+        crate::conv::prefixed_str_js_to_bytes(MSG_PREFIX, part, false).map(icod_crypto::Bytes::from)
       })
       .collect()
   }

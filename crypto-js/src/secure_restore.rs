@@ -135,7 +135,6 @@ pub fn restore_message(
   let message = encryption::conv::js_to_msg_parts(message).map_err(encryption::Error::from)?;
   let encrypted_message = icod_crypto::encryption::EncryptedMessage::collate_from_parts(message)
     .map_err(encryption::Error::from)?;
-  println!("Encrypted: {:?}", encrypted_message);
   let chunks = shamir::conv::js_to_chunks(chunks)?;
   let message = icod_crypto::restore_message(encrypted_message, chunks)?;
   let (message, _) = message.into_tuple();
@@ -171,5 +170,15 @@ mod tests {
     let restored = restore_message(result.encrypted_message, result.chunks.split_off(0)).unwrap();
 
     assert_eq!(restored, msg);
+  }
+
+  #[test]
+  fn should_restore_with_named_chunks() {
+    let chunk1 = "icod-chunk:moms chunk:d5hmup3303pbk9a68s73jd39675mlp143smkc97m6q65dcbj8co4rqbaqhhdspikfl9u4m8md3097gsegqeg8nm65pqm5qs0nhvftiedjkfbmlco080g00ephrv1pprbm97ma87quod19fn2vv4r0q7a7tco980uq2uf37oinnmkgjag5g70";
+    let chunk2 = "icod-chunk::d5hmup3303pbk9a68s73jd39675mlp143smkc97m6q65dcbj8co4rqbaqhhdspikfl9u4m8md3097gsegqeg8nm65pqm5qs0nhvftiedjkfbmlco080g40t4970upolt9t4rvmrgn3scdnm61lh130edgs1st28q0kshg85f51linnb14q9g";
+    let msg = "icod-msg:00000000000r1acbsgf0rctmnne11aifdgq5ogrk9oei01kikajgfdsnqemp0g6uj0gdbcdaqu01im4pt6hs0ispvohi3jo";
+    let restored = restore_message(vec![msg.into()], vec![chunk1.into(), chunk2.into()]).unwrap();
+
+    assert_eq!(restored, "This is a secret message");
   }
 }
