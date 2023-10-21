@@ -27,8 +27,12 @@ export const Editor = ({ value, onChange }: EditorProps) => {
       <Slab
         display="flex"
         padding={0}
+        flexWrap="wrap"
       >
-        <Pane flex="6">
+        <Pane
+          flex="6"
+          minWidth="200px"
+        >
           <MessageEditor
             value={value}
             onChange={onChange}
@@ -38,6 +42,7 @@ export const Editor = ({ value, onChange }: EditorProps) => {
           margin="0"
           paddingTop="0"
           flex="2"
+          minWidth="200px"
         >
           <Text>If you need help writing the message you may try some of the templates below.</Text>
           <UnorderedList>

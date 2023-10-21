@@ -93,6 +93,7 @@ export function Chunks({
               display="flex"
               flexDirection="row"
               width="100%"
+              flexWrap="wrap"
             >
               <Pane
                 flex="1"
@@ -100,6 +101,7 @@ export function Chunks({
                 alignItems="center"
                 flexDirection="column"
                 paddingX={majorScale(2)}
+                marginBottom={majorScale(3)}
               >
                 <QRWithClipboard value={chunk.chunk.raw.toUpperCase()} />
                 <Group marginTop={majorScale(2)}>

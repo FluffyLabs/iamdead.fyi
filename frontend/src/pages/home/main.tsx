@@ -6,7 +6,6 @@ export const MainPage = () => {
   return (
     <>
       <Pane
-        marginTop="-245px"
         display="flex"
         padding={majorScale(5)}
         borderRadius={4}
@@ -20,6 +19,7 @@ export const MainPage = () => {
       >
         <Heading
           size={900}
+          marginTop={majorScale(20)}
           marginBottom={majorScale(2)}
         >
           FYI: I am dead!

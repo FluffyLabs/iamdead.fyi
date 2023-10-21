@@ -173,6 +173,7 @@ const DisplayResult = ({
     <Slab
       background="tint2"
       display="flex"
+      flexWrap="wrap-reverse"
     >
       <Pane flex="1">
         <EncryptedMessage encryptedMessage={result.encryptedMessage} />
@@ -183,7 +184,10 @@ const DisplayResult = ({
           onDescriptionChange={onChunkDescriptionChange}
         />
       </Pane>
-      <Card paddingX={majorScale(3)}>
+      <Card
+        paddingX={majorScale(3)}
+        marginBottom={majorScale(5)}
+      >
         <Paragraph>
           Store the encrypted message safely and distributed the pieces according to your preference.
         </Paragraph>

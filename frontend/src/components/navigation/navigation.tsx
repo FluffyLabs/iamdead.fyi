@@ -22,14 +22,24 @@ const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; 
   );
 };
 
-export const Navigation = ({ fill }: { fill?: boolean }) => {
+export const Navigation = ({ fill, isFixed }: { fill?: boolean; isFixed?: boolean }) => {
+  const extraStyles = isFixed
+    ? {
+        position: 'absolute' as any,
+        top: 0,
+        zIndex: 2,
+      }
+    : {};
+
   return (
     <Slab
+      marginTop={0}
       display="flex"
       padding={majorScale(3)}
-      justifyContent="space-between"
+      justifyContent="space-around"
       alignItems="center"
-      height="195px"
+      flexWrap="wrap"
+      {...extraStyles}
     >
       <a href="/">
         <img
@@ -40,7 +50,12 @@ export const Navigation = ({ fill }: { fill?: boolean }) => {
           height="118"
         />
       </a>
-      <Slab>
+      <Slab
+        display="flex"
+        flexWrap="wrap"
+        justifyContent="space-around"
+        marginBottom={majorScale(5)}
+      >
         <NavLink
           fill={fill}
           href="/store"
