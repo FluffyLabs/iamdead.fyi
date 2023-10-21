@@ -48,8 +48,6 @@ export const Recipients = ({
   messageBytes,
   predefinedRecipients,
 }: RecipientsProps) => {
-  const total = chunks.length;
-
   const handleSelected = useCallback(
     (idx: number, v: boolean) => {
       chunks[idx].isSelected = v;
@@ -94,8 +92,6 @@ export const Recipients = ({
         <RecipientRow
           key={idx}
           chunk={chunk.chunk}
-          idx={idx}
-          total={total}
           predefinedRecipients={predefinedRecipients}
           recipient={chunk.recipient}
           isSelected={chunk.isSelected}

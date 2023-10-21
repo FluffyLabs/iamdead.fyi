@@ -10,7 +10,7 @@ pub mod shamir;
 pub(crate) mod conv;
 
 use icod_crypto::encryption::KEY_SIZE;
-pub use identify::identify;
+pub use identify::{alter_chunks_name, identify};
 pub use secure_restore::{restore_message, secure_message};
 
 pub(crate) fn parse_key(key: Vec<u8>) -> Result<[u8; KEY_SIZE], ()> {

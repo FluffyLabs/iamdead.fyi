@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Heading,
   Pane,
@@ -20,23 +20,26 @@ import {
   DownloadIcon,
   ManualIcon,
   TextInputField,
-  EditIcon,
-  Link,
   Card,
   Paragraph,
+  TextareaField,
 } from 'evergreen-ui';
 import { useSecureMessage } from '../../../../hooks/use-secure-message';
-import { SecureMessageResult as CryptoResult, ChunksConfiguration } from '../../../../services/crypto';
+import { ChunksConfiguration, Chunk as ChunkT } from '../../../../services/crypto';
 import { Summary } from './summary';
 import { QRWithClipboard } from './qr-with-clipboard';
 import { Slab } from '../../../../components/slab';
 import { ChunksMeta } from '../../../../components/piece-view';
 import { encryptedMessageBytes } from '../../../../components/encrypted-message-view';
+import { UserDefined } from '../../secure';
 
 export type Props = {
   message: string;
   chunksConfiguration: ChunksConfiguration;
+  result: Result | null;
   setResult: (a0: Result | null) => void;
+  userDefined: UserDefined[];
+  setUserDefined: (a0: UserDefined[]) => void;
 };
 
 export type Result = {
@@ -45,29 +48,84 @@ export type Result = {
   chunks: ChunksMeta[];
 };
 
-export const SecureMessageResult = ({ message, chunksConfiguration, setResult }: Props) => {
-  const { secureMessage, result, error, isLoading } = useSecureMessage();
+export const SecureMessageResult = ({
+  message,
+  chunksConfiguration,
+  result,
+  setResult,
+  userDefined,
+  setUserDefined,
+}: Props) => {
+  const {
+    secureMessage,
+    result: localResult,
+    error,
+    isLoading,
+    alterChunkName,
+    alterChunkNameError,
+  } = useSecureMessage();
+  const userDefinedRef = useRef(userDefined);
 
+  // call secure message every time message or configuration changes
   useEffect(() => {
-    secureMessage(message, chunksConfiguration).then((val) => {
-      if (!val) {
-        setResult(val);
+    // Note, we don't want to re-call secureMessage on name change,
+    // hence using ref here.
+    const names = userDefinedRef.current.map((x) => x.name);
+    secureMessage(message, chunksConfiguration, names);
+  }, [message, chunksConfiguration, secureMessage, userDefinedRef]);
+
+  const handleChunkNameChange = useCallback(
+    (chunkIndex: number, newName: string) => {
+      if (userDefined[chunkIndex]?.name === newName || localResult?.chunks[chunkIndex].name === newName) {
         return;
       }
 
-      const { encryptedMessage } = val;
-      const chunks = val.chunks.map((c, idx) => ({
-        name: `Piece ${idx + 1}`,
-        description: '',
-        value: c,
-      }));
-      setResult({
-        encryptedMessage,
-        encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
-        chunks,
+      alterChunkName(chunkIndex, newName).then((isNameOk: boolean) => {
+        if (isNameOk) {
+          userDefined[chunkIndex] = {
+            name: newName,
+            description: userDefined[chunkIndex]?.description || '',
+          };
+          const newUserDefined = [...userDefined];
+          setUserDefined(newUserDefined);
+          userDefinedRef.current = newUserDefined;
+        }
       });
+    },
+    [userDefined, setUserDefined, alterChunkName, userDefinedRef, localResult],
+  );
+
+  const handleChunkDescritptionChange = useCallback(
+    (chunkIndex: number, newDescription: string) => {
+      userDefined[chunkIndex] = {
+        name: userDefined[chunkIndex]?.name,
+        description: newDescription,
+      };
+
+      setUserDefined([...userDefined]);
+    },
+    [userDefined, setUserDefined],
+  );
+
+  // propagate updated results up
+  // TODO [ToDr] Re-use old names & re-use descriptions.
+  useEffect(() => {
+    if (!localResult) {
+      setResult(localResult);
+      return;
+    }
+
+    const { encryptedMessage } = localResult;
+    const chunks = localResult.chunks.map((c, idx) => ({
+      description: userDefined[idx]?.description || '',
+      chunk: c,
+    }));
+    setResult({
+      encryptedMessage,
+      encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
+      chunks,
     });
-  }, [message, chunksConfiguration, secureMessage, setResult]);
+  }, [localResult, setResult, userDefined]);
 
   return (
     <>
@@ -79,6 +137,9 @@ export const SecureMessageResult = ({ message, chunksConfiguration, setResult }:
       <DisplayResult
         result={result}
         error={error}
+        onChunkNameChange={handleChunkNameChange}
+        chunkNameChangeError={alterChunkNameError}
+        onChunkDescriptionChange={handleChunkDescritptionChange}
       />
     </>
   );
@@ -97,7 +158,19 @@ const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
   );
 };
 
-const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: string | null }) => {
+const DisplayResult = ({
+  result,
+  error,
+  onChunkNameChange,
+  chunkNameChangeError,
+  onChunkDescriptionChange,
+}: {
+  result: Result | null;
+  error: string | null;
+  onChunkNameChange: (chunkIndex: number, newName: string) => void;
+  chunkNameChangeError?: string;
+  onChunkDescriptionChange: (chunkIndex: number, newDescription: string) => void;
+}) => {
   if (error) {
     return (
       <Alert
@@ -117,9 +190,6 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
     );
   }
 
-  // TODO [ToDr] Allow editing the name (by default it's "Chunk {id}")
-  // TODO [ToDr] Allow adding description.
-
   return (
     <Slab
       background="tint2"
@@ -127,7 +197,12 @@ const DisplayResult = ({ result, error }: { result: CryptoResult | null; error: 
     >
       <Pane flex="1">
         <EncryptedMessage encryptedMessage={result.encryptedMessage} />
-        <Chunks chunks={result.chunks} />
+        <Chunks
+          chunks={result.chunks}
+          onNameChange={onChunkNameChange}
+          nameChangeError={chunkNameChangeError}
+          onDescriptionChange={onChunkDescriptionChange}
+        />
       </Pane>
       <Card paddingX={majorScale(3)}>
         <Paragraph>
@@ -154,7 +229,17 @@ function CloseButton({ close }: { close: () => void }) {
   );
 }
 
-function Chunks({ chunks }: { chunks: string[] }) {
+function Chunks({
+  chunks,
+  onNameChange,
+  nameChangeError,
+  onDescriptionChange,
+}: {
+  chunks: ChunksMeta[];
+  onNameChange: (chunkIndex: number, name: string) => void;
+  nameChangeError?: string;
+  onDescriptionChange: (chunkIndex: number, description: string) => void;
+}) {
   const [isShowingQrs, setIsShowingQrs] = useState(false);
   const [activeChunkIdx, setActiveChunkIdx] = useState(0);
   const showDialog = useCallback(
@@ -173,28 +258,45 @@ function Chunks({ chunks }: { chunks: string[] }) {
     setActiveChunkIdx(activeChunkIdx === 0 ? chunks.length - 1 : activeChunkIdx - 1);
   }, [activeChunkIdx, chunks]);
 
-  const chunkName = (id: number) => `Piece ${id + 1}/${chunks.length}`;
-  const activeName = chunkName(activeChunkIdx);
+  const [activeName, setActiveName] = useState(chunk.chunk.name);
+  // reset activeName when activeChunk changes
+  useEffect(() => {
+    setActiveName(chunk.chunk.name);
+  }, [chunk, setActiveName]);
+
+  const handleActiveNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setActiveName(e.target.value);
+    },
+    [setActiveName],
+  );
+  const handleNameChange = useCallback(() => {
+    onNameChange(activeChunkIdx, activeName);
+  }, [activeName, activeChunkIdx, onNameChange]);
+  const handleDescriptionChange = useCallback(
+    (e: ChangeEvent<HTMLTextAreaElement>) => {
+      onDescriptionChange(activeChunkIdx, e.target.value);
+    },
+    [activeChunkIdx, onDescriptionChange],
+  );
 
   return (
     <>
-      {chunks.map((x: string, idx: number) => (
+      {chunks.map((x: ChunksMeta) => (
         <Chunk
-          key={x}
-          chunk={x}
-          id={idx + 1}
-          name={chunkName(idx)}
+          key={x.chunk.chunkIndex}
+          chunk={x.chunk}
           showDialog={showDialog}
         />
       ))}
       {/* Not using footer, because it's not trivial to align buttons left/right */}
       <Dialog
         isShown={isShowingQrs}
-        title={activeName}
+        title={chunk.chunk.name}
         onCloseComplete={() => setIsShowingQrs(false)}
         hasFooter={false}
       >
-        {({ close }) => (
+        {() => (
           <Pane
             display="flex"
             flexDirection="column"
@@ -208,25 +310,38 @@ function Chunks({ chunks }: { chunks: string[] }) {
               <Pane
                 flex="1"
                 display="flex"
-                justifyContent="center"
+                alignItems="center"
+                flexDirection="column"
+                paddingX={majorScale(2)}
               >
-                <QRWithClipboard value={chunk.toUpperCase()} />
+                <QRWithClipboard value={chunk.chunk.raw.toUpperCase()} />
+                <Group marginTop={majorScale(2)}>
+                  <Button
+                    onClick={() => {}}
+                    iconBefore={<DownloadIcon />}
+                    marginBottom={majorScale(1)}
+                  >
+                    Download
+                  </Button>
+                  <Button iconBefore={<ManualIcon />}>Certificate</Button>
+                </Group>
               </Pane>
               <Pane flex="1">
                 <TextInputField
                   label="Piece name"
                   value={activeName}
+                  onChange={handleActiveNameChange}
+                  onBlur={handleNameChange}
+                  isInvalid={!!nameChangeError}
+                  validationMessage={nameChangeError}
                   autoFocus
                 />
-                <Button
-                  onClick={() => {}}
-                  iconBefore={<DownloadIcon />}
-                  marginBottom={majorScale(1)}
-                >
-                  Download
-                </Button>
-                <br />
-                <Button iconBefore={<ManualIcon />}>Certificate</Button>
+                <TextareaField
+                  label="Extended description"
+                  hint="The description is only visible in the certificate."
+                  value={chunk.description}
+                  onChange={handleDescriptionChange}
+                />
               </Pane>
             </Pane>
             <Pane
@@ -324,25 +439,28 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
 
   const part = data[selectedPart];
 
-  const hasPrev = selectedPart > 0;
-  const hasNext = selectedPart < data.length - 1;
-
-  const prev = useCallback(() => (hasPrev ? setSelectedPart(selectedPart - 1) : null), [hasPrev, selectedPart]);
-  const next = useCallback(() => (hasNext ? setSelectedPart(selectedPart + 1) : null), [hasNext, selectedPart]);
-  const nextWrap = useCallback(() => setSelectedPart((selectedPart + 1) % data.length), [selectedPart, data.length]);
+  const prev = useCallback(
+    () => (selectedPart > 0 ? setSelectedPart(selectedPart - 1) : setSelectedPart(data.length - 1)),
+    [data, selectedPart],
+  );
+  const next = useCallback(() => {
+    setSelectedPart((selectedPart + 1) % data.length);
+  }, [selectedPart, data.length]);
 
   const toggle = useCallback(() => {
     setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
   useEffect(() => {
-    const id = isPlaying ? window.setInterval(nextWrap, 1000) : null;
+    const id = isPlaying ? window.setInterval(next, 1000) : null;
     return () => {
       if (id) {
         window.clearInterval(id);
       }
     };
-  }, [isPlaying, nextWrap]);
+  }, [isPlaying, next]);
+
+  const needsNav = data.length > 1;
 
   return (
     <>
@@ -360,22 +478,25 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
           Part {selectedPart + 1} / {data.length}
         </Heading>
         <QRWithClipboard value={part.toUpperCase()} />
-        <Group size="small">
+        <Group
+          size="small"
+          marginTop={majorScale(2)}
+        >
           <Button
             onClick={prev}
-            disabled={!hasPrev || isPlaying}
+            disabled={!needsNav || isPlaying}
           >
             <ChevronLeftIcon />
           </Button>
           <Button
             onClick={toggle}
-            disabled={!hasPrev && !hasNext}
+            disabled={!needsNav}
           >
             {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </Button>
           <Button
             onClick={next}
-            disabled={!hasNext || isPlaying}
+            disabled={!needsNav || isPlaying}
           >
             <ChevronRightIcon />
           </Button>
@@ -386,20 +507,17 @@ function EncryptedMessageQr({ data }: { data: string[] }) {
 }
 
 type ChunkProps = {
-  id: number;
-  name: string;
-  chunk: string;
+  chunk: ChunkT;
   showDialog: (a0: number) => void;
 };
 
-function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
+function Chunk({ chunk, showDialog }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
-  // TODO [ToDr] turn the heading into editable component.
   return (
     <Slab
       padding={0}
       marginY={majorScale(5)}
-      title={chunk}
+      title={chunk.raw}
       display="flex"
     >
       <KeyIcon
@@ -413,19 +531,15 @@ function Chunk({ id, name, chunk, showDialog }: ChunkProps) {
         <Heading
           marginRight={majorScale(1)}
           marginBottom={majorScale(1)}
+          onClick={() => showDialog(chunk.chunkIndex)}
+          style={{ cursor: 'pointer' }}
         >
-          {name}
-          <Link
-            marginLeft={majorScale(1)}
-            href="#"
-          >
-            <EditIcon />
-          </Link>
+          {chunk.name}
         </Heading>
         <Group>
           <Button
             iconBefore={<HeatGridIcon />}
-            onClick={() => showDialog(id - 1)}
+            onClick={() => showDialog(chunk.chunkIndex)}
           >
             QR
           </Button>

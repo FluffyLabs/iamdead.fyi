@@ -3,6 +3,7 @@ import init, {
   secure_message,
   identify,
   restore_message,
+  alter_chunks_name,
 } from 'icod-crypto-js';
 
 export type SecureMessageResult = {
@@ -34,6 +35,7 @@ type MessagePartRust = {
 };
 
 export type Chunk = {
+  name: string;
   version: number;
   keyHash: string;
   requiredChunks: number;
@@ -49,6 +51,7 @@ export type ChunksConfiguration = {
 };
 
 type ChunkRust = {
+  name: string;
   version: number;
   key_hash: string;
   required_chunks: number;
@@ -80,6 +83,10 @@ export class Crypto {
     return result;
   }
 
+  public async alterChunksName(text: string, newName: string): Promise<string> {
+    return await alter_chunks_name(text, newName);
+  }
+
   public async identify(text: string): Promise<IdentificationResult> {
     const raw = text.toLowerCase();
     // we always pass the text as lower case to rust
@@ -100,9 +107,10 @@ export class Crypto {
     }
 
     if (id.Chunk) {
-      const { version, key_hash, required_chunks, spare_chunks, chunk_index, data } = id.Chunk as ChunkRust;
+      const { name, version, key_hash, required_chunks, spare_chunks, chunk_index, data } = id.Chunk as ChunkRust;
       return {
         chunk: {
+          name,
           version,
           keyHash: key_hash,
           requiredChunks: required_chunks,
