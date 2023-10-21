@@ -28,10 +28,23 @@ pub fn bytes_to_prefixed_str_js(prefix: &str, b: &[u8]) -> JsValueOrString {
   js_value_or_string(result)
 }
 
-pub fn prefixed_str_js_to_bytes(prefix: &str, v: JsValueOrString) -> Result<Vec<u8>, Error> {
+pub fn prefixed_str_js_to_bytes(
+  prefix: &str,
+  v: JsValueOrString,
+  strip_to_next_colon: bool,
+) -> Result<Vec<u8>, Error> {
   #[cfg(not(test))]
   let v = v.as_string().ok_or(Error::ValueError)?;
   let s = v.strip_prefix(prefix).ok_or(Error::PrefixError)?;
+  let s = if strip_to_next_colon {
+    if let Some(idx) = s.find(":") {
+      s.split_at(idx + 1).1
+    } else {
+      s
+    }
+  } else {
+    s
+  };
   decode(&s).map_err(|_| Error::DecodingError)
 }
 
