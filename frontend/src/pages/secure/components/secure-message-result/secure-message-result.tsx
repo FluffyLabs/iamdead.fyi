@@ -6,9 +6,15 @@ import { Summary } from './summary';
 import { Slab } from '../../../../components/slab';
 import { ChunksMeta } from '../../../../components/piece-view';
 import { encryptedMessageBytes } from '../../../../components/encrypted-message-view';
-import { UserDefined } from '../../secure';
+import { Steps, UserDefined } from '../../secure';
 import { EncryptedMessage } from './encrypted-message';
 import { Chunks } from './chunks';
+
+export type Result = {
+  encryptedMessage: string[];
+  encryptedMessageBytes: number;
+  chunks: ChunksMeta[];
+};
 
 export type Props = {
   message: string;
@@ -17,12 +23,7 @@ export type Props = {
   setResult: (a0: Result | null) => void;
   userDefined: UserDefined[];
   setUserDefined: (a0: UserDefined[]) => void;
-};
-
-export type Result = {
-  encryptedMessage: string[];
-  encryptedMessageBytes: number;
-  chunks: ChunksMeta[];
+  goToStep: (a0: Steps) => void;
 };
 
 export const SecureMessageResult = ({
@@ -32,6 +33,7 @@ export const SecureMessageResult = ({
   setResult,
   userDefined,
   setUserDefined,
+  goToStep,
 }: Props) => {
   const {
     secureMessage,
@@ -108,6 +110,7 @@ export const SecureMessageResult = ({
       <Summary
         message={message}
         chunksConfiguration={chunksConfiguration}
+        goToStep={goToStep}
       />
       <IsLoading isLoading={isLoading} />
       <DisplayResult
@@ -170,6 +173,7 @@ const DisplayResult = ({
     <Slab
       background="tint2"
       display="flex"
+      flexWrap="wrap-reverse"
     >
       <Pane flex="1">
         <EncryptedMessage encryptedMessage={result.encryptedMessage} />
@@ -180,7 +184,10 @@ const DisplayResult = ({
           onDescriptionChange={onChunkDescriptionChange}
         />
       </Pane>
-      <Card paddingX={majorScale(3)}>
+      <Card
+        paddingX={majorScale(3)}
+        marginBottom={majorScale(5)}
+      >
         <Paragraph>
           Store the encrypted message safely and distributed the pieces according to your preference.
         </Paragraph>

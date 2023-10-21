@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import { Slab } from '../../components/slab';
 
+const minColumnWidth = '300px';
+
 export const Footer = () => {
   return (
     <Slab
@@ -10,8 +12,12 @@ export const Footer = () => {
       display="flex"
       justifyContent="space-around"
       marginBottom="0"
+      flexWrap="wrap"
     >
-      <Slab flexDirection="column">
+      <Slab
+        flexDirection="column"
+        minWidth={minColumnWidth}
+      >
         <Heading
           size={300}
           marginBottom={majorScale(2)}
@@ -27,7 +33,10 @@ export const Footer = () => {
           </ListItem>
         </UnorderedList>
       </Slab>
-      <Slab flexDirection="column">
+      <Slab
+        flexDirection="column"
+        minWidth={minColumnWidth}
+      >
         <Heading
           size={300}
           marginBottom={majorScale(2)}
@@ -46,6 +55,7 @@ export const Footer = () => {
       <Slab
         flexDirection="column"
         alignItems="center"
+        minWidth={minColumnWidth}
       >
         <Heading
           size={300}

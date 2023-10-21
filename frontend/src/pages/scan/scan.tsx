@@ -104,6 +104,7 @@ const Import = () => {
       <Pane
         marginY={majorScale(2)}
         display="flex"
+        flexWrap="wrap"
       >
         <ImportMethods
           onImport={handleImport}

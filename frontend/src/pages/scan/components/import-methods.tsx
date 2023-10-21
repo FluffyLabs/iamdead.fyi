@@ -12,6 +12,7 @@ export const ImportMethods = ({ onImport, error }: { onImport: OnImport; error: 
         flex="1"
         padding={majorScale(2)}
         marginRight={majorScale(3)}
+        marginBottom={majorScale(2)}
         textAlign="center"
       >
         <FileImport
@@ -23,6 +24,7 @@ export const ImportMethods = ({ onImport, error }: { onImport: OnImport; error: 
         elevation={1}
         flex="1"
         padding={majorScale(2)}
+        marginBottom={majorScale(2)}
         textAlign="center"
       >
         <QrImport onImport={onImport} />

@@ -3,7 +3,7 @@ import { Card, CardProps, majorScale } from 'evergreen-ui';
 export const Box = ({ children, ...rest }: CardProps) => (
   <Card
     flex="1"
-    minWidth="200px"
+    minWidth="300px"
     maxWidth="40vw"
     elevation={2}
     padding={majorScale(2)}

@@ -11,16 +11,21 @@ export const Intro = () => {
       flex="1"
       height={250}
       marginX={majorScale(3)}
+      marginBottom={majorScale(2)}
       whiteSpace="pre-wrap"
       alignItems="flex-start"
       intent={intent}
+      minWidth="200px"
     >
       <Card padding={majorScale(2)}>{children}</Card>
     </Button>
   );
 
   return (
-    <Slab display="flex">
+    <Slab
+      display="flex"
+      flexWrap="wrap"
+    >
       <Btn
         intent="success"
         onClick={() => navigate('/scan')}

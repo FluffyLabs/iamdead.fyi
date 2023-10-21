@@ -1,21 +1,21 @@
 import { Button, Group, majorScale } from 'evergreen-ui';
-import { Steps } from '../store';
-import { ProgressBar } from '../../../components/progress-bar';
 import { ReactNode } from 'react';
+import { ProgressBar } from '../../../components/progress-bar';
+import { Steps } from '../secure';
 
 type ProgressProps = {
-  isNextStepActive?: boolean;
   step: Steps;
   setStep: (arg0: Steps) => void;
 };
 
-export const Progress = ({ step, setStep, isNextStepActive }: ProgressProps) => {
+export const Progress = ({ step, setStep }: ProgressProps) => {
   const progress = {
-    recipients: '10%',
-    'proof-of-life': '70%',
-    summary: '90%',
+    editor: '10%',
+    chunks: '40%',
+    encrypt: '90%',
   };
 
+  // TODO [ToDr] Validate random step transitions?
   const Btn = ({ step: myStep, children }: { step: Steps; children: ReactNode }) => {
     return (
       <Button
@@ -23,7 +23,6 @@ export const Progress = ({ step, setStep, isNextStepActive }: ProgressProps) => 
         appearance={step === myStep ? 'primary' : undefined}
         onClick={() => setStep(myStep)}
         justifyContent="left"
-        disabled={step !== myStep ? !isNextStepActive : false}
         minWidth="200px"
         marginBottom={majorScale(1)}
       >
@@ -39,9 +38,9 @@ export const Progress = ({ step, setStep, isNextStepActive }: ProgressProps) => 
         display="flex"
         flexWrap="wrap"
       >
-        <Btn step="recipients">1. Recipients</Btn>
-        <Btn step="proof-of-life">2. Proof of Life</Btn>
-        <Btn step="summary">3. Summary</Btn>
+        <Btn step="editor">1. Prepare the message</Btn>
+        <Btn step="chunks">2. Configure encryption</Btn>
+        <Btn step="encrypt">3. Encrypt the message</Btn>
       </Group>
     </>
   );

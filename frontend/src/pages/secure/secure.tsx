@@ -1,9 +1,7 @@
-import { Button, Group } from 'evergreen-ui';
-import { useCallback, useState, ReactNode } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { ProgressBar } from '../../components/progress-bar';
 import { OfflineWarning } from './components/offline-warning';
 import { ChunksConfigurationEditor } from './components/chunks-configuration-editor';
 import { SecureMessageResult, Result as CryptoResult } from './components/secure-message-result';
@@ -11,6 +9,7 @@ import { Editor } from './components/editor';
 import { useNavigate } from 'react-router-dom';
 import { useIsOnline } from '../../hooks/use-is-online';
 import { NextStepButton } from '../../components/next-step-button';
+import { Progress } from './components/progress';
 
 const useEditorState = () => {
   const [value, setValue] = useState('');
@@ -42,6 +41,8 @@ export type UserDefined = {
   name: string;
   description: string;
 };
+
+export type Steps = 'editor' | 'encrypt' | 'chunks';
 
 export const Secure = () => {
   const { value, handleChange } = useEditorState();
@@ -90,6 +91,7 @@ export const Secure = () => {
           setResult={setEncryptionResult}
           userDefined={userDefined}
           setUserDefined={setUserDefined}
+          goToStep={setStep}
         />
         <NextStepButton
           nextStep={nextStep}
@@ -130,45 +132,6 @@ export const Secure = () => {
         />
         {STEPS[step]()}
       </Container>
-    </>
-  );
-};
-
-type Steps = 'editor' | 'encrypt' | 'chunks';
-type ProgressProps = {
-  step: Steps;
-  setStep: (arg0: Steps) => void;
-};
-
-const Progress = ({ step, setStep }: ProgressProps) => {
-  const progress = {
-    editor: '10%',
-    chunks: '40%',
-    encrypt: '90%',
-  };
-
-  // TODO [ToDr] Validate random step transitions?
-  const Btn = ({ step: myStep, children }: { step: Steps; children: ReactNode }) => {
-    return (
-      <Button
-        flex="1"
-        appearance={step === myStep ? 'primary' : undefined}
-        onClick={() => setStep(myStep)}
-        justifyContent="left"
-      >
-        {children}
-      </Button>
-    );
-  };
-
-  return (
-    <>
-      <ProgressBar progress={progress[step]} />
-      <Group display="flex">
-        <Btn step="editor">1. Prepare the message</Btn>
-        <Btn step="chunks">2. Configure encryption</Btn>
-        <Btn step="encrypt">3. Encrypt the message</Btn>
-      </Group>
     </>
   );
 };

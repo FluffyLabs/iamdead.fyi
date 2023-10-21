@@ -6,7 +6,6 @@ export const MainPage = () => {
   return (
     <>
       <Pane
-        marginTop="-245px"
         display="flex"
         padding={majorScale(5)}
         borderRadius={4}
@@ -15,10 +14,12 @@ export const MainPage = () => {
         flexDirection="column"
         background={`url(${heroImage})`}
         backgroundSize="cover"
+        style={{ backgroundAttachment: 'fixed', backgroundPositionX: 'right' }}
         height="100vh"
       >
         <Heading
           size={900}
+          marginTop={majorScale(20)}
           marginBottom={majorScale(2)}
         >
           FYI: I am dead!

@@ -1,6 +1,7 @@
-import { Heading, Pane, majorScale, UnlockIcon, CogIcon, Link, EditIcon } from 'evergreen-ui';
+import { Heading, Pane, majorScale, UnlockIcon, CogIcon, EditIcon, Button, minorScale } from 'evergreen-ui';
 import { Slab } from '../../../../components/slab';
 import { ChunksConfiguration } from '../../../../services/crypto';
+import { Steps } from '../../secure';
 
 // TODO [ToDr] Summary should be editable:
 // 1. The message should open a dialog with editor
@@ -8,8 +9,9 @@ import { ChunksConfiguration } from '../../../../services/crypto';
 type SummaryProps = {
   message: string;
   chunksConfiguration: ChunksConfiguration;
+  goToStep: (a0: Steps) => void;
 };
-export const Summary = ({ message, chunksConfiguration }: SummaryProps) => {
+export const Summary = ({ message, chunksConfiguration, goToStep }: SummaryProps) => {
   return (
     <>
       <Slab background="tint2">
@@ -23,12 +25,16 @@ export const Summary = ({ message, chunksConfiguration }: SummaryProps) => {
           />
           <Heading size={400}>
             Original Message: {message.length} characters ({Math.ceil(message.length / 256)} bytes)
-            <Link
-              marginLeft={majorScale(1)}
-              href="#"
+            <Button
+              marginTop={-minorScale(1)}
+              marginLeft={minorScale(1)}
+              padding={minorScale(1)}
+              appearance="minimal"
+              size="small"
+              onClick={() => goToStep('editor')}
             >
               <EditIcon />
-            </Link>
+            </Button>
           </Heading>
         </Pane>
         <Slab
@@ -44,12 +50,16 @@ export const Summary = ({ message, chunksConfiguration }: SummaryProps) => {
           <Heading size={400}>
             Encryption: {chunksConfiguration.required} pieces required out of all{' '}
             {chunksConfiguration.required + chunksConfiguration.spare}
-            <Link
-              marginLeft={majorScale(1)}
-              href="#"
+            <Button
+              marginTop={-minorScale(1)}
+              marginLeft={minorScale(1)}
+              padding={minorScale(1)}
+              appearance="minimal"
+              size="small"
+              onClick={() => goToStep('chunks')}
             >
               <EditIcon />
-            </Link>
+            </Button>
           </Heading>
         </Slab>
       </Slab>
