@@ -1,11 +1,14 @@
 import { Heading, Pane, majorScale, UnlockIcon, CogIcon, Link, EditIcon } from 'evergreen-ui';
-import { Props } from './secure-message-result';
 import { Slab } from '../../../../components/slab';
+import { ChunksConfiguration } from '../../../../services/crypto';
 
 // TODO [ToDr] Summary should be editable:
 // 1. The message should open a dialog with editor
 // 2. The encryption should use DraggableNumber
-type SummaryProps = Omit<Props, 'setResult'>;
+type SummaryProps = {
+  message: string;
+  chunksConfiguration: ChunksConfiguration;
+};
 export const Summary = ({ message, chunksConfiguration }: SummaryProps) => {
   return (
     <>

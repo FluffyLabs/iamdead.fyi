@@ -28,7 +28,10 @@ export function QRWithClipboard({ value }: { value: string }) {
         onClick={copyToClipboard}
         style={{ cursor: 'copy' }}
       >
-        <QRCodeSVG value={value} />
+        <QRCodeSVG
+          value={value}
+          size={200}
+        />
       </Link>
     </Tooltip>
   );

@@ -38,6 +38,11 @@ const useEditorState = () => {
   return { value, handleChange };
 };
 
+export type UserDefined = {
+  name: string;
+  description: string;
+};
+
 export const Secure = () => {
   const { value, handleChange } = useEditorState();
   const [encryptionResult, setEncryptionResult] = useState(null as CryptoResult | null);
@@ -46,6 +51,8 @@ export const Secure = () => {
     required: 2,
     spare: 1,
   });
+  const [userDefined, setUserDefined] = useState([] as UserDefined[]);
+
   const isOnline = useIsOnline();
 
   const navigate = useNavigate();
@@ -79,7 +86,10 @@ export const Secure = () => {
         <SecureMessageResult
           chunksConfiguration={chunksConfiguration}
           message={value}
+          result={encryptionResult}
           setResult={setEncryptionResult}
+          userDefined={userDefined}
+          setUserDefined={setUserDefined}
         />
         <NextStepButton
           nextStep={nextStep}
