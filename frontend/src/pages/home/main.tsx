@@ -15,6 +15,7 @@ export const MainPage = () => {
         flexDirection="column"
         background={`url(${heroImage})`}
         backgroundSize="cover"
+        style={{ backgroundAttachment: 'fixed', backgroundPositionX: 'right' }}
         height="100vh"
       >
         <Heading
