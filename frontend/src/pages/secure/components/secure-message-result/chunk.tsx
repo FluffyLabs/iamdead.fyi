@@ -8,29 +8,24 @@ import {
   KeyIcon,
   DownloadIcon,
   ManualIcon,
-  toaster,
 } from 'evergreen-ui';
 import { Slab } from '../../../../components/slab';
-import { Chunk as ChunkT } from '../../../../services/crypto';
-import { useCallback } from 'react';
+import { onDownload } from './chunks';
+import { ChunksMeta } from '../../../../components/piece-view';
 
 type ChunkProps = {
-  chunk: ChunkT;
+  chunk: ChunksMeta;
   showDialog: (a0: number) => void;
+  onDownload: typeof onDownload;
 };
 
-export function Chunk({ chunk, showDialog }: ChunkProps) {
+export function Chunk({ chunk, showDialog, onDownload }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
-
-  const handleCertificate = useCallback(() => {
-    toaster.notify('Downloading certificate is not implemented yet.');
-  }, []);
-
   return (
     <Slab
       padding={0}
       marginY={majorScale(5)}
-      title={chunk.raw}
+      title={chunk.chunk.raw}
       display="flex"
     >
       <KeyIcon
@@ -44,22 +39,27 @@ export function Chunk({ chunk, showDialog }: ChunkProps) {
         <Heading
           marginRight={majorScale(1)}
           marginBottom={majorScale(1)}
-          onClick={() => showDialog(chunk.chunkIndex)}
+          onClick={() => showDialog(chunk.chunk.chunkIndex)}
           style={{ cursor: 'pointer' }}
         >
-          {chunk.name}
+          {chunk.chunk.name}
         </Heading>
         <Group>
           <Button
             iconBefore={<HeatGridIcon />}
-            onClick={() => showDialog(chunk.chunkIndex)}
+            onClick={() => showDialog(chunk.chunk.chunkIndex)}
           >
             QR
           </Button>
-          <Button iconBefore={<DownloadIcon />}>Download</Button>
+          <Button
+            iconBefore={<DownloadIcon />}
+            onClick={() => onDownload('raw', chunk)}
+          >
+            Download
+          </Button>
           <Button
             iconBefore={<ManualIcon />}
-            onClick={handleCertificate}
+            onClick={() => onDownload('certificate', chunk)}
           >
             Certificate
           </Button>

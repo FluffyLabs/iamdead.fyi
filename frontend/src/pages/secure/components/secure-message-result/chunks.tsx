@@ -11,10 +11,27 @@ import {
   ManualIcon,
   TextInputField,
   TextareaField,
+  toaster,
 } from 'evergreen-ui';
 import { ChunksMeta } from '../../../../components/piece-view';
 import { Chunk } from './chunk';
 import { QRWithClipboard } from '../../../../components/qr-with-clipboard';
+
+export function onDownload(kind: 'certificate' | 'raw', chunk: ChunksMeta) {
+  if (kind === 'certificate') {
+    toaster.notify('Downloading certificate is not implemented yet.');
+    return;
+  }
+
+  const blob = new Blob([chunk.chunk.raw], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a: HTMLAnchorElement = document.createElement('a');
+  a.href = url;
+  a.download = `${chunk.chunk.name}.icod.txt`;
+  // Trigger a click event on the anchor element
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function Chunks({
   chunks,
@@ -72,8 +89,9 @@ export function Chunks({
       {chunks.map((x: ChunksMeta) => (
         <Chunk
           key={x.chunk.chunkIndex}
-          chunk={x.chunk}
+          chunk={x}
           showDialog={showDialog}
+          onDownload={onDownload}
         />
       ))}
       {/* Not using footer, because it's not trivial to align buttons left/right */}
@@ -106,13 +124,18 @@ export function Chunks({
                 <QRWithClipboard value={chunk.chunk.raw.toUpperCase()} />
                 <Group marginTop={majorScale(2)}>
                   <Button
-                    onClick={() => {}}
+                    onClick={() => onDownload('raw', chunk)}
                     iconBefore={<DownloadIcon />}
                     marginBottom={majorScale(1)}
                   >
                     Download
                   </Button>
-                  <Button iconBefore={<ManualIcon />}>Certificate</Button>
+                  <Button
+                    iconBefore={<ManualIcon />}
+                    onClick={() => onDownload('certificate', chunk)}
+                  >
+                    Certificate
+                  </Button>
                 </Group>
               </Pane>
               <Pane flex="1">
