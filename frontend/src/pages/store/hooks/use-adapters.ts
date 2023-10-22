@@ -1,4 +1,4 @@
-import { getAdapters } from '../../../../services';
+import { getAdapters } from '../services/adapters';
 
 export function useAdapters() {
   const adapters = getAdapters();

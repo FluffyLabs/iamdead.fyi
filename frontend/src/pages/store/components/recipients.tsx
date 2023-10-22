@@ -74,7 +74,8 @@ export const Recipients = ({
         remaining pieces will be available to download as a <strong>recovery key</strong>.
       </Paragraph>
       <Paragraph>
-        If you already have an account, <Link href="#">sign in now</Link>.
+        You will be able to configure more details about recipients after signing in. If you already have an account,{' '}
+        <Link href="#">sign in now</Link>.
       </Paragraph>
       <EncryptedMessageView messageBytes={messageBytes}>
         <Tooltip

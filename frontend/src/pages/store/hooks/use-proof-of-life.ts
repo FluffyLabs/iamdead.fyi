@@ -1,9 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Adapter } from '../../../../services/adapters';
-
-export type ConfiguredAdapter = Adapter & {
-  months: number;
-};
+import { Adapter, ConfiguredAdapter } from '../services/adapters';
 
 export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapter => ({
   ...adapter,
@@ -14,6 +10,7 @@ const list: ConfiguredAdapter[][] = [];
 
 export function useProofOfLife() {
   const [listOfAdapters, setListOfAdapters] = useState<ConfiguredAdapter[][]>(list);
+  const [gracePeriod, setGracePeriod] = useState(1);
 
   const addNewGroup = useCallback(
     (item: ConfiguredAdapter) => {
@@ -67,7 +64,9 @@ export function useProofOfLife() {
       addToGroup,
       removeFromGroup,
       updateGroupItem,
+      gracePeriod,
+      setGracePeriod,
     }),
-    [listOfAdapters, addNewGroup, addToGroup, removeFromGroup, updateGroupItem],
+    [listOfAdapters, addNewGroup, addToGroup, removeFromGroup, updateGroupItem, gracePeriod],
   );
 }
