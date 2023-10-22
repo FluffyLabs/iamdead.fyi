@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Heading, Pane, majorScale, LockIcon, Group, Button, Dialog, HeatGridIcon, DownloadIcon } from 'evergreen-ui';
 import { encryptedMessageBytes } from '../../../../components/encrypted-message-view';
 import { EncryptedMessageQr } from './encrypted-message-qr';
+import { downloadFile } from '../../../../services/download-file';
 
 function CloseButton({ close }: { close: () => void }) {
   return (
@@ -14,13 +15,29 @@ function CloseButton({ close }: { close: () => void }) {
   );
 }
 
-export function EncryptedMessage({ encryptedMessage }: { encryptedMessage: string[] }) {
+function onDownload(message: string[]) {
+  // each part should have it's own line
+  downloadFile(
+    message.map((x) => x + '\n'),
+    'text/plain',
+    'encrypted_message.icod.txt',
+  );
+}
+
+type Props = {
+  encryptedMessage: string[];
+};
+export function EncryptedMessage({ encryptedMessage }: Props) {
   const [isShowingQr, setIsShowingQr] = useState(false);
+
+  const handleDownload = useCallback(() => {
+    onDownload(encryptedMessage);
+  }, [encryptedMessage]);
 
   const Footer = ({ close }: Parameters<typeof CloseButton>[0]) => (
     <Group>
       <Button
-        onClick={() => {}}
+        onClick={handleDownload}
         iconBefore={<DownloadIcon />}
       >
         Download
@@ -57,7 +74,7 @@ export function EncryptedMessage({ encryptedMessage }: { encryptedMessage: strin
             QR codes
           </Button>
           <Button
-            onClick={() => {}}
+            onClick={handleDownload}
             iconBefore={<DownloadIcon />}
           >
             Download

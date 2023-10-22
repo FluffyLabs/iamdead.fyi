@@ -185,6 +185,8 @@ const DisplayResult = ({
         />
       </Pane>
       <Card
+        flex="1"
+        minWidth="200px"
         paddingX={majorScale(3)}
         marginBottom={majorScale(5)}
       >

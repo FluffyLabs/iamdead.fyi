@@ -71,18 +71,28 @@ const Import = () => {
       setError(null);
       setLastPart(input);
 
-      partsCollector
-        .handlePart(messageParts, chunks, input)
-        .then((res) => {
+      async function doImport(input: string) {
+        let newChunks = chunks;
+        let newMessageParts = messageParts;
+
+        for (let part of input.split('\n')) {
+          if (!part) continue;
+          const res = await partsCollector.handlePart(newMessageParts, newChunks, part);
           const newChunk = chunks.length !== res.chunks.length;
           toaster.success(newChunk ? 'Piece imported successfuly.' : 'Message Part imported successfuly.');
-          setChunks(res.chunks);
-          setMessageParts(res.messageParts);
-        })
-        .catch((e: Error) => {
-          setError(e.message);
-          console.error(e);
-        });
+          newChunks = res.chunks;
+          newMessageParts = res.messageParts;
+        }
+
+        setChunks(newChunks);
+        setMessageParts(newMessageParts);
+        return true;
+      }
+
+      doImport(input).catch((e: Error) => {
+        setError(e.message);
+        console.error(e);
+      });
     },
     [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks],
   );
