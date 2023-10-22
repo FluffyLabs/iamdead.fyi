@@ -16,7 +16,12 @@ function CloseButton({ close }: { close: () => void }) {
 }
 
 function onDownload(message: string[]) {
-  downloadFile(message, 'text/plain', 'encrypted_message.icod.txt');
+  // each part should have it's own line
+  downloadFile(
+    message.map((x) => x + '\n'),
+    'text/plain',
+    'encrypted_message.icod.txt',
+  );
 }
 
 type Props = {
