@@ -161,7 +161,7 @@ const Storage = ({
           nextStep={nextStep}
           disabled={!isNextStepActive}
         >
-          Sign in
+          Sign in to proceed
         </NextStepButton>
       </>
     ),
