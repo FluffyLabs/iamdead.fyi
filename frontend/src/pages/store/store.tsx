@@ -155,7 +155,7 @@ const Storage = ({
         <Summary
           listOfAdapters={proofOfLife.listOfAdapters}
           gracePeriod={proofOfLife.gracePeriod}
-          chunks={chunks}
+          chunks={chunks.filter((x) => x.isSelected)}
         />
         <NextStepButton
           nextStep={nextStep}
