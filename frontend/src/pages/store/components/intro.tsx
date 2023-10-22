@@ -37,7 +37,7 @@ export const Intro = () => {
         <Heading size={400}>I've prepared the message off-line (recommended).</Heading>
         <Paragraph
           size={300}
-          marginTop={majorScale(1)}
+          marginY={majorScale(1)}
         >
           The encryption process happens on an off-line device, and QR codes are scanned to continue the process here.
         </Paragraph>
@@ -50,7 +50,7 @@ export const Intro = () => {
         <Heading size={400}>Let me prepare the message now.</Heading>
         <Paragraph
           size={300}
-          marginTop={majorScale(1)}
+          marginY={majorScale(1)}
         >
           You'll prepare the message on the current device. Note that it is not recommended to do so for security
           reasons.
