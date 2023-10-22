@@ -16,6 +16,7 @@ import {
 import { ChunksMeta } from '../../../../components/piece-view';
 import { Chunk } from './chunk';
 import { QRWithClipboard } from '../../../../components/qr-with-clipboard';
+import { downloadFile } from '../../../../services/download-file';
 
 export function onDownload(kind: 'certificate' | 'raw', chunk: ChunksMeta) {
   if (kind === 'certificate') {
@@ -23,14 +24,7 @@ export function onDownload(kind: 'certificate' | 'raw', chunk: ChunksMeta) {
     return;
   }
 
-  const blob = new Blob([chunk.chunk.raw], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a: HTMLAnchorElement = document.createElement('a');
-  a.href = url;
-  a.download = `${chunk.chunk.name}.icod.txt`;
-  // Trigger a click event on the anchor element
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadFile([chunk.chunk.raw], 'text/plain', `${chunk.chunk.name}.icod.txt`);
 }
 
 export function Chunks({
