@@ -1,1 +1,1 @@
-export { ProofOfLifeComponent } from './proof-of-life';
+export * from './proof-of-life';

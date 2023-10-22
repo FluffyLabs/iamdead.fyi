@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Progress } from './components/progress';
 import { Intro } from './components/intro';
 import { NextStepButton } from '../../components/next-step-button';
-import { ProofOfLifeComponent } from './proof-of-life/proof-of-life';
+import { ProofOfLife } from './proof-of-life/proof-of-life';
 import { Adapter } from '../../services/adapters';
 import { ConfiguredAdapter, useProofOfLife } from './proof-of-life/hooks/use-proof-of-life';
 import { MaybeRecipient, Recipient, Recipients } from './components/recipients';
@@ -130,7 +130,7 @@ const Storage = ({
     ),
     'proof-of-life': () => (
       <>
-        <ProofOfLife proofOfLife={proofOfLife} />
+        <ProofOfLifeWrapper proofOfLife={proofOfLife} />
         <NextStepButton
           nextStep={nextStep}
           disabled={!isNextStepActive}
@@ -177,7 +177,7 @@ const Storage = ({
   );
 };
 
-const ProofOfLife = ({ proofOfLife }: { proofOfLife: ReturnType<typeof useProofOfLife> }) => {
+const ProofOfLifeWrapper = ({ proofOfLife }: { proofOfLife: ReturnType<typeof useProofOfLife> }) => {
   const addNewAdapterGroup = useCallback(
     ({ adapter }: { adapter: Adapter }) => {
       proofOfLife.addNewGroup({ ...adapter, months: 2 });
@@ -204,18 +204,13 @@ const ProofOfLife = ({ proofOfLife }: { proofOfLife: ReturnType<typeof useProofO
   );
 
   return (
-    <>
-      <Paragraph>
-        Decide under what conditions the pieces will be distributed to the recipients. More detailed configuration will
-        be available after you sign in.
-      </Paragraph>
-
-      <ProofOfLifeComponent
-        adapters={proofOfLife.listOfAdapters}
-        addNewAdapterGroup={addNewAdapterGroup}
-        addToGroup={addToGroup}
-        updateGroupItem={updateGroupItem}
-      />
-    </>
+    <ProofOfLife
+      adapters={proofOfLife.listOfAdapters}
+      addNewAdapterGroup={addNewAdapterGroup}
+      addToGroup={addToGroup}
+      updateGroupItem={updateGroupItem}
+      gracePeriod={proofOfLife.gracePeriod}
+      setGracePeriod={proofOfLife.setGracePeriod}
+    />
   );
 };

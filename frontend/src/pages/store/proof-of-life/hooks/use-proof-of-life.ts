@@ -14,6 +14,7 @@ const list: ConfiguredAdapter[][] = [];
 
 export function useProofOfLife() {
   const [listOfAdapters, setListOfAdapters] = useState<ConfiguredAdapter[][]>(list);
+  const [gracePeriod, setGracePeriod] = useState(1);
 
   const addNewGroup = useCallback(
     (item: ConfiguredAdapter) => {
@@ -67,7 +68,9 @@ export function useProofOfLife() {
       addToGroup,
       removeFromGroup,
       updateGroupItem,
+      gracePeriod,
+      setGracePeriod,
     }),
-    [listOfAdapters, addNewGroup, addToGroup, removeFromGroup, updateGroupItem],
+    [listOfAdapters, addNewGroup, addToGroup, removeFromGroup, updateGroupItem, gracePeriod],
   );
 }
