@@ -1,9 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Adapter } from '../../../../services/adapters';
-
-export type ConfiguredAdapter = Adapter & {
-  months: number;
-};
+import { Adapter, ConfiguredAdapter } from '../services/adapters';
 
 export const createAdapter = (adapter: Adapter, months: number): ConfiguredAdapter => ({
   ...adapter,

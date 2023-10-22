@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { ConfiguredAdapter } from '../../hooks/use-proof-of-life';
-import { DraggableNumber } from '../../../../../components/draggable-number';
+import { DraggableNumber } from '../../../../../../components/draggable-number';
 import { CrossIcon, Heading, IconButton, Pane } from 'evergreen-ui';
+import { ConfiguredAdapter } from '../../../../services/adapters';
 
 import styles from './group-sublist-item.module.scss';
 

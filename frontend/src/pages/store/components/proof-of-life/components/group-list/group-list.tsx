@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Adapter, MAX_OR_GROUPS } from '../../../../../services/adapters';
+import { Adapter, ConfiguredAdapter, MAX_OR_GROUPS } from '../../../../services/adapters';
 import { Button, Heading, PlusIcon, majorScale } from 'evergreen-ui';
 import { Box } from '../box';
-import { ConfiguredAdapter } from '../../hooks/use-proof-of-life';
 import { AdapterSelector } from '../adapter-selector';
 import { GroupSublist } from './group-sublist';
 

@@ -11,6 +11,10 @@ export type Adapter = {
   type: AdapterType;
 };
 
+export type ConfiguredAdapter = Adapter & {
+  months: number;
+};
+
 const createAdapter = (name: string, text: string, icon: IconDefinition, type: AdapterType): Adapter => ({
   id: name,
   icon: <FontAwesomeIcon icon={icon} />,

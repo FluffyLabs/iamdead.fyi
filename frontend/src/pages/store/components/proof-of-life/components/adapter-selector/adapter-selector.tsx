@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 
 import { AdaptersList } from './adapters-list';
-import { Adapter } from '../../../../../services/adapters';
+import { Adapter } from '../../../../services/adapters';
 
-import { useAdapters } from '../../hooks/use-adapters';
+import { useAdapters } from '../../../../hooks/use-adapters';
 
 type Props = {
   short?: boolean;

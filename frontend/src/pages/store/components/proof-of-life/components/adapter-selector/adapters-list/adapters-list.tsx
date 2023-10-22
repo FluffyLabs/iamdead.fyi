@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Adapter } from '../../../../../../services/adapters';
+import { Adapter } from '../../../../../services/adapters';
 import { Button, Group, majorScale } from 'evergreen-ui';
 
 type Props = {

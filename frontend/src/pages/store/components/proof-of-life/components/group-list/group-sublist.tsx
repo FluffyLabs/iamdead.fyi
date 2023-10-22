@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { GroupSublistItem } from './group-sublist-item';
-import { Adapter, MAX_AND_ITEMS } from '../../../../../services/adapters';
+import { Adapter, ConfiguredAdapter, MAX_AND_ITEMS } from '../../../../services/adapters';
 import { Button, Heading, PlusIcon, majorScale } from 'evergreen-ui';
-import { ConfiguredAdapter } from '../../hooks/use-proof-of-life';
 import { AdapterSelector } from '../adapter-selector';
 
 export const GroupSublist = ({

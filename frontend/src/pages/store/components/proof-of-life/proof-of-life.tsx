@@ -1,11 +1,10 @@
 import { AdapterSelector } from './components/adapter-selector';
 import { GroupList } from './components/group-list';
-import { Adapter } from '../../../services/adapters';
+import { Adapter, ConfiguredAdapter } from '../../services/adapters';
 import { Heading, InfoSignIcon, Pane, majorScale, Tooltip, Text, Paragraph } from 'evergreen-ui';
 import { Box } from './components/box';
-import { ConfiguredAdapter } from './hooks/use-proof-of-life';
-import { DraggableNumber } from '../../../components/draggable-number';
-import { Slab } from '../../../components/slab';
+import { DraggableNumber } from '../../../../components/draggable-number';
+import { Slab } from '../../../../components/slab';
 
 type Props = {
   adapters: ConfiguredAdapter[][];

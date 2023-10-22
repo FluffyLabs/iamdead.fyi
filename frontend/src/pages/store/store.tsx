@@ -1,4 +1,4 @@
-import { Heading, Pane, Paragraph, Pre, majorScale } from 'evergreen-ui';
+import { Heading, Pane, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useLocation } from 'react-router-dom';
@@ -6,12 +6,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { Progress } from './components/progress';
 import { Intro } from './components/intro';
 import { NextStepButton } from '../../components/next-step-button';
-import { ProofOfLife } from './proof-of-life/proof-of-life';
-import { Adapter } from '../../services/adapters';
-import { ConfiguredAdapter, useProofOfLife } from './proof-of-life/hooks/use-proof-of-life';
+import { Adapter, ConfiguredAdapter } from './services/adapters';
+import { ProofOfLife } from './components/proof-of-life/proof-of-life';
+import { useProofOfLife } from './hooks/use-proof-of-life';
 import { MaybeRecipient, Recipient, Recipients } from './components/recipients';
 import { ChunksConfiguration } from '../../services/crypto';
 import { Result as EncryptionResult } from '../secure/components/secure-message-result';
+import { ChunksMeta } from '../../components/piece-view';
+import { Summary } from './components/summary';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -65,6 +67,12 @@ function isValid(recipient: MaybeRecipient) {
   return false;
 }
 
+export type ChunkStorage = {
+  chunk: ChunksMeta;
+  isSelected: boolean;
+  recipient: MaybeRecipient;
+};
+
 const Storage = ({
   chunksConfiguration,
   encryptionResult,
@@ -83,11 +91,14 @@ const Storage = ({
   }, [step, setStep]);
 
   const initialChunks = useMemo(() => {
-    return encryptionResult.chunks.map((chunk) => ({
-      chunk,
-      isSelected: false,
-      recipient: null as MaybeRecipient,
-    }));
+    return encryptionResult.chunks.map(
+      (chunk) =>
+        ({
+          chunk,
+          isSelected: false,
+          recipient: null,
+        }) as ChunkStorage,
+    );
   }, [encryptionResult.chunks]);
 
   const [chunks, setChunks] = useState(initialChunks);
@@ -135,32 +146,23 @@ const Storage = ({
           nextStep={nextStep}
           disabled={!isNextStepActive}
         >
-          Sign in to save the setup
+          Summarize the setup
         </NextStepButton>
       </>
     ),
     summary: () => (
       <>
-        <Pre>
-          {JSON.stringify(
-            chunks.filter((x) => x.isSelected),
-            null,
-            2,
-          )}
-        </Pre>
-        <Pre>
-          {JSON.stringify(
-            proofOfLife.listOfAdapters.map((x) =>
-              x.map((y) => ({
-                id: y.id,
-                name: y.name,
-                months: y.months,
-              })),
-            ),
-            null,
-            2,
-          )}
-        </Pre>
+        <Summary
+          listOfAdapters={proofOfLife.listOfAdapters}
+          gracePeriod={proofOfLife.gracePeriod}
+          chunks={chunks}
+        />
+        <NextStepButton
+          nextStep={nextStep}
+          disabled={!isNextStepActive}
+        >
+          Sign in
+        </NextStepButton>
       </>
     ),
   };
