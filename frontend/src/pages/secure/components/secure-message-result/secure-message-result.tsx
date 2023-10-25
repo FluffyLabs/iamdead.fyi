@@ -191,7 +191,7 @@ const DisplayResult = ({
         marginBottom={majorScale(5)}
       >
         <Paragraph>
-          Store the encrypted message safely and distributed the pieces according to your preference.
+          Store the encrypted message safely and distribute the pieces according to your preference.
         </Paragraph>
         <br />
         <Paragraph>
