@@ -36,13 +36,11 @@ export function useIndieAuthAuthorization() {
   const [, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { isLoading, error, isSuccess, isError } = useQuery(
-    [],
-    ({ signal }) => axios.post('/auth/indie-auth/authorize', profileParams, { signal }),
-    {
-      enabled: hasProfileParams,
-    },
-  );
+  const { isLoading, error, isSuccess, isError } = useQuery({
+    queryKey: [],
+    queryFn: ({ signal }) => axios.post('/auth/indie-auth/authorize', profileParams, { signal }),
+    enabled: hasProfileParams,
+  });
 
   useEffect(() => {
     if (hasProfileParams && (isSuccess || isError)) {
