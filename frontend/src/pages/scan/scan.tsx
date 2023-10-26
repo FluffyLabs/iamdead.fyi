@@ -34,7 +34,7 @@ export const Scan = () => {
           size={700}
           marginBottom={majorScale(5)}
         >
-          Import the encrypted message and pieces.
+          Import the encrypted message and restoration pieces.
         </Heading>
         <Import />
       </Container>
@@ -110,7 +110,9 @@ const Import = () => {
 
   return (
     <>
-      <Paragraph>Drag &amp; drop the pieces and encrypted message or scan QR codes from an offline device.</Paragraph>
+      <Paragraph>
+        Drag &amp; drop the restoration pieces and encrypted message or scan QR codes from an offline device.
+      </Paragraph>
       <Pane
         marginY={majorScale(2)}
         display="flex"
@@ -203,7 +205,7 @@ const DisplayResults = ({
         disabled={notEnoughMessageParts || notEnoughChunks}
         nextStep={handleNextStep}
       >
-        Store pieces & configure distribution
+        Store restoration pieces & configure distribution
       </NextStepButton>
     </>
   );
