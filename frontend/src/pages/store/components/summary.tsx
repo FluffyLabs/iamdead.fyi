@@ -80,7 +80,7 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
       .map((_x, index) => {
         return {
           index,
-          name: `Piece ${index + 1}/${total}`,
+          name: `Restoration Piece ${index + 1}/${total}`,
         };
       });
 

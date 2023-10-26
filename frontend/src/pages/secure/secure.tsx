@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIsOnline } from '../../hooks/use-is-online';
 import { NextStepButton } from '../../components/next-step-button';
 import { Progress } from './components/progress';
+import { useCryptoPreload } from '../../hooks/use-crypto-preload';
 
 const useEditorState = () => {
   const [value, setValue] = useState('');
@@ -45,6 +46,7 @@ export type UserDefined = {
 export type Steps = 'editor' | 'encrypt' | 'chunks';
 
 export const Secure = () => {
+  const isCryptoLoaded = useCryptoPreload();
   const { value, handleChange } = useEditorState();
   const [encryptionResult, setEncryptionResult] = useState(null as CryptoResult | null);
   const [step, setStep] = useState('editor' as Steps);
@@ -68,7 +70,7 @@ export const Secure = () => {
 
     if (step === 'encrypt') {
       const isConfirmed = window.confirm(
-        'After leaving this page your original message is removed and we are only going to work with the encrypted data.',
+        'After leaving this page your original message is removed and we are only going to work with the encrypted message and restoration pieces.',
       );
       if (isConfirmed) {
         navigate('/store', {
@@ -92,13 +94,15 @@ export const Secure = () => {
           userDefined={userDefined}
           setUserDefined={setUserDefined}
           goToStep={setStep}
+          nextStep={
+            <NextStepButton
+              nextStep={nextStep}
+              disabled={!encryptionResult || !isOnline}
+            >
+              Store pieces on-line & configure distribution
+            </NextStepButton>
+          }
         />
-        <NextStepButton
-          nextStep={nextStep}
-          disabled={!encryptionResult || !isOnline}
-        >
-          Store pieces & configure distribution
-        </NextStepButton>
       </>
     ),
     chunks: () => (
@@ -125,7 +129,7 @@ export const Secure = () => {
     <>
       <Navigation />
       <Container>
-        <OfflineWarning />
+        <OfflineWarning isLoading={isCryptoLoaded} />
         <Progress
           step={step}
           setStep={setStep}

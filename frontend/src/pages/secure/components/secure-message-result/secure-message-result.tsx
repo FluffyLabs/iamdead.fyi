@@ -1,5 +1,18 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { Pane, Spinner, majorScale, Alert, EmptyState, SmallCrossIcon, Card, Paragraph } from 'evergreen-ui';
+import { ReactNode, useCallback, useEffect, useRef } from 'react';
+import {
+  Pane,
+  Spinner,
+  majorScale,
+  Alert,
+  EmptyState,
+  SmallCrossIcon,
+  Card,
+  Paragraph,
+  Heading,
+  Button,
+  Popover,
+  ChevronRightIcon,
+} from 'evergreen-ui';
 import { useSecureMessage } from '../../../../hooks/use-secure-message';
 import { ChunksConfiguration } from '../../../../services/crypto';
 import { Summary } from './summary';
@@ -9,6 +22,8 @@ import { encryptedMessageBytes } from '../../../../components/encrypted-message-
 import { Steps, UserDefined } from '../../secure';
 import { EncryptedMessage } from './encrypted-message';
 import { Chunks } from './chunks';
+import { useLocation } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 
 export type Result = {
   encryptedMessage: string[];
@@ -24,6 +39,7 @@ export type Props = {
   userDefined: UserDefined[];
   setUserDefined: (a0: UserDefined[]) => void;
   goToStep: (a0: Steps) => void;
+  nextStep: ReactNode;
 };
 
 export const SecureMessageResult = ({
@@ -34,6 +50,7 @@ export const SecureMessageResult = ({
   userDefined,
   setUserDefined,
   goToStep,
+  nextStep,
 }: Props) => {
   const {
     secureMessage,
@@ -119,6 +136,7 @@ export const SecureMessageResult = ({
         onChunkNameChange={handleChunkNameChange}
         chunkNameChangeError={alterChunkNameError}
         onChunkDescriptionChange={handleChunkDescritptionChange}
+        nextStep={nextStep}
       />
     </>
   );
@@ -143,12 +161,14 @@ const DisplayResult = ({
   onChunkNameChange,
   chunkNameChangeError,
   onChunkDescriptionChange,
+  nextStep,
 }: {
   result: Result | null;
   error: string | null;
   onChunkNameChange: (chunkIndex: number, newName: string) => void;
   chunkNameChangeError?: string;
   onChunkDescriptionChange: (chunkIndex: number, newDescription: string) => void;
+  nextStep: ReactNode;
 }) => {
   if (error) {
     return (
@@ -168,6 +188,8 @@ const DisplayResult = ({
       />
     );
   }
+
+  const requiredChunks = result?.chunks[0]?.chunk?.requiredChunks;
 
   return (
     <Slab
@@ -190,15 +212,69 @@ const DisplayResult = ({
         paddingX={majorScale(3)}
         marginBottom={majorScale(5)}
       >
+        <Heading
+          size={500}
+          marginBottom={majorScale(2)}
+        >
+          What now?
+        </Heading>
         <Paragraph>
-          Store the encrypted message safely and distribute the pieces according to your preference.
+          Download & store the encrypted message safely and distribute the restoration pieces according to your
+          preference.
         </Paragraph>
         <br />
+        <Paragraph>Remember that any {requiredChunks} restoration pieces can be used to decrypt the message.</Paragraph>
+        <br />
         <Paragraph>
-          Note that encrypted message IS MANDATORY on top of the number of required pieces to restore the original
-          message.
+          Note that not only the pieces, but also the encrypted message IS MANDATORY for the restoration.
         </Paragraph>
+
+        <Heading
+          size={500}
+          marginTop={majorScale(4)}
+          marginBottom={majorScale(2)}
+        >
+          What next?
+        </Heading>
+        <Paragraph>
+          You can choose to upload some of the restoration pieces to your on-line account and configure recipients and
+          conditions under which they will be distributed.
+        </Paragraph>
+
+        {nextStep}
+
+        <Slab
+          padding="0"
+          display="flex"
+          justifyContent="center"
+        >
+          <Popover content={<GoToScanPageQr />}>
+            <Button iconAfter={<ChevronRightIcon />}>Continue on a different device</Button>
+          </Popover>
+        </Slab>
       </Card>
+    </Slab>
+  );
+};
+
+const GoToScanPageQr = () => {
+  const loc = window.location;
+  const url = `${loc.protocol}//${loc.host}/scan`;
+  return (
+    <Slab
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      maxWidth="400px"
+    >
+      <Paragraph>
+        This process can be also continued on a different device. <br />
+        Scan the QR code below to open the page.
+      </Paragraph>
+      <Pane marginY={majorScale(2)}>
+        <QRCodeSVG value={url} />
+      </Pane>
+      <Paragraph>{url}</Paragraph>
     </Slab>
   );
 };

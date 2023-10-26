@@ -6,16 +6,20 @@ import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Secure } from './pages/secure';
 import { Store } from './pages/store';
 import { Scan } from './pages/scan';
+import { NotFound } from './pages/not-found';
 
 export function Routes() {
   return (
     <>
       <ReactRoutes>
         <Route
+          path="*"
+          element={<NotFound />}
+        />
+        <Route
           index
           element={<Home />}
         />
-
         <Route
           element={<Secure />}
           path="secure"
