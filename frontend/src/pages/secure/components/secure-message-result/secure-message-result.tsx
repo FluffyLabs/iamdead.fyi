@@ -22,7 +22,6 @@ import { encryptedMessageBytes } from '../../../../components/encrypted-message-
 import { Steps, UserDefined } from '../../secure';
 import { EncryptedMessage } from './encrypted-message';
 import { Chunks } from './chunks';
-import { useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 
 export type Result = {
