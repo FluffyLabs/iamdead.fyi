@@ -75,12 +75,12 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
 
   const phantomChunks = useMemo(() => {
     const total = sparePieces + requiredPieces;
-    const phantomPieces = Array(total)
+    const phantomPieces = Array(total || 0)
       .fill(null)
       .map((_x, index) => {
         return {
           index,
-          name: `Piece ${index + 1}/${total}`,
+          name: `Restoration Piece ${index + 1}/${total}`,
         };
       });
 

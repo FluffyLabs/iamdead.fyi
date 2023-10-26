@@ -99,7 +99,7 @@ pub fn identify(item: String) -> Result<IdentificationOrJsValue, Error> {
     return Ok(serialize(Identification::Chunk {
       name: name
         .map(Into::into)
-        .unwrap_or_else(|| format!("Piece {}/{}", chunk.index() + 1, total_chunks)),
+        .unwrap_or_else(|| format!("Restoration Piece {}/{}", chunk.index() + 1, total_chunks)),
       version: chunk.version(),
       key_hash: crate::conv::encode(&chunk.key_hash().to_bytes()),
       required_chunks: chunk.configuration().required() as u8,
@@ -205,7 +205,7 @@ mod tests {
       _ => "".into(),
     };
     assert_eq!(result, Identification::Chunk {
-      name: "Piece 2/5".into(),
+      name: "Restoration Piece 2/5".into(),
       version:0,
       key_hash: "av90pe1vsder0me4lgd8bb5beegqo083q4s0p2sdi36248eqq2cllacfebsb5ne4644jsqe7i515nrggqhgv00q4f87nvijrjul6q58".into(),
       required_chunks: 2,

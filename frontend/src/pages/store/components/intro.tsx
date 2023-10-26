@@ -16,6 +16,7 @@ export const Intro = () => {
       alignItems="flex-start"
       intent={intent}
       minWidth="200px"
+      boxShadow="3px 3px 5px #e0e0e0"
     >
       <Card padding={majorScale(2)}>{children}</Card>
     </Button>

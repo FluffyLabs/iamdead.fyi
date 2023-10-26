@@ -1,5 +1,5 @@
 import { Text, Heading, KeyIcon, Link, NewPersonIcon, Pane, majorScale } from 'evergreen-ui';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DraggableNumber } from '../../../components/draggable-number';
 import {
   MAX_NO_OF_ADDITIONAL_PIECES,
@@ -15,20 +15,39 @@ type ChunksConfigurationEditorProps = {
   onChange: (a0: ChunksConfiguration) => void;
 };
 export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksConfigurationEditorProps) => {
-  const [requiredChunks, setRequiredChunks] = useState(configuration.required);
+  const [totalChunks, setTotalChunks] = useState(configuration.required + configuration.spare);
   const [spareChunks, setSpareChunks] = useState(configuration.spare);
+
+  const requiredChunks = totalChunks - spareChunks;
+  const setRequiredChunks = useCallback(
+    (v: number) => {
+      setSpareChunks(Math.max(0, totalChunks - v));
+    },
+    [totalChunks],
+  );
+
+  // Instead of increasing the required chunks when
+  // some one is dragging the button, we rather want to increase
+  // the spare chunks.
+  const alterTotalChunks = useCallback(
+    (v: number) => {
+      setTotalChunks(v);
+      setSpareChunks(v - requiredChunks);
+    },
+    [requiredChunks],
+  );
 
   // sync internal changes
   useEffect(() => {
     onChange({
-      required: requiredChunks,
+      required: totalChunks - spareChunks,
       spare: spareChunks,
     });
-  }, [onChange, requiredChunks, spareChunks]);
+  }, [onChange, totalChunks, spareChunks]);
 
   // sync incoming changes
   useEffect(() => {
-    setRequiredChunks(configuration.required);
+    setTotalChunks(configuration.required + configuration.spare);
     setSpareChunks(configuration.spare);
   }, [configuration]);
 
@@ -45,14 +64,14 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
           <Link href="https://en.wikipedia.org/wiki/Shamir's_secret_sharing">Shamir's Secret Sharing</Link>.
         </Heading>
         <Slab background="tint2">
+          <TotalChunks
+            totalChunks={totalChunks}
+            requiredChunks={requiredChunks}
+            setTotalChunks={alterTotalChunks}
+          />
           <RequiredChunks
             requiredChunks={requiredChunks}
             setRequiredChunks={setRequiredChunks}
-          />
-          <SpareChunks
-            spareChunks={spareChunks}
-            requiredChunks={requiredChunks}
-            setSpareChunks={setSpareChunks}
           />
         </Slab>
       </Pane>
@@ -60,20 +79,20 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
   );
 };
 
-const SpareChunks = ({
-  spareChunks,
+const TotalChunks = ({
+  totalChunks,
   requiredChunks,
-  setSpareChunks,
+  setTotalChunks,
 }: {
-  spareChunks: number;
+  totalChunks: number;
   requiredChunks: number;
-  setSpareChunks: (a0: number) => void;
+  setTotalChunks: (a0: number) => void;
 }) => {
   const number = (
     <DraggableNumber
-      value={spareChunks}
-      onChange={setSpareChunks}
-      min={MIN_NO_OF_ADDITIONAL_PIECES}
+      value={totalChunks}
+      onChange={setTotalChunks}
+      min={Math.max(MIN_NO_OF_ADDITIONAL_PIECES, requiredChunks)}
       max={MAX_NO_OF_ADDITIONAL_PIECES}
     />
   );
@@ -94,11 +113,8 @@ const SpareChunks = ({
         display="flex"
         flexDirection="column"
       >
-        <Heading size={400}>Number of backup pieces.</Heading>
-        <Text>
-          I also need {number}
-          additional backup pieces, so {spareChunks + requiredChunks} pieces in total.
-        </Text>
+        <Heading size={400}>Number of pieces.</Heading>
+        <Text>I need {number} unique restoration pieces.</Text>
       </Pane>
     </Slab>
   );
@@ -138,10 +154,7 @@ const RequiredChunks = ({
         flexDirection="column"
       >
         <Heading size={400}>Minimal number of pieces to read the message.</Heading>
-        <Text>
-          I want to read the message when any
-          {number} pieces are collected together.
-        </Text>
+        <Text>I want to be able to restore the message when any {number} pieces are collected together.</Text>
       </Pane>
     </Slab>
   );
