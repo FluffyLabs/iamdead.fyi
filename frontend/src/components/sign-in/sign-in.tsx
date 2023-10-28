@@ -1,4 +1,4 @@
-import { Button, Heading, Link, Pane, Paragraph, Small, TextInputField, majorScale } from 'evergreen-ui';
+import { Button, Link, Small, TextInputField, majorScale } from 'evergreen-ui';
 import { Slab } from '../slab';
 import { useAuthorizationParams } from './hooks';
 import { CSSProperties, ReactNode } from 'react';
