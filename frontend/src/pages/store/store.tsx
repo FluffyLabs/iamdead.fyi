@@ -1,4 +1,4 @@
-import { Heading, Pane, majorScale } from 'evergreen-ui';
+import { Dialog, Heading, Pane, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useLocation } from 'react-router-dom';
@@ -14,6 +14,7 @@ import { ChunksConfiguration } from '../../services/crypto';
 import { Result as EncryptionResult } from '../secure/components/secure-message-result';
 import { ChunksMeta } from '../../components/piece-view';
 import { Summary } from './components/summary';
+import { SignIn } from '../../components/sign-in/sign-in';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -81,6 +82,8 @@ const Storage = ({
   encryptionResult: EncryptionResult;
 }) => {
   const [step, setStep] = useState('recipients' as Steps);
+  const [showLogin, setShowLogin] = useState(false);
+
   const nextStep = useCallback(() => {
     if (step === 'recipients') {
       setStep('proof-of-life');
@@ -88,7 +91,10 @@ const Storage = ({
     if (step === 'proof-of-life') {
       setStep('summary');
     }
-  }, [step, setStep]);
+    if (step === 'summary') {
+      setShowLogin(true);
+    }
+  }, [step, setStep, setShowLogin]);
 
   const initialChunks = useMemo(() => {
     return encryptionResult.chunks.map(
@@ -175,6 +181,13 @@ const Storage = ({
         isNextStepActive={isNextStepActive}
       />
       <Pane marginTop={majorScale(3)}>{STEPS[step]()}</Pane>
+      <Dialog
+        isShown={showLogin}
+        hasFooter={false}
+        hasHeader={false}
+      >
+        <SignIn />
+      </Dialog>
     </>
   );
 };

@@ -7,16 +7,17 @@ export const Intro = () => {
   const navigate = useNavigate();
   const Btn = ({ children, onClick, intent }: { children: ReactNode; onClick?: () => void; intent?: string }) => (
     <Button
-      onClick={onClick}
+      alignItems="flex-start"
+      boxShadow="3px 3px 5px #e0e0e0"
       flex="1"
       height={250}
-      marginX={majorScale(3)}
-      marginBottom={majorScale(2)}
-      whiteSpace="pre-wrap"
-      alignItems="flex-start"
       intent={intent}
+      marginBottom={majorScale(2)}
+      marginX={majorScale(3)}
       minWidth="200px"
-      boxShadow="3px 3px 5px #e0e0e0"
+      onClick={onClick}
+      paddingTop={majorScale(2)}
+      whiteSpace="pre-wrap"
     >
       <Card padding={majorScale(2)}>{children}</Card>
     </Button>

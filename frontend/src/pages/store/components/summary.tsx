@@ -68,8 +68,8 @@ type Props = {
 };
 
 export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
-  const requiredPieces = chunks[0]?.chunk?.chunk?.requiredChunks;
-  const sparePieces = chunks[0]?.chunk?.chunk?.spareChunks;
+  const requiredPieces = chunks[0]?.chunk?.chunk?.requiredChunks || 0;
+  const sparePieces = chunks[0]?.chunk?.chunk?.spareChunks || 0;
 
   const isStorageSafe = requiredPieces > chunks.length;
 
@@ -86,6 +86,20 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
 
     return phantomPieces.filter((x) => chunks.findIndex((y) => y.chunk.chunk.chunkIndex === x.index) === -1);
   }, [requiredPieces, sparePieces, chunks]);
+
+  if (requiredPieces === 0 || listOfAdapters.length === 0) {
+    return (
+      <Alert
+        intent="danger"
+        title="Did you skip the step?"
+      >
+        <Paragraph>
+          Seems that you've skipped a few steps :) Please go back and pick at least one piece and configure at least one
+          Proof of Life method.
+        </Paragraph>
+      </Alert>
+    );
+  }
 
   return (
     <>
@@ -127,8 +141,14 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
         intent={isStorageSafe ? 'success' : 'danger'}
         title={
           isStorageSafe
-            ? `Storing only ${chunks.length} out of ${requiredPieces} required pieces DOES NOT let us restore the message.`
-            : `You are storing more than ${requiredPieces} pieces. This is unsafe and allows us to restore the original message!`
+            ? `Storing only ${chunks.length} out of ${requiredPieces} required restoration ${pieces(
+                requiredPieces,
+              )} DOES NOT let us restore the message.`
+            : requiredPieces === 1
+            ? `Since you only require 1 restoration piece to read the message we will be able to read the original message!`
+            : `You are storing more than ${requiredPieces - 1} restoration ${pieces(
+                requiredPieces - 1,
+              )}. This is unsafe and allows us to read the original message!`
         }
       />
 
@@ -138,32 +158,41 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
       >
         When will this data be shared?
       </Heading>
-      <Slab background="tint2">
-        {listOfAdapters.map((group, idx) => (
-          <React.Fragment key={idx}>
-            {idx > 0 && <Paragraph marginY={majorScale(1)}>and</Paragraph>}
+      <Slab
+        background="tint2"
+        display="flex"
+        flexWrap="wrap"
+      >
+        <Pane flex="2">
+          {listOfAdapters.map((group, idx) => (
+            <React.Fragment key={idx}>
+              {idx > 0 && <Paragraph marginY={majorScale(1)}>and</Paragraph>}
 
-            <Heading
-              size={300}
-              key={idx}
-              marginLeft={majorScale(1)}
-            >
-              {group.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  {idx > 0 && ' or '}
-                  {item.icon} {item.name} inactive for {item.months} {months(item.months)}
-                </React.Fragment>
-              ))}
-            </Heading>
-          </React.Fragment>
-        ))}
-        <Paragraph marginY={majorScale(1)}>followed by</Paragraph>
-        <Heading
-          size={300}
-          marginLeft={majorScale(1)}
-        >
-          grace period of <strong>{gracePeriod}</strong> {months(gracePeriod)}
-        </Heading>
+              <Heading
+                size={300}
+                key={idx}
+                marginLeft={majorScale(1)}
+              >
+                {group.map((item, idx) => (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && ' or '}
+                    {item.icon} {item.name} inactive for {item.months} {months(item.months)}
+                  </React.Fragment>
+                ))}
+              </Heading>
+            </React.Fragment>
+          ))}
+          <Paragraph marginY={majorScale(1)}>followed by</Paragraph>
+          <Heading
+            size={300}
+            marginLeft={majorScale(1)}
+          >
+            grace period of <strong>{gracePeriod}</strong> {months(gracePeriod)}
+          </Heading>
+        </Pane>
+        <Pane flex="1">
+          <Paragraph>Configuring the accounts will be possible after signing in.</Paragraph>
+        </Pane>
       </Slab>
 
       <Heading
@@ -212,8 +241,8 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
         intent={requiredPieces > 1 ? 'none' : 'warning'}
         title={
           requiredPieces > 1
-            ? `Note that a single piece is not enough to read the encrypted message.
-               Your encryption configuration requires at least ${requiredPieces} pieces
+            ? `Note that a single restoration piece is not enough to read the encrypted message.
+               Your encryption configuration requires at least ${requiredPieces} ${pieces(requiredPieces)}
                to be used together to restore the message.`
             : `With your configuration even a single piece is enough to restore the message, so each recipient will be able to read the original message on their own.`
         }
@@ -224,4 +253,8 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
 
 function months(num: number) {
   return num === 1 ? 'month' : 'months';
+}
+
+function pieces(num: number) {
+  return num === 1 ? 'piece' : 'pieces';
 }
