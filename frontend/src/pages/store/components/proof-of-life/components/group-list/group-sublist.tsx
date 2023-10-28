@@ -4,6 +4,7 @@ import { GroupSublistItem } from './group-sublist-item';
 import { Adapter, ConfiguredAdapter, MAX_AND_ITEMS } from '../../../../services/adapters';
 import { Button, Heading, PlusIcon, majorScale } from 'evergreen-ui';
 import { AdapterSelector } from '../adapter-selector';
+import React from 'react';
 
 export const GroupSublist = ({
   items,
@@ -71,16 +72,15 @@ export const GroupSublist = ({
   return (
     <>
       {items.map((adapter, i) => (
-        <>
+        <React.Fragment key={i}>
           {i > 0 && and}
           <GroupSublistItem
             adapter={adapter}
             itemIndex={i}
             groupIndex={groupIndex}
-            key={i}
             updateGroupItem={updateGroupItem}
           />
-        </>
+        </React.Fragment>
       ))}
       {items.length < MAX_AND_ITEMS && addMore}
     </>

@@ -1,5 +1,5 @@
 import { Pane } from 'evergreen-ui';
-import { IndieAuth } from '../../../components/sign-in/sign-in';
+import { SignIn } from '../../../components/sign-in';
 
 export const IndieAuthForm = () => {
   return (
@@ -7,7 +7,7 @@ export const IndieAuthForm = () => {
       maxWidth="40vw"
       marginX="auto"
     >
-      <IndieAuth />
+      <SignIn />
     </Pane>
   );
 };

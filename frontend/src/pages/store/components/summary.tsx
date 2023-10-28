@@ -41,7 +41,7 @@ const Box2 = ({ children }: { children: ReactNode }) => (
 );
 
 const ChunkIcon = ({ index, name, isPhantom }: { index: number; name: string; isPhantom?: boolean }) => (
-  <Box key={index}>
+  <Box>
     {isPhantom ? (
       <CrossIcon
         size={30}
@@ -121,12 +121,14 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
         </Box>
         {chunks.map((chunk) => (
           <ChunkIcon
+            key={chunk.chunk.chunk.chunkIndex}
             index={chunk.chunk.chunk.chunkIndex}
             name={chunk.chunk.chunk.name}
           />
         ))}
         {phantomChunks.map((chunk) => (
           <ChunkIcon
+            key={chunk.index}
             index={chunk.index}
             name={chunk.name}
             isPhantom
@@ -206,7 +208,7 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
           <Box width="130px">
             <LockIcon size={30} />
             <Heading
-              size="300"
+              size={300}
               marginTop={majorScale(1)}
             >
               Encrypted Message

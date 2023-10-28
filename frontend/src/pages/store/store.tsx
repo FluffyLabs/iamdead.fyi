@@ -1,4 +1,4 @@
-import { Dialog, Heading, Pane, majorScale } from 'evergreen-ui';
+import { CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useLocation } from 'react-router-dom';
@@ -186,7 +186,22 @@ const Storage = ({
         hasFooter={false}
         hasHeader={false}
       >
-        <SignIn />
+        <SignIn
+          header={
+            <Pane
+              display="flex"
+              justifyContent="flex-end"
+              marginY={majorScale(1)}
+              width="100%"
+            >
+              <IconButton
+                appearance="minimal"
+                icon={<CrossIcon />}
+                onClick={() => setShowLogin(false)}
+              />
+            </Pane>
+          }
+        />
       </Dialog>
     </>
   );

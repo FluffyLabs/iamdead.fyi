@@ -99,7 +99,7 @@ export const Secure = () => {
               nextStep={nextStep}
               disabled={!encryptionResult || !isOnline}
             >
-              Store pieces on-line & configure distribution
+              Store pieces on-line
             </NextStepButton>
           }
         />
