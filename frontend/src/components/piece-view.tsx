@@ -1,4 +1,4 @@
-import { Heading, KeyIcon, majorScale } from 'evergreen-ui';
+import { Heading, KeyIcon, Tooltip, majorScale } from 'evergreen-ui';
 import { Row } from './row';
 import { ReactNode } from 'react';
 import { Chunk } from '../services/crypto';
@@ -12,13 +12,9 @@ export const PieceView = ({ chunk, children }: { chunk: ChunksMeta; children: Re
   const total = chunk.chunk.requiredChunks + chunk.chunk.spareChunks;
   return (
     <Row>
-      <KeyIcon size={majorScale(5)} />
-      <Heading
-        size={400}
-        marginLeft={majorScale(2)}
-      >
-        {chunk.chunk.chunkIndex + 1}/{total}
-      </Heading>
+      <Tooltip content={`${chunk.chunk.chunkIndex + 1}/${total}`}>
+        <KeyIcon size={majorScale(5)} />
+      </Tooltip>
       <Heading
         size={400}
         marginLeft={majorScale(2)}

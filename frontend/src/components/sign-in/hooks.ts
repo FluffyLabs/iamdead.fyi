@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { axios } from '../../../services/axios';
+import { axios } from '../../services/axios';
 
 export function useAuthorizationParams() {
   const origin = window.location.origin;
