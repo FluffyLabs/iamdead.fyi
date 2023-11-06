@@ -70,6 +70,7 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
             setTotalChunks={alterTotalChunks}
           />
           <RequiredChunks
+            totalChunks={totalChunks}
             requiredChunks={requiredChunks}
             setRequiredChunks={setRequiredChunks}
           />
@@ -88,12 +89,13 @@ const TotalChunks = ({
   requiredChunks: number;
   setTotalChunks: (a0: number) => void;
 }) => {
-  const number = (
+  const number = (buttons: boolean = true) => (
     <DraggableNumber
       value={totalChunks}
       onChange={setTotalChunks}
       min={Math.max(MIN_NO_OF_ADDITIONAL_PIECES, requiredChunks)}
       max={MAX_NO_OF_ADDITIONAL_PIECES}
+      buttons={buttons}
     />
   );
   return (
@@ -102,37 +104,41 @@ const TotalChunks = ({
       padding="0"
       display="flex"
       flexDirection="row"
-      alignItems="flex-start"
+      alignItems="center"
     >
       <NewPersonIcon
         size={32}
+        flexShrink="0"
         marginRight={majorScale(2)}
       />
-      <Heading size={800}>{number}</Heading>
+      <Heading size={800}>{number()}</Heading>
       <Pane
         display="flex"
         flexDirection="column"
       >
         <Heading size={400}>Number of pieces.</Heading>
-        <Text>I need {number} unique restoration pieces.</Text>
+        <Text>I need {number(false)} unique restoration pieces.</Text>
       </Pane>
     </Slab>
   );
 };
 
 const RequiredChunks = ({
+  totalChunks,
   requiredChunks,
   setRequiredChunks,
 }: {
+  totalChunks: number;
   requiredChunks: number;
   setRequiredChunks: (a0: number) => void;
 }) => {
-  const number = (
+  const number = (buttons: boolean = true) => (
     <DraggableNumber
       value={requiredChunks}
       onChange={setRequiredChunks}
       min={MIN_NO_OF_RECIPIENTS}
-      max={MAX_NO_OF_RECIPIENTS}
+      max={Math.min(MAX_NO_OF_RECIPIENTS, totalChunks)}
+      buttons={buttons}
     />
   );
   return (
@@ -142,19 +148,20 @@ const RequiredChunks = ({
       marginRight={majorScale(2)}
       display="flex"
       flexDirection="row"
-      alignItems="flex-start"
+      alignItems="center"
     >
       <KeyIcon
         size={32}
         marginRight={majorScale(2)}
+        flexShrink="0"
       />
-      <Heading size={800}>{number}</Heading>
+      <Heading size={800}>{number()}</Heading>
       <Pane
         display="flex"
         flexDirection="column"
       >
         <Heading size={400}>Minimal number of pieces to read the message.</Heading>
-        <Text>I want to be able to restore the message when any {number} pieces are collected together.</Text>
+        <Text>I want to be able to restore the message when any {number(false)} pieces are collected together.</Text>
       </Pane>
     </Slab>
   );
