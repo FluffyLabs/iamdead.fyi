@@ -1,4 +1,6 @@
 .input {
+  display: inline-block;
+  min-width: 1em;
   user-select: none;
   cursor: ew-resize;
   background: none !important;
@@ -15,4 +17,21 @@
   color: inherit;
   margin: 0 0.5em;
   padding: 0;
+}
+
+.inputWithButtons {
+  min-width: 2em;
+  cursor: default;
+
+  span {
+    flex: 1;
+    cursor: ew-resize;
+    display: inline-block;
+    min-width: 1em;
+  }
+  button {
+    font-size: 1em;
+    line-height: inherit;
+    margin: 1px;
+  }
 }
