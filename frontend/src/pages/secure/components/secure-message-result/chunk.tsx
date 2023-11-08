@@ -10,8 +10,8 @@ import {
   ManualIcon,
 } from 'evergreen-ui';
 import { Slab } from '../../../../components/slab';
-import { onDownload } from './chunks';
 import { ChunksMeta } from '../../../../components/piece-view';
+import { onDownload } from '../../../../services/download-chunk';
 
 type ChunkProps = {
   chunk: ChunksMeta;

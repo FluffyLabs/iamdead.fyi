@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert, Checkbox, Link, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
+import { Alert, Button, ImportIcon, Link, Pane, Paragraph, Position, Switch, Tooltip, majorScale } from 'evergreen-ui';
 import { RecipientRow } from './recipient-row';
 import { ChunksMeta } from '../../../components/piece-view';
 import { EncryptedMessageView } from '../../../components/encrypted-message-view';
@@ -26,6 +26,7 @@ export class Recipient {
 }
 
 export type MaybeRecipient = Recipient | string | null;
+export type NewOrOldRecipient = Recipient | string;
 
 type Chunks = {
   chunk: ChunksMeta;
@@ -37,16 +38,20 @@ type RecipientsProps = {
   chunks: Chunks;
   setChunks: (arg0: Chunks) => void;
   requiredChunks: number;
+  totalChunks: number;
   messageBytes: number;
-  predefinedRecipients: Recipient[];
+  predefinedRecipients: NewOrOldRecipient[];
+  onScanMore: () => void;
 };
 
 export const Recipients = ({
   chunks,
   setChunks,
   requiredChunks,
+  totalChunks,
   messageBytes,
   predefinedRecipients,
+  onScanMore,
 }: RecipientsProps) => {
   const handleSelected = useCallback(
     (idx: number, v: boolean) => {
@@ -59,6 +64,22 @@ export const Recipients = ({
     (idx: number, v: MaybeRecipient) => {
       chunks[idx].recipient = v;
       setChunks([...chunks]);
+    },
+    [chunks, setChunks],
+  );
+  const onDiscard = useCallback(
+    (chunk: ChunksMeta) => {
+      if (
+        window.confirm(
+          'The piece is going to be removed from the list. The operation is irreversible so make sure you have a copy.',
+        )
+      ) {
+        const idx = chunks.map((x) => x.chunk).indexOf(chunk);
+        if (idx !== -1) {
+          chunks.splice(idx, 1);
+          setChunks([...chunks]);
+        }
+      }
     },
     [chunks, setChunks],
   );
@@ -82,7 +103,7 @@ export const Recipients = ({
           content={'Storing the encrypted message is currently mandatory.'}
           position={Position.TOP}
         >
-          <Checkbox
+          <Switch
             marginLeft={majorScale(2)}
             disabled
             checked
@@ -98,8 +119,22 @@ export const Recipients = ({
           isSelected={chunk.isSelected}
           setIsSelected={(v) => handleSelected(idx, v)}
           setRecipient={(v) => handleRecipient(idx, v)}
+          onDiscard={onDiscard}
         />
       ))}
+      {chunks.length < totalChunks && (
+        <Pane
+          display="flex"
+          justifyContent="flex-end"
+        >
+          <Button
+            iconBefore={<ImportIcon />}
+            onClick={onScanMore}
+          >
+            Import more
+          </Button>
+        </Pane>
+      )}
       {selectedCount >= requiredChunks && (
         <TooManyPiecesWarning
           count={selectedCount}

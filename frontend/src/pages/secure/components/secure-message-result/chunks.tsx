@@ -11,21 +11,11 @@ import {
   ManualIcon,
   TextInputField,
   TextareaField,
-  toaster,
 } from 'evergreen-ui';
 import { ChunksMeta } from '../../../../components/piece-view';
 import { Chunk } from './chunk';
 import { QRWithClipboard } from '../../../../components/qr-with-clipboard';
-import { downloadFile } from '../../../../services/download-file';
-
-export function onDownload(kind: 'certificate' | 'raw', chunk: ChunksMeta) {
-  if (kind === 'certificate') {
-    toaster.notify('Downloading certificate is not implemented yet.');
-    return;
-  }
-
-  downloadFile([chunk.chunk.raw], 'text/plain', `${chunk.chunk.name}.icod.txt`);
-}
+import { onDownload } from '../../../../services/download-chunk';
 
 export function Chunks({
   chunks,

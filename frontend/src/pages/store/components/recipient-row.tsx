@@ -1,8 +1,25 @@
-import { Checkbox, Combobox, InlineAlert, Pane, majorScale } from 'evergreen-ui';
+import {
+  ChevronDownIcon,
+  Combobox,
+  DownloadIcon,
+  EditIcon,
+  FormField,
+  IconButton,
+  ManualIcon,
+  Menu,
+  Pane,
+  Popover,
+  Position,
+  Switch,
+  majorScale,
+  minorScale,
+  toaster,
+} from 'evergreen-ui';
 import EmailValidator from 'email-validator';
 import { ChangeEvent, useCallback } from 'react';
-import { Recipient, MaybeRecipient } from './recipients';
+import { Recipient, MaybeRecipient, NewOrOldRecipient } from './recipients';
 import { ChunksMeta, PieceView } from '../../../components/piece-view';
+import { onDownload } from '../../../services/download-chunk';
 
 function isEmailAddress(val: string) {
   const emailStart = val.indexOf('<');
@@ -18,11 +35,12 @@ function isEmailAddress(val: string) {
 
 type Props = {
   chunk: ChunksMeta;
-  predefinedRecipients: Recipient[];
+  predefinedRecipients: NewOrOldRecipient[];
   recipient: MaybeRecipient;
   setRecipient: (a0: MaybeRecipient) => void;
   isSelected: boolean;
   setIsSelected: (a0: boolean) => void;
+  onDiscard: (a0: ChunksMeta) => void;
 };
 
 export const RecipientRow = ({
@@ -32,6 +50,7 @@ export const RecipientRow = ({
   setRecipient,
   isSelected,
   setIsSelected,
+  onDiscard,
 }: Props) => {
   const handleSelected = useCallback(
     (ev: ChangeEvent<HTMLInputElement>) => {
@@ -49,36 +68,106 @@ export const RecipientRow = ({
     }
     return true;
   })();
-  const isNewRecipient = typeof recipient === 'string' && isRecipientValid;
 
   const inputProps = {
     spellCheck: false,
     autoFocus: true,
     isInvalid: !isRecipientValid,
   };
+
   return (
-    <PieceView chunk={chunk}>
-      <Checkbox
-        marginLeft={majorScale(2)}
-        checked={isSelected}
-        onChange={handleSelected}
-      />
-      {isSelected && (
-        <Pane width="400px">
+    <PieceView
+      chunk={chunk}
+      firstLine={
+        <Switch
+          hasCheckIcon
+          display="inline-block"
+          height={minorScale(5)}
+          checked={isSelected}
+          onChange={handleSelected}
+          marginLeft={majorScale(2)}
+          position="relative"
+          top={minorScale(1)}
+        />
+      }
+      appendix={
+        <PieceOptions
+          chunk={chunk}
+          onDiscard={onDiscard}
+        />
+      }
+    >
+      <Pane
+        display="flex"
+        flex="1"
+        alignItems="center"
+      >
+        {isSelected && (
           <Combobox
+            marginLeft={majorScale(2)}
             autocompleteProps={{ allowOtherValues: true }}
             initialSelectedItem={recipient}
             inputProps={inputProps as any}
             itemToString={(item) => item?.toString()}
             items={predefinedRecipients}
-            marginLeft={majorScale(2)}
             onChange={setRecipient}
-            openOnFocus
             placeholder="Recipient e-mail"
           />
-        </Pane>
-      )}
-      {isSelected && isNewRecipient && <InlineAlert intent="info">A new recipient will be created.</InlineAlert>}
+        )}
+      </Pane>
     </PieceView>
+  );
+};
+
+const PieceOptions = ({ chunk, onDiscard }: { chunk: ChunksMeta; onDiscard: (a0: ChunksMeta) => void }) => {
+  const handleDownloadRaw = useCallback(() => onDownload('raw', chunk), [chunk, onDownload]);
+  const handleDownloadCert = useCallback(() => onDownload('certificate', chunk), [chunk, onDownload]);
+  const handleDiscard = useCallback(() => onDiscard(chunk), [chunk, onDiscard]);
+  return (
+    <Popover
+      position={Position.BOTTOM_LEFT}
+      content={
+        <Menu>
+          <Menu.Group>
+            <Menu.Item
+              icon={<DownloadIcon />}
+              onSelect={handleDownloadRaw}
+            >
+              Download
+            </Menu.Item>
+            <Menu.Item
+              icon={<ManualIcon />}
+              onSelect={handleDownloadCert}
+            >
+              Certificate
+            </Menu.Item>
+          </Menu.Group>
+          <Menu.Divider />
+          <Menu.Group>
+            <Menu.Item
+              icon={<EditIcon />}
+              onSelect={() => toaster.notify('Editing')}
+            >
+              Edit name
+            </Menu.Item>
+          </Menu.Group>
+          <Menu.Divider />
+          <Menu.Group>
+            <Menu.Item
+              onSelect={handleDiscard}
+              intent="danger"
+            >
+              Discard
+            </Menu.Item>
+          </Menu.Group>
+        </Menu>
+      }
+    >
+      <IconButton
+        justifySelf="flex-end"
+        appearance="minimal"
+        icon={<ChevronDownIcon />}
+      />
+    </Popover>
   );
 };

@@ -1,7 +1,7 @@
-import { CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergreen-ui';
+import { Button, CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useMemo, useState } from 'react';
 import { Progress } from './components/progress';
 import { Intro } from './components/intro';
@@ -9,12 +9,13 @@ import { NextStepButton } from '../../components/next-step-button';
 import { Adapter, ConfiguredAdapter } from './services/adapters';
 import { ProofOfLife } from './components/proof-of-life/proof-of-life';
 import { useProofOfLife } from './hooks/use-proof-of-life';
-import { MaybeRecipient, Recipient, Recipients } from './components/recipients';
+import { MaybeRecipient, NewOrOldRecipient, Recipient, Recipients } from './components/recipients';
 import { ChunksConfiguration } from '../../services/crypto';
 import { Result as EncryptionResult } from '../secure/components/secure-message-result';
 import { ChunksMeta } from '../../components/piece-view';
 import { Summary } from './components/summary';
 import { SignIn } from '../../components/sign-in/sign-in';
+import { uniq } from 'lodash';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -101,7 +102,7 @@ const Storage = ({
       (chunk) =>
         ({
           chunk,
-          isSelected: false,
+          isSelected: true,
           recipient: null,
         }) as ChunkStorage,
     );
@@ -114,6 +115,7 @@ const Storage = ({
     new Recipient(3, 'Wife', 'wife@home.com'),
   ]);
   const proofOfLife = useProofOfLife();
+  const navigate = useNavigate();
 
   const isNextStepActive = (() => {
     if (step === 'recipients') {
@@ -127,6 +129,24 @@ const Storage = ({
     }
   })();
 
+  const selectableRecipients = useMemo(() => {
+    const configuredRecipients = chunks.filter((x) => x.recipient).map((x) => x.recipient as NewOrOldRecipient);
+
+    return uniq([...predefinedRecipients, ...configuredRecipients]);
+  }, [predefinedRecipients, chunks]);
+
+  const handleScanMore = useCallback(() => {
+    navigate('/scan', {
+      state: {
+        chunksConfiguration,
+        encryptionResult: {
+          ...encryptionResult,
+          chunks: chunks.map((c) => c.chunk),
+        },
+      },
+    });
+  }, [navigate, chunksConfiguration, chunks, encryptionResult]);
+
   const STEPS = {
     recipients: () => (
       <>
@@ -134,8 +154,10 @@ const Storage = ({
           chunks={chunks}
           setChunks={setChunks}
           requiredChunks={chunksConfiguration.required}
+          totalChunks={chunksConfiguration.required + chunksConfiguration.spare}
           messageBytes={encryptionResult.encryptedMessageBytes}
-          predefinedRecipients={predefinedRecipients}
+          predefinedRecipients={selectableRecipients}
+          onScanMore={handleScanMore}
         />
         <NextStepButton
           nextStep={nextStep}

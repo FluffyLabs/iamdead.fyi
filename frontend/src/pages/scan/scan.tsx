@@ -14,16 +14,17 @@ import {
 } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PartsCollector } from '../../services/parts-collector';
 import { Chunk, MessagePart } from '../../services/crypto';
 import { ImportMethods } from './components/import-methods';
 import { EncryptedMessageView, encryptedMessageBytes } from '../../components/encrypted-message-view';
 import { PieceView } from '../../components/piece-view';
 import { NextStepButton } from '../../components/next-step-button';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { State } from '../store/store';
 import { MessageEditor } from '../../components/message-editor';
+import { isEqual } from 'lodash';
 
 export const Scan = () => {
   return (
@@ -43,12 +44,34 @@ export const Scan = () => {
 };
 
 const Import = () => {
+  const { state }: { state: State | null } = useLocation();
+
   const [error, setError] = useState(null as string | null);
   const [messageParts, setMessageParts] = useState([] as MessagePart[]);
-  const [chunks, setChunks] = useState([] as Chunk[]);
+  const [chunks, setChunks] = useState(state?.encryptionResult.chunks || []);
   const [lastPart, setLastPart] = useState(null as string | null);
 
   const partsCollector = useMemo(() => new PartsCollector(setError), []);
+
+  // import initial message parts
+  useEffect(() => {
+    async function doImport(encryptedMessage: string[]) {
+      const justChunks = chunks.map((c) => c.chunk);
+      let newMessageParts = [] as MessagePart[];
+      for (let part of encryptedMessage) {
+        const res = await partsCollector.handlePart(newMessageParts, justChunks, part);
+        newMessageParts = res.messageParts;
+      }
+      setMessageParts(newMessageParts);
+    }
+    const existingMessage = state?.encryptionResult.encryptedMessageRaw;
+    if (existingMessage) {
+      doImport(existingMessage).catch((e: Error) => {
+        setError(e.message);
+        console.error(e);
+      });
+    }
+  }, [state, setMessageParts]);
 
   const handleImport = useCallback(
     (err: Error | null, input: string | null) => {
@@ -72,7 +95,7 @@ const Import = () => {
       setLastPart(input);
 
       async function doImport(input: string) {
-        let newChunks = chunks;
+        let newChunks = chunks.map((x) => x.chunk);
         let newMessageParts = messageParts;
 
         for (let part of input.split('\n')) {
@@ -84,7 +107,14 @@ const Import = () => {
           newMessageParts = res.messageParts;
         }
 
-        setChunks(newChunks);
+        // append descriptions
+        const allChunks = newChunks.map((chunk) => {
+          return {
+            chunk,
+            description: chunks.find((c) => isEqual(c.chunk, chunk))?.description || '',
+          };
+        });
+        setChunks(allChunks);
         setMessageParts(newMessageParts);
         return true;
       }
@@ -99,7 +129,7 @@ const Import = () => {
 
   const removeChunk = useCallback(
     (chunk: Chunk) => {
-      const idx = chunks.indexOf(chunk);
+      const idx = chunks.map((c) => c.chunk).indexOf(chunk);
       if (idx !== -1) {
         chunks.splice(idx, 1);
       }
@@ -107,6 +137,8 @@ const Import = () => {
     },
     [chunks, setChunks],
   );
+
+  const justChunks = useMemo(() => chunks.map((c) => c.chunk), [chunks]);
 
   return (
     <>
@@ -126,12 +158,12 @@ const Import = () => {
       {error && <Alert intent="danger">{error}</Alert>}
       <DisplayResults
         messageParts={messageParts}
-        chunks={chunks}
+        chunks={justChunks}
         removeChunk={removeChunk}
       />
       <Restore
         messageParts={messageParts}
-        chunks={chunks}
+        chunks={justChunks}
         partsCollector={partsCollector}
       />
     </>
@@ -160,10 +192,10 @@ const DisplayResults = ({
       required: chunks[0].requiredChunks,
       spare: chunks[0].spareChunks,
     };
-    const encryptedMessage = messageParts.map((x) => x.data);
+    const encryptedMessageRaw = messageParts.map((x) => x.raw);
     const encryptionResult = {
-      encryptedMessage,
-      encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
+      encryptedMessageRaw,
+      encryptedMessageBytes: encryptedMessageBytes(encryptedMessageRaw),
       chunks: chunks.map(chunkToMeta),
     };
     navigate('/store', {

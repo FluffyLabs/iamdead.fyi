@@ -25,7 +25,7 @@ import { Chunks } from './chunks';
 import { QRCodeSVG } from 'qrcode.react';
 
 export type Result = {
-  encryptedMessage: string[];
+  encryptedMessageRaw: string[];
   encryptedMessageBytes: number;
   chunks: ChunksMeta[];
 };
@@ -115,7 +115,7 @@ export const SecureMessageResult = ({
       chunk: c,
     }));
     setResult({
-      encryptedMessage,
+      encryptedMessageRaw: encryptedMessage,
       encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
       chunks,
     });
@@ -197,7 +197,7 @@ const DisplayResult = ({
       flexWrap="wrap-reverse"
     >
       <Pane flex="1">
-        <EncryptedMessage encryptedMessage={result.encryptedMessage} />
+        <EncryptedMessage encryptedMessage={result.encryptedMessageRaw} />
         <Chunks
           chunks={result.chunks}
           onNameChange={onChunkNameChange}
