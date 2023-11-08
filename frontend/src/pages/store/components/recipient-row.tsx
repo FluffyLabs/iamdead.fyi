@@ -3,7 +3,6 @@ import {
   Combobox,
   DownloadIcon,
   EditIcon,
-  FormField,
   IconButton,
   ManualIcon,
   Menu,
@@ -17,7 +16,7 @@ import {
 } from 'evergreen-ui';
 import EmailValidator from 'email-validator';
 import { ChangeEvent, useCallback } from 'react';
-import { Recipient, MaybeRecipient, NewOrOldRecipient } from './recipients';
+import { MaybeRecipient, NewOrOldRecipient } from './recipients';
 import { ChunksMeta, PieceView } from '../../../components/piece-view';
 import { onDownload } from '../../../services/download-chunk';
 
@@ -120,8 +119,8 @@ export const RecipientRow = ({
 };
 
 const PieceOptions = ({ chunk, onDiscard }: { chunk: ChunksMeta; onDiscard: (a0: ChunksMeta) => void }) => {
-  const handleDownloadRaw = useCallback(() => onDownload('raw', chunk), [chunk, onDownload]);
-  const handleDownloadCert = useCallback(() => onDownload('certificate', chunk), [chunk, onDownload]);
+  const handleDownloadRaw = useCallback(() => onDownload('raw', chunk), [chunk]);
+  const handleDownloadCert = useCallback(() => onDownload('certificate', chunk), [chunk]);
   const handleDiscard = useCallback(() => onDiscard(chunk), [chunk, onDiscard]);
   return (
     <Popover

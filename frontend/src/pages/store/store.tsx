@@ -1,4 +1,4 @@
-import { Button, CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergreen-ui';
+import { CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';

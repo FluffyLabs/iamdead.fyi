@@ -46,6 +46,7 @@ export const Scan = () => {
 const Import = () => {
   const { state }: { state: State | null } = useLocation();
 
+  const [initializedFromState, setInitializedFromState] = useState(false);
   const [error, setError] = useState(null as string | null);
   const [messageParts, setMessageParts] = useState([] as MessagePart[]);
   const [chunks, setChunks] = useState(state?.encryptionResult.chunks || []);
@@ -65,13 +66,14 @@ const Import = () => {
       setMessageParts(newMessageParts);
     }
     const existingMessage = state?.encryptionResult.encryptedMessageRaw;
-    if (existingMessage) {
+    if (existingMessage && !initializedFromState) {
       doImport(existingMessage).catch((e: Error) => {
         setError(e.message);
         console.error(e);
       });
     }
-  }, [state, setMessageParts]);
+    setInitializedFromState(true);
+  }, [initializedFromState, setInitializedFromState, state, setMessageParts, chunks, partsCollector]);
 
   const handleImport = useCallback(
     (err: Error | null, input: string | null) => {
