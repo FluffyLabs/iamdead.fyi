@@ -1,12 +1,7 @@
 import { Heading, KeyIcon, Pane, Tooltip, majorScale } from 'evergreen-ui';
 import { Row } from './row';
 import { ReactNode } from 'react';
-import { Chunk } from '../services/crypto';
-
-export type ChunksMeta = {
-  description: string;
-  chunk: Chunk;
-};
+import { ChunksMeta } from '../hooks/use-chunks';
 
 type Props = {
   chunk: ChunksMeta;

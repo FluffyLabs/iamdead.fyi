@@ -68,8 +68,8 @@ type Props = {
 };
 
 export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
-  const requiredPieces = chunks[0]?.chunk?.chunk?.requiredChunks || 0;
-  const sparePieces = chunks[0]?.chunk?.chunk?.spareChunks || 0;
+  const requiredPieces = chunks[0]?.chunk?.requiredChunks || 0;
+  const sparePieces = chunks[0]?.chunk?.spareChunks || 0;
 
   const isStorageSafe = requiredPieces > chunks.length;
 
@@ -84,7 +84,7 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
         };
       });
 
-    return phantomPieces.filter((x) => chunks.findIndex((y) => y.chunk.chunk.chunkIndex === x.index) === -1);
+    return phantomPieces.filter((x) => chunks.findIndex((y) => y.chunk.chunkIndex === x.index) === -1);
   }, [requiredPieces, sparePieces, chunks]);
 
   if (requiredPieces === 0 || listOfAdapters.length === 0) {
@@ -121,9 +121,9 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
         </Box>
         {chunks.map((chunk) => (
           <ChunkIcon
-            key={chunk.chunk.chunk.chunkIndex}
-            index={chunk.chunk.chunk.chunkIndex}
-            name={chunk.chunk.chunk.name}
+            key={chunk.chunk.chunkIndex}
+            index={chunk.chunk.chunkIndex}
+            name={chunk.chunk.name}
           />
         ))}
         {phantomChunks.map((chunk) => (
@@ -221,14 +221,14 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
           <Paragraph>every recipient</Paragraph>
         </Box2>
         {chunks.map((chunk) => (
-          <Box2 key={chunk.chunk.chunk.chunkIndex}>
+          <Box2 key={chunk.chunk.chunkIndex}>
             <Box width="130px">
               <KeyIcon size={30} />
               <Heading
                 size={300}
                 marginTop={majorScale(1)}
               >
-                {chunk.chunk.chunk.name}
+                {chunk.chunk.name}
               </Heading>
             </Box>
             <CaretRightIcon

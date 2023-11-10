@@ -17,12 +17,12 @@ import { useSecureMessage } from '../../../../hooks/use-secure-message';
 import { ChunksConfiguration } from '../../../../services/crypto';
 import { Summary } from './summary';
 import { Slab } from '../../../../components/slab';
-import { ChunksMeta } from '../../../../components/piece-view';
 import { encryptedMessageBytes } from '../../../../components/encrypted-message-view';
 import { Steps, UserDefined } from '../../secure';
 import { EncryptedMessage } from './encrypted-message';
 import { Chunks } from './chunks';
 import { QRCodeSVG } from 'qrcode.react';
+import { ChunksMeta } from '../../../../hooks/use-chunks';
 
 export type Result = {
   encryptedMessageRaw: string[];
@@ -51,14 +51,7 @@ export const SecureMessageResult = ({
   goToStep,
   nextStep,
 }: Props) => {
-  const {
-    secureMessage,
-    result: localResult,
-    error,
-    isLoading,
-    alterChunkName,
-    alterChunkNameError,
-  } = useSecureMessage();
+  const { secureMessage, result: localResult, error, isLoading, alterChunkName } = useSecureMessage();
   const userDefinedRef = useRef(userDefined);
 
   // call secure message every time message or configuration changes
@@ -72,20 +65,23 @@ export const SecureMessageResult = ({
   const handleChunkNameChange = useCallback(
     (chunkIndex: number, newName: string) => {
       if (userDefined[chunkIndex]?.name === newName || localResult?.chunks[chunkIndex].name === newName) {
-        return;
+        return Promise.resolve(null);
       }
 
-      alterChunkName(chunkIndex, newName).then((isNameOk: boolean) => {
-        if (isNameOk) {
-          userDefined[chunkIndex] = {
-            name: newName,
-            description: userDefined[chunkIndex]?.description || '',
-          };
-          const newUserDefined = [...userDefined];
-          setUserDefined(newUserDefined);
-          userDefinedRef.current = newUserDefined;
-        }
-      });
+      return alterChunkName(chunkIndex, newName).then(
+        ({ isNameOk, error }: { isNameOk: boolean; error: string | null }) => {
+          if (isNameOk) {
+            userDefined[chunkIndex] = {
+              name: newName,
+              description: userDefined[chunkIndex]?.description || '',
+            };
+            const newUserDefined = [...userDefined];
+            setUserDefined(newUserDefined);
+            userDefinedRef.current = newUserDefined;
+          }
+          return error;
+        },
+      );
     },
     [userDefined, setUserDefined, alterChunkName, userDefinedRef, localResult],
   );
@@ -133,7 +129,6 @@ export const SecureMessageResult = ({
         result={result}
         error={error}
         onChunkNameChange={handleChunkNameChange}
-        chunkNameChangeError={alterChunkNameError}
         onChunkDescriptionChange={handleChunkDescritptionChange}
         nextStep={nextStep}
       />
@@ -158,14 +153,12 @@ const DisplayResult = ({
   result,
   error,
   onChunkNameChange,
-  chunkNameChangeError,
   onChunkDescriptionChange,
   nextStep,
 }: {
   result: Result | null;
   error: string | null;
-  onChunkNameChange: (chunkIndex: number, newName: string) => void;
-  chunkNameChangeError?: string;
+  onChunkNameChange: (chunkIndex: number, newName: string) => Promise<string | null>;
   onChunkDescriptionChange: (chunkIndex: number, newDescription: string) => void;
   nextStep: ReactNode;
 }) => {
@@ -201,7 +194,6 @@ const DisplayResult = ({
         <Chunks
           chunks={result.chunks}
           onNameChange={onChunkNameChange}
-          nameChangeError={chunkNameChangeError}
           onDescriptionChange={onChunkDescriptionChange}
         />
       </Pane>

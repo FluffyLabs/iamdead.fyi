@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 import { Alert, Button, ImportIcon, Link, Pane, Paragraph, Position, Switch, Tooltip, majorScale } from 'evergreen-ui';
 import { RecipientRow } from './recipient-row';
-import { ChunksMeta } from '../../../components/piece-view';
 import { EncryptedMessageView } from '../../../components/encrypted-message-view';
+import { ChunksMeta } from '../../../hooks/use-chunks';
+import { ChunkStorage } from '../store';
 
 export class Recipient {
   id: number;
@@ -28,11 +29,7 @@ export class Recipient {
 export type MaybeRecipient = Recipient | string | null;
 export type NewOrOldRecipient = Recipient | string;
 
-type Chunks = {
-  chunk: ChunksMeta;
-  isSelected: boolean;
-  recipient: MaybeRecipient;
-}[];
+type Chunks = ChunkStorage[];
 
 type RecipientsProps = {
   chunks: Chunks;
@@ -67,14 +64,15 @@ export const Recipients = ({
     },
     [chunks, setChunks],
   );
-  const onDiscard = useCallback(
+  const handleDiscard = useCallback(
     (chunk: ChunksMeta) => {
       if (
         window.confirm(
           'The piece is going to be removed from the list. The operation is irreversible so make sure you have a copy.',
         )
       ) {
-        const idx = chunks.map((x) => x.chunk).indexOf(chunk);
+        // TODO [ToDr] This most likely won't work.
+        const idx = chunks.map((x) => x).indexOf(chunk as ChunkStorage);
         if (idx !== -1) {
           chunks.splice(idx, 1);
           setChunks([...chunks]);
@@ -83,6 +81,13 @@ export const Recipients = ({
     },
     [chunks, setChunks],
   );
+
+  const handleNameChange = useCallback((a0: ChunksMeta, newName: string) => {
+    throw new Error('todo');
+  }, []);
+  const handleDescriptionChange = useCallback((a0: ChunksMeta, newName: string) => {
+    throw new Error('todo');
+  }, []);
 
   const selectedCount = chunks.filter((x) => x.isSelected).length;
 
@@ -113,13 +118,15 @@ export const Recipients = ({
       {chunks.map((chunk, idx) => (
         <RecipientRow
           key={idx}
-          chunk={chunk.chunk}
+          chunk={chunk}
           predefinedRecipients={predefinedRecipients}
           recipient={chunk.recipient}
           isSelected={chunk.isSelected}
           setIsSelected={(v) => handleSelected(idx, v)}
           setRecipient={(v) => handleRecipient(idx, v)}
-          onDiscard={onDiscard}
+          onDiscard={handleDiscard}
+          onNameChange={handleNameChange}
+          onDescriptionChange={handleDescriptionChange}
         />
       ))}
       {chunks.length < totalChunks && (

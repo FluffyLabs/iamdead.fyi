@@ -10,7 +10,6 @@ export function useSecureMessage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState<RichSecureMessageResult | null>(null);
-  const [alterChunkNameError, setAlterChunkNameError] = useState(undefined as string | undefined);
 
   const clear = useCallback(() => {
     setResult(null);
@@ -23,9 +22,12 @@ export function useSecureMessage() {
         const chunk = result?.chunks[chunkIndex];
         const crypto = await Crypto.initialize();
         const newRaw = await crypto.alterChunksName(chunk?.raw || '', newName);
-        setAlterChunkNameError(undefined);
+
         if (!result) {
-          return false;
+          return {
+            isNameOk: false,
+            error: null,
+          };
         }
         const oldChunk = result.chunks[chunkIndex];
         result.chunks[chunkIndex] = {
@@ -37,15 +39,20 @@ export function useSecureMessage() {
         setResult({
           ...result,
         });
-        return true;
+        return {
+          isNameOk: true,
+          error: null,
+        };
       }
 
       return alterName().catch((e) => {
-        setAlterChunkNameError(e);
-        return false;
+        return {
+          isNameOk: false,
+          error: e,
+        };
       });
     },
-    [result, setResult, setAlterChunkNameError],
+    [result, setResult],
   );
 
   const secureMessage = useCallback(
@@ -94,7 +101,6 @@ export function useSecureMessage() {
   return {
     secureMessage,
     alterChunkName,
-    alterChunkNameError,
     error,
     result,
     clear,

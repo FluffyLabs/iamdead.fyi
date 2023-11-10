@@ -1,17 +1,4 @@
-import {
-  Alert,
-  Button,
-  Dialog,
-  Group,
-  Heading,
-  IconButton,
-  Pane,
-  Paragraph,
-  Tooltip,
-  TrashIcon,
-  majorScale,
-  toaster,
-} from 'evergreen-ui';
+import { Alert, Button, Dialog, Group, Heading, Pane, Paragraph, Tooltip, majorScale, toaster } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -25,6 +12,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { State } from '../store/store';
 import { MessageEditor } from '../../components/message-editor';
 import { isEqual } from 'lodash';
+import { PieceOptions } from '../../components/piece-options';
+import { ChunksMeta } from '../../hooks/use-chunks';
 
 export const Scan = () => {
   return (
@@ -129,9 +118,9 @@ const Import = () => {
     [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks],
   );
 
-  const removeChunk = useCallback(
-    (chunk: Chunk) => {
-      const idx = chunks.map((c) => c.chunk).indexOf(chunk);
+  const handleRemoveChunk = useCallback(
+    (chunk: ChunksMeta) => {
+      const idx = chunks.indexOf(chunk);
       if (idx !== -1) {
         chunks.splice(idx, 1);
       }
@@ -139,6 +128,11 @@ const Import = () => {
     },
     [chunks, setChunks],
   );
+
+  const handleNameChange = useCallback((chunk: ChunksMeta, newName: string) => {
+    return Promise.resolve(null);
+  }, []);
+  const handleDescriptionChange = useCallback((chunk: ChunksMeta, newDescription: string) => {}, []);
 
   const justChunks = useMemo(() => chunks.map((c) => c.chunk), [chunks]);
 
@@ -160,8 +154,10 @@ const Import = () => {
       {error && <Alert intent="danger">{error}</Alert>}
       <DisplayResults
         messageParts={messageParts}
-        chunks={justChunks}
-        removeChunk={removeChunk}
+        chunks={chunks}
+        onRemoveChunk={handleRemoveChunk}
+        onNameChange={handleNameChange}
+        onDescriptionChange={handleDescriptionChange}
       />
       <Restore
         messageParts={messageParts}
@@ -175,11 +171,15 @@ const Import = () => {
 const DisplayResults = ({
   messageParts,
   chunks,
-  removeChunk,
+  onRemoveChunk,
+  onNameChange,
+  onDescriptionChange,
 }: {
   messageParts: MessagePart[];
-  chunks: Chunk[];
-  removeChunk: (a0: Chunk) => void;
+  chunks: ChunksMeta[];
+  onRemoveChunk: (a0: ChunksMeta) => void;
+  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
 }) => {
   const messagePartsAvailable = messageParts.length;
   const messagePartsTotal = messageParts[0]?.partsTotal || 0;
@@ -191,14 +191,14 @@ const DisplayResults = ({
   const navigate = useNavigate();
   const handleNextStep = useCallback(() => {
     const chunksConfiguration = {
-      required: chunks[0].requiredChunks,
-      spare: chunks[0].spareChunks,
+      required: chunks[0].chunk.requiredChunks,
+      spare: chunks[0].chunk.spareChunks,
     };
     const encryptedMessageRaw = messageParts.map((x) => x.raw);
     const encryptionResult = {
       encryptedMessageRaw,
       encryptedMessageBytes: encryptedMessageBytes(encryptedMessageRaw),
-      chunks: chunks.map(chunkToMeta),
+      chunks,
     };
     navigate('/store', {
       state: {
@@ -229,9 +229,11 @@ const DisplayResults = ({
       </EncryptedMessageView>
       {chunks.map((chunk) => (
         <ChunkView
-          key={chunk.chunkIndex}
+          key={chunk.chunk.chunkIndex}
           chunk={chunk}
-          removeChunk={removeChunk}
+          onRemoveChunk={onRemoveChunk}
+          onNameChange={onNameChange}
+          onDescriptionChange={onDescriptionChange}
         />
       ))}
 
@@ -245,34 +247,26 @@ const DisplayResults = ({
   );
 };
 
-function chunkToMeta(chunk: Chunk) {
-  return {
-    description: '',
-    chunk,
-  };
-}
-
-const ChunkView = ({ chunk, removeChunk }: { chunk: Chunk; removeChunk: (a0: Chunk) => void }) => {
-  const chunkMeta = useMemo(() => {
-    return chunkToMeta(chunk);
-  }, [chunk]);
-
-  const handleClick = useCallback(() => {
-    removeChunk(chunk);
-  }, [chunk, removeChunk]);
+const ChunkView = ({
+  chunk,
+  onRemoveChunk,
+  onNameChange,
+  onDescriptionChange,
+}: {
+  chunk: ChunksMeta;
+  onRemoveChunk: (a0: ChunksMeta) => void;
+  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
+}) => {
   return (
-    <PieceView chunk={chunkMeta}>
-      <Pane
-        flex="1"
-        display="flex"
-        justifyContent="flex-end"
-      >
-        <IconButton
-          appearance="minimal"
-          icon={<TrashIcon color="#B0B0B0" />}
-          onClick={handleClick}
-        />
-      </Pane>
+    <PieceView chunk={chunk}>
+      <Pane flex="1"></Pane>
+      <PieceOptions
+        chunk={chunk}
+        onDiscard={onRemoveChunk}
+        onNameChange={onNameChange}
+        onDescriptionChange={onDescriptionChange}
+      />
     </PieceView>
   );
 };

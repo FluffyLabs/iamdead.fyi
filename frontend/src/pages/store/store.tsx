@@ -12,10 +12,10 @@ import { useProofOfLife } from './hooks/use-proof-of-life';
 import { MaybeRecipient, NewOrOldRecipient, Recipient, Recipients } from './components/recipients';
 import { ChunksConfiguration } from '../../services/crypto';
 import { Result as EncryptionResult } from '../secure/components/secure-message-result';
-import { ChunksMeta } from '../../components/piece-view';
 import { Summary } from './components/summary';
 import { SignIn } from '../../components/sign-in/sign-in';
 import { uniq } from 'lodash';
+import { ChunksMeta, useChunks } from '../../hooks/use-chunks';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -69,8 +69,7 @@ function isValid(recipient: MaybeRecipient) {
   return false;
 }
 
-export type ChunkStorage = {
-  chunk: ChunksMeta;
+export type ChunkStorage = ChunksMeta & {
   isSelected: boolean;
   recipient: MaybeRecipient;
 };
@@ -101,14 +100,14 @@ const Storage = ({
     return encryptionResult.chunks.map(
       (chunk) =>
         ({
-          chunk,
+          ...chunk,
           isSelected: true,
           recipient: null,
         }) as ChunkStorage,
     );
   }, [encryptionResult.chunks]);
 
-  const [chunks, setChunks] = useState(initialChunks);
+  const { chunks, setChunks } = useChunks(initialChunks);
   const [predefinedRecipients] = useState([
     new Recipient(1, 'Mommy', 'mommy@home.com'),
     new Recipient(2, 'Dad', 'dad@home.com'),

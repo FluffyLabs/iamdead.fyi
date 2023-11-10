@@ -1,24 +1,10 @@
-import {
-  ChevronDownIcon,
-  Combobox,
-  DownloadIcon,
-  EditIcon,
-  IconButton,
-  ManualIcon,
-  Menu,
-  Pane,
-  Popover,
-  Position,
-  Switch,
-  majorScale,
-  minorScale,
-  toaster,
-} from 'evergreen-ui';
+import { Combobox, Pane, Switch, majorScale, minorScale } from 'evergreen-ui';
 import EmailValidator from 'email-validator';
 import { ChangeEvent, useCallback } from 'react';
 import { MaybeRecipient, NewOrOldRecipient } from './recipients';
-import { ChunksMeta, PieceView } from '../../../components/piece-view';
-import { onDownload } from '../../../services/download-chunk';
+import { PieceView } from '../../../components/piece-view';
+import { PieceOptions } from '../../../components/piece-options';
+import { ChunksMeta } from '../../../hooks/use-chunks';
 
 function isEmailAddress(val: string) {
   const emailStart = val.indexOf('<');
@@ -40,6 +26,8 @@ type Props = {
   isSelected: boolean;
   setIsSelected: (a0: boolean) => void;
   onDiscard: (a0: ChunksMeta) => void;
+  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
 };
 
 export const RecipientRow = ({
@@ -50,6 +38,8 @@ export const RecipientRow = ({
   isSelected,
   setIsSelected,
   onDiscard,
+  onNameChange,
+  onDescriptionChange,
 }: Props) => {
   const handleSelected = useCallback(
     (ev: ChangeEvent<HTMLInputElement>) => {
@@ -93,6 +83,8 @@ export const RecipientRow = ({
         <PieceOptions
           chunk={chunk}
           onDiscard={onDiscard}
+          onNameChange={onNameChange}
+          onDescriptionChange={onDescriptionChange}
         />
       }
     >
@@ -115,58 +107,5 @@ export const RecipientRow = ({
         )}
       </Pane>
     </PieceView>
-  );
-};
-
-const PieceOptions = ({ chunk, onDiscard }: { chunk: ChunksMeta; onDiscard: (a0: ChunksMeta) => void }) => {
-  const handleDownloadRaw = useCallback(() => onDownload('raw', chunk), [chunk]);
-  const handleDownloadCert = useCallback(() => onDownload('certificate', chunk), [chunk]);
-  const handleDiscard = useCallback(() => onDiscard(chunk), [chunk, onDiscard]);
-  return (
-    <Popover
-      position={Position.BOTTOM_LEFT}
-      content={
-        <Menu>
-          <Menu.Group>
-            <Menu.Item
-              icon={<DownloadIcon />}
-              onSelect={handleDownloadRaw}
-            >
-              Download
-            </Menu.Item>
-            <Menu.Item
-              icon={<ManualIcon />}
-              onSelect={handleDownloadCert}
-            >
-              Certificate
-            </Menu.Item>
-          </Menu.Group>
-          <Menu.Divider />
-          <Menu.Group>
-            <Menu.Item
-              icon={<EditIcon />}
-              onSelect={() => toaster.notify('Editing')}
-            >
-              Edit name
-            </Menu.Item>
-          </Menu.Group>
-          <Menu.Divider />
-          <Menu.Group>
-            <Menu.Item
-              onSelect={handleDiscard}
-              intent="danger"
-            >
-              Discard
-            </Menu.Item>
-          </Menu.Group>
-        </Menu>
-      }
-    >
-      <IconButton
-        justifySelf="flex-end"
-        appearance="minimal"
-        icon={<ChevronDownIcon />}
-      />
-    </Popover>
   );
 };

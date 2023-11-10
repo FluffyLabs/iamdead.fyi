@@ -1,6 +1,6 @@
 import { toaster } from 'evergreen-ui';
 import { downloadFile } from './download-file';
-import { ChunksMeta } from '../components/piece-view';
+import { ChunksMeta } from '../hooks/use-chunks';
 
 export function onDownload(kind: 'certificate' | 'raw', chunk: ChunksMeta) {
   if (kind === 'certificate') {
