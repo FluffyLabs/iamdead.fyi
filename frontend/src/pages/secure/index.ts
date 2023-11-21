@@ -1,1 +1,1 @@
-export { Secure } from './secure';
+export * from './secure';

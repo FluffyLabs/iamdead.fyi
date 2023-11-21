@@ -13,110 +13,36 @@ import {
   Popover,
   ChevronRightIcon,
 } from 'evergreen-ui';
-import { useSecureMessage } from '../../../../hooks/use-secure-message';
+import { SecureMessageApi } from '../../../../hooks/use-secure-message';
 import { ChunksConfiguration } from '../../../../services/crypto';
 import { Summary } from './summary';
 import { Slab } from '../../../../components/slab';
-import { encryptedMessageBytes } from '../../../../components/encrypted-message-view';
-import { Steps, UserDefined } from '../../secure';
+import { Steps } from '../../secure';
 import { EncryptedMessage } from './encrypted-message';
 import { Chunks } from './chunks';
 import { QRCodeSVG } from 'qrcode.react';
-import { ChunksMeta } from '../../../../hooks/use-chunks';
-
-export type Result = {
-  encryptedMessageRaw: string[];
-  encryptedMessageBytes: number;
-  chunks: ChunksMeta[];
-};
+import { ChunksApi, ChunksMeta } from '../../../../hooks/use-chunks';
 
 export type Props = {
   message: string;
   chunksConfiguration: ChunksConfiguration;
-  result: Result | null;
-  setResult: (a0: Result | null) => void;
-  userDefined: UserDefined[];
-  setUserDefined: (a0: UserDefined[]) => void;
+  encryptedMessage: string[] | undefined;
+  chunksApi: ChunksApi<ChunksMeta>;
+  secureMessageApi: SecureMessageApi;
   goToStep: (a0: Steps) => void;
   nextStep: ReactNode;
 };
 
 export const SecureMessageResult = ({
   message,
+  encryptedMessage,
   chunksConfiguration,
-  result,
-  setResult,
-  userDefined,
-  setUserDefined,
+  chunksApi,
+  secureMessageApi,
   goToStep,
   nextStep,
 }: Props) => {
-  const { secureMessage, result: localResult, error, isLoading, alterChunkName } = useSecureMessage();
-  // TODO [ToDr] This stuff probably needs a re-design with use-chunks.
-  const userDefinedRef = useRef(userDefined);
-
-  // call secure message every time message or configuration changes
-  useEffect(() => {
-    // Note, we don't want to re-call secureMessage on name change,
-    // hence using ref here.
-    const names = userDefinedRef.current.map((x) => x.name);
-    secureMessage(message, chunksConfiguration, names);
-  }, [message, chunksConfiguration, secureMessage, userDefinedRef]);
-
-  const handleChunkNameChange = useCallback(
-    (chunkIndex: number, newName: string) => {
-      if (userDefined[chunkIndex]?.name === newName || localResult?.chunks[chunkIndex].name === newName) {
-        return Promise.resolve(null);
-      }
-
-      return alterChunkName(chunkIndex, newName).then(
-        ({ isNameOk, error }: { isNameOk: boolean; error: string | null }) => {
-          if (isNameOk) {
-            userDefined[chunkIndex] = {
-              name: newName,
-              description: userDefined[chunkIndex]?.description || '',
-            };
-            const newUserDefined = [...userDefined];
-            setUserDefined(newUserDefined);
-            userDefinedRef.current = newUserDefined;
-          }
-          return error;
-        },
-      );
-    },
-    [userDefined, setUserDefined, alterChunkName, userDefinedRef, localResult],
-  );
-
-  const handleChunkDescritptionChange = useCallback(
-    (chunkIndex: number, newDescription: string) => {
-      userDefined[chunkIndex] = {
-        name: userDefined[chunkIndex]?.name,
-        description: newDescription,
-      };
-
-      setUserDefined([...userDefined]);
-    },
-    [userDefined, setUserDefined],
-  );
-
-  // propagate updated results up
-  useEffect(() => {
-    if (!localResult) {
-      setResult(localResult);
-      return;
-    }
-
-    const { encryptedMessage } = localResult;
-    const chunks = localResult.chunks.map((c, idx) => ({
-      description: userDefined[idx]?.description || '',
-      chunk: c,
-    }));
-    setResult({
-      encryptedMessageRaw: encryptedMessage,
-      encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
-      chunks,
-    });
-  }, [localResult, setResult, userDefined]);
+  const { isLoading, error } = secureMessageApi;
 
   return (
     <>
@@ -127,10 +53,9 @@ export const SecureMessageResult = ({
       />
       <IsLoading isLoading={isLoading} />
       <DisplayResult
-        result={result}
+        encryptedMessage={encryptedMessage}
+        chunksApi={chunksApi}
         error={error}
-        onChunkNameChange={handleChunkNameChange}
-        onChunkDescriptionChange={handleChunkDescritptionChange}
         nextStep={nextStep}
       />
     </>
@@ -151,16 +76,14 @@ const IsLoading = ({ isLoading }: { isLoading: boolean }) => {
 };
 
 const DisplayResult = ({
-  result,
+  encryptedMessage,
   error,
-  onChunkNameChange,
-  onChunkDescriptionChange,
+  chunksApi,
   nextStep,
 }: {
-  result: Result | null;
+  encryptedMessage: string[] | undefined;
   error: string | null;
-  onChunkNameChange: (chunkIndex: number, newName: string) => Promise<string | null>;
-  onChunkDescriptionChange: (chunkIndex: number, newDescription: string) => void;
+  chunksApi: ChunksApi<ChunksMeta>;
   nextStep: ReactNode;
 }) => {
   if (error) {
@@ -172,7 +95,7 @@ const DisplayResult = ({
     );
   }
 
-  if (!result) {
+  if (!encryptedMessage) {
     return (
       <EmptyState
         title="Encryption results are not available yet."
@@ -182,7 +105,7 @@ const DisplayResult = ({
     );
   }
 
-  const requiredChunks = result?.chunks[0]?.chunk?.requiredChunks;
+  const requiredChunks = chunksApi.chunks[0]?.chunk?.requiredChunks;
 
   return (
     <Slab
@@ -191,11 +114,11 @@ const DisplayResult = ({
       flexWrap="wrap-reverse"
     >
       <Pane flex="1">
-        <EncryptedMessage encryptedMessage={result.encryptedMessageRaw} />
+        <EncryptedMessage encryptedMessage={encryptedMessage} />
         <Chunks
-          chunks={result.chunks}
-          onNameChange={onChunkNameChange}
-          onDescriptionChange={onChunkDescriptionChange}
+          chunks={chunksApi.chunks}
+          onNameChange={chunksApi.changeName}
+          onDescriptionChange={chunksApi.changeDescription}
         />
       </Pane>
       <Card
