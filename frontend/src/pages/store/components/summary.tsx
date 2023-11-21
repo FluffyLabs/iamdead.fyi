@@ -147,10 +147,10 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
                 requiredPieces,
               )} DOES NOT let us restore the message.`
             : requiredPieces === 1
-            ? `Since you only require 1 restoration piece to read the message we will be able to read the original message!`
-            : `You are storing more than ${requiredPieces - 1} restoration ${pieces(
-                requiredPieces - 1,
-              )}. This is unsafe and allows us to read the original message!`
+              ? `Since you only require 1 restoration piece to read the message we will be able to read the original message!`
+              : `You are storing more than ${requiredPieces - 1} restoration ${pieces(
+                  requiredPieces - 1,
+                )}. This is unsafe and allows us to read the original message!`
         }
       />
 
