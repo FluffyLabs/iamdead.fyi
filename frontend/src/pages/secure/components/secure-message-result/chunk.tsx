@@ -10,16 +10,15 @@ import {
   ManualIcon,
 } from 'evergreen-ui';
 import { Slab } from '../../../../components/slab';
-import { onDownload } from './chunks';
-import { ChunksMeta } from '../../../../components/piece-view';
+import { onDownload } from '../../../../services/download-chunk';
+import { ChunksMeta } from '../../../../hooks/use-chunks';
 
 type ChunkProps = {
   chunk: ChunksMeta;
   showDialog: (a0: number) => void;
-  onDownload: typeof onDownload;
 };
 
-export function Chunk({ chunk, showDialog, onDownload }: ChunkProps) {
+export function Chunk({ chunk, showDialog }: ChunkProps) {
   // TODO [ToDr] QR code value should rather be a link.
   return (
     <Slab

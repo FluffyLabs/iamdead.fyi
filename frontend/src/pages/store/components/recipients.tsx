@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
-import { Alert, Checkbox, Link, Paragraph, Position, Tooltip, majorScale } from 'evergreen-ui';
+import { Alert, Button, ImportIcon, Link, Pane, Paragraph, Position, Switch, Tooltip, majorScale } from 'evergreen-ui';
 import { RecipientRow } from './recipient-row';
-import { ChunksMeta } from '../../../components/piece-view';
 import { EncryptedMessageView } from '../../../components/encrypted-message-view';
+import { ChunksApi } from '../../../hooks/use-chunks';
+import { ChunkStorage } from '../store';
 
 export class Recipient {
   id: number;
@@ -26,28 +27,26 @@ export class Recipient {
 }
 
 export type MaybeRecipient = Recipient | string | null;
-
-type Chunks = {
-  chunk: ChunksMeta;
-  isSelected: boolean;
-  recipient: MaybeRecipient;
-}[];
+export type NewOrOldRecipient = Recipient | string;
 
 type RecipientsProps = {
-  chunks: Chunks;
-  setChunks: (arg0: Chunks) => void;
+  chunksApi: ChunksApi<ChunkStorage>;
   requiredChunks: number;
+  totalChunks: number;
   messageBytes: number;
-  predefinedRecipients: Recipient[];
+  predefinedRecipients: NewOrOldRecipient[];
+  onScanMore: () => void;
 };
 
 export const Recipients = ({
-  chunks,
-  setChunks,
+  chunksApi,
   requiredChunks,
+  totalChunks,
   messageBytes,
   predefinedRecipients,
+  onScanMore,
 }: RecipientsProps) => {
+  const { chunks, setChunks, discardChunk, changeName, changeDescription } = chunksApi;
   const handleSelected = useCallback(
     (idx: number, v: boolean) => {
       chunks[idx].isSelected = v;
@@ -55,6 +54,7 @@ export const Recipients = ({
     },
     [chunks, setChunks],
   );
+
   const handleRecipient = useCallback(
     (idx: number, v: MaybeRecipient) => {
       chunks[idx].recipient = v;
@@ -82,7 +82,7 @@ export const Recipients = ({
           content={'Storing the encrypted message is currently mandatory.'}
           position={Position.TOP}
         >
-          <Checkbox
+          <Switch
             marginLeft={majorScale(2)}
             disabled
             checked
@@ -92,14 +92,30 @@ export const Recipients = ({
       {chunks.map((chunk, idx) => (
         <RecipientRow
           key={idx}
-          chunk={chunk.chunk}
+          chunk={chunk}
           predefinedRecipients={predefinedRecipients}
           recipient={chunk.recipient}
           isSelected={chunk.isSelected}
           setIsSelected={(v) => handleSelected(idx, v)}
           setRecipient={(v) => handleRecipient(idx, v)}
+          onDiscard={discardChunk}
+          onNameChange={changeName}
+          onDescriptionChange={changeDescription}
         />
       ))}
+      {chunks.length < totalChunks && (
+        <Pane
+          display="flex"
+          justifyContent="flex-end"
+        >
+          <Button
+            iconBefore={<ImportIcon />}
+            onClick={onScanMore}
+          >
+            Import more
+          </Button>
+        </Pane>
+      )}
       {selectedCount >= requiredChunks && (
         <TooManyPiecesWarning
           count={selectedCount}

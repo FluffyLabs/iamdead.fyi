@@ -30,6 +30,7 @@ const theme = mergeTheme(defaultTheme, {
     },
   },
   components: {
+    Switch: {},
     Button: {
       appearances: {
         primary: {

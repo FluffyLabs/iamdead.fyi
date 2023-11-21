@@ -1,8 +1,10 @@
-import { Checkbox, Combobox, InlineAlert, Pane, majorScale } from 'evergreen-ui';
+import { Combobox, Pane, Switch, majorScale, minorScale } from 'evergreen-ui';
 import EmailValidator from 'email-validator';
 import { ChangeEvent, useCallback } from 'react';
-import { Recipient, MaybeRecipient } from './recipients';
-import { ChunksMeta, PieceView } from '../../../components/piece-view';
+import { MaybeRecipient, NewOrOldRecipient } from './recipients';
+import { PieceView } from '../../../components/piece-view';
+import { PieceOptions } from '../../../components/piece-options';
+import { ChunkStorage } from '../store';
 
 function isEmailAddress(val: string) {
   const emailStart = val.indexOf('<');
@@ -17,12 +19,15 @@ function isEmailAddress(val: string) {
 }
 
 type Props = {
-  chunk: ChunksMeta;
-  predefinedRecipients: Recipient[];
+  chunk: ChunkStorage;
+  predefinedRecipients: NewOrOldRecipient[];
   recipient: MaybeRecipient;
   setRecipient: (a0: MaybeRecipient) => void;
   isSelected: boolean;
   setIsSelected: (a0: boolean) => void;
+  onDiscard: (a0: ChunkStorage) => void;
+  onNameChange: (a0: ChunkStorage, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: ChunkStorage, a1: string) => void;
 };
 
 export const RecipientRow = ({
@@ -32,6 +37,9 @@ export const RecipientRow = ({
   setRecipient,
   isSelected,
   setIsSelected,
+  onDiscard,
+  onNameChange,
+  onDescriptionChange,
 }: Props) => {
   const handleSelected = useCallback(
     (ev: ChangeEvent<HTMLInputElement>) => {
@@ -49,36 +57,55 @@ export const RecipientRow = ({
     }
     return true;
   })();
-  const isNewRecipient = typeof recipient === 'string' && isRecipientValid;
 
   const inputProps = {
     spellCheck: false,
     autoFocus: true,
     isInvalid: !isRecipientValid,
   };
+
   return (
-    <PieceView chunk={chunk}>
-      <Checkbox
-        marginLeft={majorScale(2)}
-        checked={isSelected}
-        onChange={handleSelected}
-      />
-      {isSelected && (
-        <Pane width="400px">
+    <PieceView
+      chunk={chunk}
+      firstLine={
+        <Switch
+          hasCheckIcon
+          display="inline-block"
+          height={minorScale(5)}
+          checked={isSelected}
+          onChange={handleSelected}
+          marginLeft={majorScale(2)}
+          position="relative"
+          top={minorScale(1)}
+        />
+      }
+      appendix={
+        <PieceOptions
+          chunk={chunk}
+          onDiscard={onDiscard}
+          onNameChange={onNameChange}
+          onDescriptionChange={onDescriptionChange}
+        />
+      }
+    >
+      <Pane
+        display="flex"
+        flex="1"
+        alignItems="center"
+      >
+        {isSelected && (
           <Combobox
+            marginLeft={majorScale(2)}
             autocompleteProps={{ allowOtherValues: true }}
             initialSelectedItem={recipient}
             inputProps={inputProps as any}
             itemToString={(item) => item?.toString()}
             items={predefinedRecipients}
-            marginLeft={majorScale(2)}
             onChange={setRecipient}
-            openOnFocus
             placeholder="Recipient e-mail"
           />
-        </Pane>
-      )}
-      {isSelected && isNewRecipient && <InlineAlert intent="info">A new recipient will be created.</InlineAlert>}
+        )}
+      </Pane>
     </PieceView>
   );
 };
