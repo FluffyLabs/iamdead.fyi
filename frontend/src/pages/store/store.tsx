@@ -11,7 +11,7 @@ import { ProofOfLife } from './components/proof-of-life/proof-of-life';
 import { useProofOfLife } from './hooks/use-proof-of-life';
 import { MaybeRecipient, NewOrOldRecipient, Recipient, Recipients } from './components/recipients';
 import { ChunksConfiguration } from '../../services/crypto';
-import { Result as EncryptionResult } from '../secure/components/secure-message-result';
+import { EncryptionResult } from '../secure';
 import { Summary } from './components/summary';
 import { SignIn } from '../../components/sign-in/sign-in';
 import { uniq } from 'lodash';

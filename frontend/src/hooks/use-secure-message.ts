@@ -1,53 +1,22 @@
 import { useCallback, useState } from 'react';
 import { Chunk, ChunksConfiguration, Crypto } from '../services/crypto';
-import { useAlterChunkName } from './use-alter-chunk-name';
 
 export type RichSecureMessageResult = {
   encryptedMessage: string[];
   chunks: Chunk[];
 };
 
+export type SecureMessageApi = ReturnType<typeof useSecureMessage>;
+
 export function useSecureMessage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState<RichSecureMessageResult | null>(null);
-  const newAlterChunkName = useAlterChunkName();
 
   const clear = useCallback(() => {
     setResult(null);
     setError(null);
   }, [setResult, setError]);
-
-  const alterChunkName = useCallback(
-    async (chunkIndex: number, newName: string) => {
-      if (!result) {
-        return {
-          isNameOk: false,
-          error: null,
-        };
-      }
-
-      const chunk = result?.chunks[chunkIndex];
-      try {
-        const newChunk = await newAlterChunkName(chunk, newName);
-        result.chunks[chunkIndex] = newChunk;
-        result.chunks = [...result.chunks];
-        setResult({
-          ...result,
-        });
-        return {
-          isNameOk: true,
-          error: null,
-        };
-      } catch (error) {
-        return {
-          isNameOk: false,
-          error: `${error}`,
-        };
-      }
-    },
-    [result, setResult, newAlterChunkName],
-  );
 
   const secureMessage = useCallback(
     async (message: string, configuration: ChunksConfiguration, userDefinedNames: string[]) => {
@@ -65,7 +34,6 @@ export function useSecureMessage() {
 
           await Promise.all(
             userDefinedNames.map(async (name, idx) => {
-              // TODO [ToDr] Don't change default names!!!
               if (onlyChunks.length > idx && name) {
                 const raw = await crypto.alterChunksName(onlyChunks[idx].raw, name);
                 onlyChunks[idx].name = name;
@@ -94,7 +62,6 @@ export function useSecureMessage() {
 
   return {
     secureMessage,
-    alterChunkName,
     error,
     result,
     clear,

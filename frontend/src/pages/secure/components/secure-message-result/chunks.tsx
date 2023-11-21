@@ -10,8 +10,8 @@ export function Chunks({
   onDescriptionChange,
 }: {
   chunks: ChunksMeta[];
-  onNameChange: (chunkIndex: number, name: string) => Promise<string | null>;
-  onDescriptionChange: (chunkIndex: number, description: string) => void;
+  onNameChange: (chunk: ChunksMeta, name: string) => Promise<string | null>;
+  onDescriptionChange: (chunk: ChunksMeta, description: string) => void;
 }) {
   const [isShowingQrs, setIsShowingQrs] = useState(false);
   const [activeChunkIdx, setActiveChunkIdx] = useState(0);
@@ -31,20 +31,6 @@ export function Chunks({
     setActiveChunkIdx(activeChunkIdx === 0 ? chunks.length - 1 : activeChunkIdx - 1);
   }, [activeChunkIdx, chunks]);
 
-  const handleNameChange = useCallback(
-    (_chunk: ChunksMeta, newName: string) => {
-      return onNameChange(activeChunkIdx, newName);
-    },
-    [activeChunkIdx, onNameChange],
-  );
-
-  const handleDescriptionChange = useCallback(
-    (_chunk: ChunksMeta, description: string) => {
-      onDescriptionChange(activeChunkIdx, description);
-    },
-    [activeChunkIdx, onDescriptionChange],
-  );
-
   return (
     <>
       {chunks.map((x: ChunksMeta) => (
@@ -55,34 +41,36 @@ export function Chunks({
         />
       ))}
 
-      <PieceDialog
-        isShown={isShowingQrs}
-        onClose={() => setIsShowingQrs(false)}
-        chunk={chunk}
-        onNameChange={handleNameChange}
-        onDescriptionChange={handleDescriptionChange}
-      >
-        <Pane
-          width="100%"
-          display="flex"
-          justifyContent="space-between"
-          marginY={majorScale(3)}
+      {chunk && (
+        <PieceDialog
+          isShown={isShowingQrs}
+          onClose={() => setIsShowingQrs(false)}
+          chunk={chunk}
+          onNameChange={onNameChange}
+          onDescriptionChange={onDescriptionChange}
         >
-          <Button
-            onClick={prevChunk}
-            iconBefore={<ChevronLeftIcon />}
+          <Pane
+            width="100%"
+            display="flex"
+            justifyContent="space-between"
+            marginY={majorScale(3)}
           >
-            Prev
-          </Button>
-          <Button
-            appearance="primary"
-            onClick={nextChunk}
-            iconAfter={<ChevronRightIcon />}
-          >
-            Next
-          </Button>
-        </Pane>
-      </PieceDialog>
+            <Button
+              onClick={prevChunk}
+              iconBefore={<ChevronLeftIcon />}
+            >
+              Prev
+            </Button>
+            <Button
+              appearance="primary"
+              onClick={nextChunk}
+              iconAfter={<ChevronRightIcon />}
+            >
+              Next
+            </Button>
+          </Pane>
+        </PieceDialog>
+      )}
     </>
   );
 }
