@@ -13,7 +13,7 @@ import { State } from '../store/store';
 import { MessageEditor } from '../../components/message-editor';
 import { isEqual } from 'lodash';
 import { PieceOptions } from '../../components/piece-options';
-import { ChunksMeta } from '../../hooks/use-chunks';
+import { ChunksApi, ChunksMeta, useChunks } from '../../hooks/use-chunks';
 
 export const Scan = () => {
   return (
@@ -34,11 +34,13 @@ export const Scan = () => {
 
 const Import = () => {
   const { state }: { state: State | null } = useLocation();
+  /// TODO: replace state using navigate('.', { replace: true });
 
   const [initializedFromState, setInitializedFromState] = useState(false);
   const [error, setError] = useState(null as string | null);
   const [messageParts, setMessageParts] = useState([] as MessagePart[]);
-  const [chunks, setChunks] = useState(state?.encryptionResult.chunks || []);
+  const chunksApi = useChunks(state?.encryptionResult.chunks || []);
+  const { chunks, setChunks } = chunksApi;
   const [lastPart, setLastPart] = useState(null as string | null);
 
   const partsCollector = useMemo(() => new PartsCollector(setError), []);
@@ -118,22 +120,6 @@ const Import = () => {
     [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks],
   );
 
-  const handleRemoveChunk = useCallback(
-    (chunk: ChunksMeta) => {
-      const idx = chunks.indexOf(chunk);
-      if (idx !== -1) {
-        chunks.splice(idx, 1);
-      }
-      setChunks([...chunks]);
-    },
-    [chunks, setChunks],
-  );
-
-  const handleNameChange = useCallback((chunk: ChunksMeta, newName: string) => {
-    return Promise.resolve(null);
-  }, []);
-  const handleDescriptionChange = useCallback((chunk: ChunksMeta, newDescription: string) => {}, []);
-
   const justChunks = useMemo(() => chunks.map((c) => c.chunk), [chunks]);
 
   return (
@@ -154,10 +140,7 @@ const Import = () => {
       {error && <Alert intent="danger">{error}</Alert>}
       <DisplayResults
         messageParts={messageParts}
-        chunks={chunks}
-        onRemoveChunk={handleRemoveChunk}
-        onNameChange={handleNameChange}
-        onDescriptionChange={handleDescriptionChange}
+        chunksApi={chunksApi}
       />
       <Restore
         messageParts={messageParts}
@@ -170,17 +153,12 @@ const Import = () => {
 
 const DisplayResults = ({
   messageParts,
-  chunks,
-  onRemoveChunk,
-  onNameChange,
-  onDescriptionChange,
+  chunksApi,
 }: {
   messageParts: MessagePart[];
-  chunks: ChunksMeta[];
-  onRemoveChunk: (a0: ChunksMeta) => void;
-  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
-  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
+  chunksApi: ChunksApi<ChunksMeta>;
 }) => {
+  const { chunks } = chunksApi;
   const messagePartsAvailable = messageParts.length;
   const messagePartsTotal = messageParts[0]?.partsTotal || 0;
   const messageBytes = messageParts.length > 0 ? encryptedMessageBytes(messageParts.map((x) => x.data)) : '???';
@@ -207,6 +185,7 @@ const DisplayResults = ({
       } as State,
     });
   }, [messageParts, chunks, navigate]);
+  console.log(chunks);
 
   return (
     <>
@@ -229,11 +208,11 @@ const DisplayResults = ({
       </EncryptedMessageView>
       {chunks.map((chunk) => (
         <ChunkView
-          key={chunk.chunk.chunkIndex}
+          key={chunk.chunk.raw}
           chunk={chunk}
-          onRemoveChunk={onRemoveChunk}
-          onNameChange={onNameChange}
-          onDescriptionChange={onDescriptionChange}
+          onRemoveChunk={chunksApi.discardChunk}
+          onNameChange={chunksApi.changeName}
+          onDescriptionChange={chunksApi.changeDescription}
         />
       ))}
 

@@ -52,6 +52,7 @@ export const SecureMessageResult = ({
   nextStep,
 }: Props) => {
   const { secureMessage, result: localResult, error, isLoading, alterChunkName } = useSecureMessage();
+  // TODO [ToDr] This stuff probably needs a re-design with use-chunks.
   const userDefinedRef = useRef(userDefined);
 
   // call secure message every time message or configuration changes

@@ -4,7 +4,7 @@ import { ChangeEvent, useCallback } from 'react';
 import { MaybeRecipient, NewOrOldRecipient } from './recipients';
 import { PieceView } from '../../../components/piece-view';
 import { PieceOptions } from '../../../components/piece-options';
-import { ChunksMeta } from '../../../hooks/use-chunks';
+import { ChunkStorage } from '../store';
 
 function isEmailAddress(val: string) {
   const emailStart = val.indexOf('<');
@@ -19,15 +19,15 @@ function isEmailAddress(val: string) {
 }
 
 type Props = {
-  chunk: ChunksMeta;
+  chunk: ChunkStorage;
   predefinedRecipients: NewOrOldRecipient[];
   recipient: MaybeRecipient;
   setRecipient: (a0: MaybeRecipient) => void;
   isSelected: boolean;
   setIsSelected: (a0: boolean) => void;
-  onDiscard: (a0: ChunksMeta) => void;
-  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
-  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
+  onDiscard: (a0: ChunkStorage) => void;
+  onNameChange: (a0: ChunkStorage, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: ChunkStorage, a1: string) => void;
 };
 
 export const RecipientRow = ({

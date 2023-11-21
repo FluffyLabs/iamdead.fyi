@@ -107,7 +107,9 @@ const Storage = ({
     );
   }, [encryptionResult.chunks]);
 
-  const { chunks, setChunks } = useChunks(initialChunks);
+  const chunksApi = useChunks(initialChunks);
+  const { chunks } = chunksApi;
+
   const [predefinedRecipients] = useState([
     new Recipient(1, 'Mommy', 'mommy@home.com'),
     new Recipient(2, 'Dad', 'dad@home.com'),
@@ -140,7 +142,7 @@ const Storage = ({
         chunksConfiguration,
         encryptionResult: {
           ...encryptionResult,
-          chunks: chunks.map((c) => c.chunk),
+          chunks,
         },
       },
     });
@@ -150,8 +152,7 @@ const Storage = ({
     recipients: () => (
       <>
         <Recipients
-          chunks={chunks}
-          setChunks={setChunks}
+          chunksApi={chunksApi}
           requiredChunks={chunksConfiguration.required}
           totalChunks={chunksConfiguration.required + chunksConfiguration.spare}
           messageBytes={encryptionResult.encryptedMessageBytes}

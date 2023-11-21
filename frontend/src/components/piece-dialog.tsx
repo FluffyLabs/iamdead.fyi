@@ -14,15 +14,22 @@ import { onDownload } from '../services/download-chunk';
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState } from 'react';
 import { ChunksMeta } from '../hooks/use-chunks';
 
-export type Props = {
+export type Props<T extends ChunksMeta> = {
   isShown: boolean;
-  chunk: ChunksMeta;
+  chunk: T;
   children?: ReactNode;
   onClose: () => void;
-  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
-  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
+  onNameChange: (a0: T, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: T, a1: string) => void;
 };
-export function PieceDialog({ isShown, chunk, onClose, children, onNameChange, onDescriptionChange }: Props) {
+export function PieceDialog<T extends ChunksMeta>({
+  isShown,
+  chunk,
+  onClose,
+  children,
+  onNameChange,
+  onDescriptionChange,
+}: Props<T>) {
   const [nameChangeError, setNameChangeError] = useState(null as string | null);
   const [activeName, setActiveName] = useState(chunk.chunk.name);
   // reset activeName when activeChunk changes

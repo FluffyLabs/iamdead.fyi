@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { Alert, Button, ImportIcon, Link, Pane, Paragraph, Position, Switch, Tooltip, majorScale } from 'evergreen-ui';
 import { RecipientRow } from './recipient-row';
 import { EncryptedMessageView } from '../../../components/encrypted-message-view';
-import { ChunksMeta } from '../../../hooks/use-chunks';
+import { ChunksApi } from '../../../hooks/use-chunks';
 import { ChunkStorage } from '../store';
 
 export class Recipient {
@@ -29,11 +29,8 @@ export class Recipient {
 export type MaybeRecipient = Recipient | string | null;
 export type NewOrOldRecipient = Recipient | string;
 
-type Chunks = ChunkStorage[];
-
 type RecipientsProps = {
-  chunks: Chunks;
-  setChunks: (arg0: Chunks) => void;
+  chunksApi: ChunksApi<ChunkStorage>;
   requiredChunks: number;
   totalChunks: number;
   messageBytes: number;
@@ -42,14 +39,14 @@ type RecipientsProps = {
 };
 
 export const Recipients = ({
-  chunks,
-  setChunks,
+  chunksApi,
   requiredChunks,
   totalChunks,
   messageBytes,
   predefinedRecipients,
   onScanMore,
 }: RecipientsProps) => {
+  const { chunks, setChunks, discardChunk, changeName, changeDescription } = chunksApi;
   const handleSelected = useCallback(
     (idx: number, v: boolean) => {
       chunks[idx].isSelected = v;
@@ -57,6 +54,7 @@ export const Recipients = ({
     },
     [chunks, setChunks],
   );
+
   const handleRecipient = useCallback(
     (idx: number, v: MaybeRecipient) => {
       chunks[idx].recipient = v;
@@ -64,30 +62,6 @@ export const Recipients = ({
     },
     [chunks, setChunks],
   );
-  const handleDiscard = useCallback(
-    (chunk: ChunksMeta) => {
-      if (
-        window.confirm(
-          'The piece is going to be removed from the list. The operation is irreversible so make sure you have a copy.',
-        )
-      ) {
-        // TODO [ToDr] This most likely won't work.
-        const idx = chunks.map((x) => x).indexOf(chunk as ChunkStorage);
-        if (idx !== -1) {
-          chunks.splice(idx, 1);
-          setChunks([...chunks]);
-        }
-      }
-    },
-    [chunks, setChunks],
-  );
-
-  const handleNameChange = useCallback((a0: ChunksMeta, newName: string) => {
-    throw new Error('todo');
-  }, []);
-  const handleDescriptionChange = useCallback((a0: ChunksMeta, newName: string) => {
-    throw new Error('todo');
-  }, []);
 
   const selectedCount = chunks.filter((x) => x.isSelected).length;
 
@@ -124,9 +98,9 @@ export const Recipients = ({
           isSelected={chunk.isSelected}
           setIsSelected={(v) => handleSelected(idx, v)}
           setRecipient={(v) => handleRecipient(idx, v)}
-          onDiscard={handleDiscard}
-          onNameChange={handleNameChange}
-          onDescriptionChange={handleDescriptionChange}
+          onDiscard={discardChunk}
+          onNameChange={changeName}
+          onDescriptionChange={changeDescription}
         />
       ))}
       {chunks.length < totalChunks && (

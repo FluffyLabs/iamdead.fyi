@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Chunk, ChunksConfiguration, Crypto } from '../services/crypto';
+import { useAlterChunkName } from './use-alter-chunk-name';
 
 export type RichSecureMessageResult = {
   encryptedMessage: string[];
@@ -10,6 +11,7 @@ export function useSecureMessage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState<RichSecureMessageResult | null>(null);
+  const newAlterChunkName = useAlterChunkName();
 
   const clear = useCallback(() => {
     setResult(null);
@@ -17,24 +19,18 @@ export function useSecureMessage() {
   }, [setResult, setError]);
 
   const alterChunkName = useCallback(
-    (chunkIndex: number, newName: string) => {
-      async function alterName() {
-        const chunk = result?.chunks[chunkIndex];
-        const crypto = await Crypto.initialize();
-        const newRaw = await crypto.alterChunksName(chunk?.raw || '', newName);
-
-        if (!result) {
-          return {
-            isNameOk: false,
-            error: null,
-          };
-        }
-        const oldChunk = result.chunks[chunkIndex];
-        result.chunks[chunkIndex] = {
-          ...oldChunk,
-          name: newName,
-          raw: newRaw,
+    async (chunkIndex: number, newName: string) => {
+      if (!result) {
+        return {
+          isNameOk: false,
+          error: null,
         };
+      }
+
+      const chunk = result?.chunks[chunkIndex];
+      try {
+        const newChunk = await newAlterChunkName(chunk, newName);
+        result.chunks[chunkIndex] = newChunk;
         result.chunks = [...result.chunks];
         setResult({
           ...result,
@@ -43,16 +39,14 @@ export function useSecureMessage() {
           isNameOk: true,
           error: null,
         };
-      }
-
-      return alterName().catch((e) => {
+      } catch (error) {
         return {
           isNameOk: false,
-          error: e,
+          error: `${error}`,
         };
-      });
+      }
     },
-    [result, setResult],
+    [result, setResult, newAlterChunkName],
   );
 
   const secureMessage = useCallback(
