@@ -32,6 +32,7 @@ export function PieceDialog<T extends ChunksMeta>({
 }: Props<T>) {
   const [nameChangeError, setNameChangeError] = useState(null as string | null);
   const [activeName, setActiveName] = useState(chunk.chunk.name);
+
   // reset activeName when activeChunk changes
   useEffect(() => {
     setActiveName(chunk.chunk.name);

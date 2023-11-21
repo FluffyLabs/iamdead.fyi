@@ -11,7 +11,6 @@ import { NextStepButton } from '../../components/next-step-button';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { State } from '../store/store';
 import { MessageEditor } from '../../components/message-editor';
-import { isEqual } from 'lodash';
 import { PieceOptions } from '../../components/piece-options';
 import { ChunksApi, ChunksMeta, useChunks } from '../../hooks/use-chunks';
 
@@ -34,7 +33,7 @@ export const Scan = () => {
 
 const Import = () => {
   const { state }: { state: State | null } = useLocation();
-  /// TODO: replace state using navigate('.', { replace: true });
+  const navigate = useNavigate();
 
   const [initializedFromState, setInitializedFromState] = useState(false);
   const [error, setError] = useState(null as string | null);
@@ -43,15 +42,25 @@ const Import = () => {
   const { chunks, setChunks } = chunksApi;
   const [lastPart, setLastPart] = useState(null as string | null);
 
-  const partsCollector = useMemo(() => new PartsCollector(setError), []);
+  const partsCollector = useMemo(
+    () =>
+      new PartsCollector(
+        (chunk: Chunk) =>
+          ({
+            chunk,
+            description: '',
+          }) as ChunksMeta,
+        setError,
+      ),
+    [],
+  );
 
   // import initial message parts
   useEffect(() => {
     async function doImport(encryptedMessage: string[]) {
-      const justChunks = chunks.map((c) => c.chunk);
       let newMessageParts = [] as MessagePart[];
       for (let part of encryptedMessage) {
-        const res = await partsCollector.handlePart(newMessageParts, justChunks, part);
+        const res = await partsCollector.handlePart(newMessageParts, chunks, part);
         newMessageParts = res.messageParts;
       }
       setMessageParts(newMessageParts);
@@ -64,7 +73,9 @@ const Import = () => {
       });
     }
     setInitializedFromState(true);
-  }, [initializedFromState, setInitializedFromState, state, setMessageParts, chunks, partsCollector]);
+    // remove everything from the state
+    navigate('.', { replace: true });
+  }, [initializedFromState, setInitializedFromState, state, setMessageParts, chunks, partsCollector, navigate]);
 
   const handleImport = useCallback(
     (err: Error | null, input: string | null) => {
@@ -88,7 +99,7 @@ const Import = () => {
       setLastPart(input);
 
       async function doImport(input: string) {
-        let newChunks = chunks.map((x) => x.chunk);
+        let newChunks = chunks;
         let newMessageParts = messageParts;
 
         for (let part of input.split('\n')) {
@@ -96,18 +107,12 @@ const Import = () => {
           const res = await partsCollector.handlePart(newMessageParts, newChunks, part);
           const newChunk = chunks.length !== res.chunks.length;
           toaster.success(newChunk ? 'Piece imported successfuly.' : 'Message Part imported successfuly.');
-          newChunks = res.chunks;
           newMessageParts = res.messageParts;
+          newChunks = res.chunks;
         }
 
         // append descriptions
-        const allChunks = newChunks.map((chunk) => {
-          return {
-            chunk,
-            description: chunks.find((c) => isEqual(c.chunk, chunk))?.description || '',
-          };
-        });
-        setChunks(allChunks);
+        setChunks(newChunks);
         setMessageParts(newMessageParts);
         return true;
       }
@@ -178,6 +183,7 @@ const DisplayResults = ({
       encryptedMessageBytes: encryptedMessageBytes(encryptedMessageRaw),
       chunks,
     };
+
     navigate('/store', {
       state: {
         chunksConfiguration,
@@ -185,7 +191,6 @@ const DisplayResults = ({
       } as State,
     });
   }, [messageParts, chunks, navigate]);
-  console.log(chunks);
 
   return (
     <>
@@ -208,7 +213,7 @@ const DisplayResults = ({
       </EncryptedMessageView>
       {chunks.map((chunk) => (
         <ChunkView
-          key={chunk.chunk.raw}
+          key={chunk.chunk.chunkIndex}
           chunk={chunk}
           onRemoveChunk={chunksApi.discardChunk}
           onNameChange={chunksApi.changeName}
@@ -282,7 +287,7 @@ const Restore = ({
 }: {
   messageParts: MessagePart[];
   chunks: Chunk[];
-  partsCollector: PartsCollector;
+  partsCollector: PartsCollector<ChunksMeta>;
 }) => {
   const hasAllMessageParts = messageParts.length === messageParts[0]?.partsTotal;
   const hasEnoughChunks = chunks.length >= chunks[0]?.requiredChunks;

@@ -4,7 +4,7 @@ import { Home } from './pages/home';
 import { Login } from './pages/login';
 import { IndieAuthForm, IndieAuthRedirect } from './pages/login/indie-auth';
 import { Secure } from './pages/secure';
-import { Store } from './pages/store';
+import { Store, StoreIntro } from './pages/store';
 import { Scan } from './pages/scan';
 import { NotFound } from './pages/not-found';
 
@@ -27,6 +27,10 @@ export function Routes() {
         <Route
           element={<Store />}
           path="store"
+        />
+        <Route
+          element={<StoreIntro />}
+          path="store/intro"
         />
         <Route
           element={<Scan />}

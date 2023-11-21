@@ -2,7 +2,7 @@ import { CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergr
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useCallback, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Progress } from './components/progress';
 import { Intro } from './components/intro';
 import { NextStepButton } from '../../components/next-step-button';
@@ -24,12 +24,7 @@ export type State = {
   encryptionResult: EncryptionResult;
 };
 
-export const Store = () => {
-  const { state }: { state: State | null } = useLocation();
-
-  const chunksConfiguration = state?.chunksConfiguration;
-  const encryptionResult = state?.encryptionResult;
-
+const StoreWrapper = ({ children }: { children: ReactNode }) => {
   return (
     <>
       <Navigation />
@@ -40,16 +35,25 @@ export const Store = () => {
         >
           Configure on-line storage & proof of life.
         </Heading>
-        {chunksConfiguration && encryptionResult ? (
-          <Storage
-            chunksConfiguration={chunksConfiguration}
-            encryptionResult={encryptionResult}
-          />
-        ) : (
-          <Intro />
-        )}
+        {children}
       </Container>
     </>
+  );
+};
+
+export const StoreIntro = () => {
+  return (
+    <StoreWrapper>
+      <Intro />
+    </StoreWrapper>
+  );
+};
+
+export const Store = () => {
+  return (
+    <StoreWrapper>
+      <Storage />
+    </StoreWrapper>
   );
 };
 
@@ -74,15 +78,26 @@ export type ChunkStorage = ChunksMeta & {
   recipient: MaybeRecipient;
 };
 
-const Storage = ({
-  chunksConfiguration,
-  encryptionResult,
-}: {
-  chunksConfiguration: ChunksConfiguration;
-  encryptionResult: EncryptionResult;
-}) => {
+const Storage = () => {
+  const { state }: { state: State | null } = useLocation();
+  const navigate = useNavigate();
+
   const [step, setStep] = useState('recipients' as Steps);
   const [showLogin, setShowLogin] = useState(false);
+  const [chunksConfiguration] = useState(state?.chunksConfiguration || { required: 0, spare: 0 });
+  const [encryptionResult] = useState(state?.encryptionResult);
+  const stateChunks = encryptionResult?.chunks || [];
+  const chunksApi = useChunks(
+    stateChunks.map(
+      (chunk) =>
+        ({
+          ...chunk,
+          isSelected: true,
+          recipient: null,
+        }) as ChunkStorage,
+    ),
+  );
+  const { chunks } = chunksApi;
 
   const nextStep = useCallback(() => {
     if (step === 'recipients') {
@@ -96,19 +111,19 @@ const Storage = ({
     }
   }, [step, setStep, setShowLogin]);
 
-  const initialChunks = useMemo(() => {
-    return encryptionResult.chunks.map(
-      (chunk) =>
-        ({
-          ...chunk,
-          isSelected: true,
-          recipient: null,
-        }) as ChunkStorage,
-    );
-  }, [encryptionResult.chunks]);
+  useEffect(() => {
+    // successfuly initialized from state
+    if (stateChunks.length === 0 && chunks.length) {
+      return;
+    }
 
-  const chunksApi = useChunks(initialChunks);
-  const { chunks } = chunksApi;
+    // freshly initialized (clear state) or empty (redirect)
+    if (stateChunks.length) {
+      navigate('.', { replace: true });
+    } else {
+      navigate('/store/intro');
+    }
+  }, [stateChunks, chunks]);
 
   const [predefinedRecipients] = useState([
     new Recipient(1, 'Mommy', 'mommy@home.com'),
@@ -116,7 +131,6 @@ const Storage = ({
     new Recipient(3, 'Wife', 'wife@home.com'),
   ]);
   const proofOfLife = useProofOfLife();
-  const navigate = useNavigate();
 
   const isNextStepActive = (() => {
     if (step === 'recipients') {
@@ -155,7 +169,7 @@ const Storage = ({
           chunksApi={chunksApi}
           requiredChunks={chunksConfiguration.required}
           totalChunks={chunksConfiguration.required + chunksConfiguration.spare}
-          messageBytes={encryptionResult.encryptedMessageBytes}
+          messageBytes={encryptionResult?.encryptedMessageBytes || 0}
           predefinedRecipients={selectableRecipients}
           onScanMore={handleScanMore}
         />

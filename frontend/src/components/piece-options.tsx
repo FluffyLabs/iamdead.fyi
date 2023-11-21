@@ -16,6 +16,7 @@ export function PieceOptions<T extends ChunksMeta>({ chunk, onDiscard, onNameCha
   const handleDiscard = useCallback(() => onDiscard(chunk), [chunk, onDiscard]);
 
   const [isDialogShown, setIsDialogShown] = useState(false);
+
   return (
     <>
       <PieceDialog
