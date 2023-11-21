@@ -123,7 +123,7 @@ const Storage = () => {
     } else {
       navigate('/store/intro');
     }
-  }, [stateChunks, chunks]);
+  }, [stateChunks, chunks, navigate]);
 
   const [predefinedRecipients] = useState([
     new Recipient(1, 'Mommy', 'mommy@home.com'),
