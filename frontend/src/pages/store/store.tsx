@@ -86,7 +86,7 @@ const Storage = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [chunksConfiguration] = useState(state?.chunksConfiguration || { required: 0, spare: 0 });
   const [encryptionResult] = useState(state?.encryptionResult);
-  const stateChunks = encryptionResult?.chunks || [];
+  const stateChunks = useMemo(() => encryptionResult?.chunks || [], [encryptionResult]);
   const chunksApi = useChunks(
     stateChunks.map(
       (chunk) =>
