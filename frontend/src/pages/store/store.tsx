@@ -1,20 +1,21 @@
 import { CrossIcon, Dialog, Heading, IconButton, Pane, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { useLocation } from 'react-router-dom';
-import { useCallback, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Progress } from './components/progress';
 import { Intro } from './components/intro';
 import { NextStepButton } from '../../components/next-step-button';
 import { Adapter, ConfiguredAdapter } from './services/adapters';
 import { ProofOfLife } from './components/proof-of-life/proof-of-life';
 import { useProofOfLife } from './hooks/use-proof-of-life';
-import { MaybeRecipient, Recipient, Recipients } from './components/recipients';
+import { MaybeRecipient, NewOrOldRecipient, Recipient, Recipients } from './components/recipients';
 import { ChunksConfiguration } from '../../services/crypto';
 import { Result as EncryptionResult } from '../secure/components/secure-message-result';
-import { ChunksMeta } from '../../components/piece-view';
 import { Summary } from './components/summary';
 import { SignIn } from '../../components/sign-in/sign-in';
+import { uniq } from 'lodash';
+import { ChunksMeta, useChunks } from '../../hooks/use-chunks';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -23,12 +24,7 @@ export type State = {
   encryptionResult: EncryptionResult;
 };
 
-export const Store = () => {
-  const { state }: { state: State | null } = useLocation();
-
-  const chunksConfiguration = state?.chunksConfiguration;
-  const encryptionResult = state?.encryptionResult;
-
+const StoreWrapper = ({ children }: { children: ReactNode }) => {
   return (
     <>
       <Navigation />
@@ -39,16 +35,25 @@ export const Store = () => {
         >
           Configure on-line storage & proof of life.
         </Heading>
-        {chunksConfiguration && encryptionResult ? (
-          <Storage
-            chunksConfiguration={chunksConfiguration}
-            encryptionResult={encryptionResult}
-          />
-        ) : (
-          <Intro />
-        )}
+        {children}
       </Container>
     </>
+  );
+};
+
+export const StoreIntro = () => {
+  return (
+    <StoreWrapper>
+      <Intro />
+    </StoreWrapper>
+  );
+};
+
+export const Store = () => {
+  return (
+    <StoreWrapper>
+      <Storage />
+    </StoreWrapper>
   );
 };
 
@@ -68,21 +73,31 @@ function isValid(recipient: MaybeRecipient) {
   return false;
 }
 
-export type ChunkStorage = {
-  chunk: ChunksMeta;
+export type ChunkStorage = ChunksMeta & {
   isSelected: boolean;
   recipient: MaybeRecipient;
 };
 
-const Storage = ({
-  chunksConfiguration,
-  encryptionResult,
-}: {
-  chunksConfiguration: ChunksConfiguration;
-  encryptionResult: EncryptionResult;
-}) => {
+const Storage = () => {
+  const { state }: { state: State | null } = useLocation();
+  const navigate = useNavigate();
+
   const [step, setStep] = useState('recipients' as Steps);
   const [showLogin, setShowLogin] = useState(false);
+  const [chunksConfiguration] = useState(state?.chunksConfiguration || { required: 0, spare: 0 });
+  const [encryptionResult] = useState(state?.encryptionResult);
+  const stateChunks = useMemo(() => encryptionResult?.chunks || [], [encryptionResult]);
+  const chunksApi = useChunks(
+    stateChunks.map(
+      (chunk) =>
+        ({
+          ...chunk,
+          isSelected: true,
+          recipient: null,
+        }) as ChunkStorage,
+    ),
+  );
+  const { chunks } = chunksApi;
 
   const nextStep = useCallback(() => {
     if (step === 'recipients') {
@@ -96,18 +111,20 @@ const Storage = ({
     }
   }, [step, setStep, setShowLogin]);
 
-  const initialChunks = useMemo(() => {
-    return encryptionResult.chunks.map(
-      (chunk) =>
-        ({
-          chunk,
-          isSelected: false,
-          recipient: null,
-        }) as ChunkStorage,
-    );
-  }, [encryptionResult.chunks]);
+  useEffect(() => {
+    // successfuly initialized from state
+    if (stateChunks.length === 0 && chunks.length) {
+      return;
+    }
 
-  const [chunks, setChunks] = useState(initialChunks);
+    // freshly initialized (clear state) or empty (redirect)
+    if (stateChunks.length) {
+      navigate('.', { replace: true });
+    } else {
+      navigate('/store/intro');
+    }
+  }, [stateChunks, chunks, navigate]);
+
   const [predefinedRecipients] = useState([
     new Recipient(1, 'Mommy', 'mommy@home.com'),
     new Recipient(2, 'Dad', 'dad@home.com'),
@@ -127,15 +144,34 @@ const Storage = ({
     }
   })();
 
+  const selectableRecipients = useMemo(() => {
+    const configuredRecipients = chunks.filter((x) => x.recipient).map((x) => x.recipient as NewOrOldRecipient);
+
+    return uniq([...predefinedRecipients, ...configuredRecipients]);
+  }, [predefinedRecipients, chunks]);
+
+  const handleScanMore = useCallback(() => {
+    navigate('/scan', {
+      state: {
+        chunksConfiguration,
+        encryptionResult: {
+          ...encryptionResult,
+          chunks,
+        },
+      },
+    });
+  }, [navigate, chunksConfiguration, chunks, encryptionResult]);
+
   const STEPS = {
     recipients: () => (
       <>
         <Recipients
-          chunks={chunks}
-          setChunks={setChunks}
+          chunksApi={chunksApi}
           requiredChunks={chunksConfiguration.required}
-          messageBytes={encryptionResult.encryptedMessageBytes}
-          predefinedRecipients={predefinedRecipients}
+          totalChunks={chunksConfiguration.required + chunksConfiguration.spare}
+          messageBytes={encryptionResult?.encryptedMessageBytes || 0}
+          predefinedRecipients={selectableRecipients}
+          onScanMore={handleScanMore}
         />
         <NextStepButton
           nextStep={nextStep}

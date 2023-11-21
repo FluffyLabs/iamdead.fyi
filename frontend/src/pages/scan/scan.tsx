@@ -1,29 +1,18 @@
-import {
-  Alert,
-  Button,
-  Dialog,
-  Group,
-  Heading,
-  IconButton,
-  Pane,
-  Paragraph,
-  Tooltip,
-  TrashIcon,
-  majorScale,
-  toaster,
-} from 'evergreen-ui';
+import { Alert, Button, Dialog, Group, Heading, Pane, Paragraph, Tooltip, majorScale, toaster } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Navigation } from '../../components/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PartsCollector } from '../../services/parts-collector';
 import { Chunk, MessagePart } from '../../services/crypto';
 import { ImportMethods } from './components/import-methods';
 import { EncryptedMessageView, encryptedMessageBytes } from '../../components/encrypted-message-view';
 import { PieceView } from '../../components/piece-view';
 import { NextStepButton } from '../../components/next-step-button';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { State } from '../store/store';
 import { MessageEditor } from '../../components/message-editor';
+import { PieceOptions } from '../../components/piece-options';
+import { ChunksApi, ChunksMeta, useChunks } from '../../hooks/use-chunks';
 
 export const Scan = () => {
   return (
@@ -43,12 +32,50 @@ export const Scan = () => {
 };
 
 const Import = () => {
+  const { state }: { state: State | null } = useLocation();
+  const navigate = useNavigate();
+
+  const [initializedFromState, setInitializedFromState] = useState(false);
   const [error, setError] = useState(null as string | null);
   const [messageParts, setMessageParts] = useState([] as MessagePart[]);
-  const [chunks, setChunks] = useState([] as Chunk[]);
+  const chunksApi = useChunks(state?.encryptionResult.chunks || []);
+  const { chunks, setChunks } = chunksApi;
   const [lastPart, setLastPart] = useState(null as string | null);
 
-  const partsCollector = useMemo(() => new PartsCollector(setError), []);
+  const partsCollector = useMemo(
+    () =>
+      new PartsCollector(
+        (chunk: Chunk) =>
+          ({
+            chunk,
+            description: '',
+          }) as ChunksMeta,
+        setError,
+      ),
+    [],
+  );
+
+  // import initial message parts
+  useEffect(() => {
+    async function doImport(encryptedMessage: string[]) {
+      let newMessageParts = [] as MessagePart[];
+      for (let part of encryptedMessage) {
+        const res = await partsCollector.handlePart(newMessageParts, chunks, part);
+        newMessageParts = res.messageParts;
+      }
+      setMessageParts(newMessageParts);
+    }
+    const existingMessage = state?.encryptionResult.encryptedMessageRaw;
+    if (existingMessage && !initializedFromState) {
+      doImport(existingMessage).catch((e: Error) => {
+        setError(e.message);
+        console.error(e);
+      });
+    }
+    setInitializedFromState(true);
+    // remove everything from the state
+    navigate('.', { replace: true });
+  }, [initializedFromState, setInitializedFromState, state, setMessageParts, chunks, partsCollector, navigate]);
 
   const handleImport = useCallback(
     (err: Error | null, input: string | null) => {
@@ -80,10 +107,11 @@ const Import = () => {
           const res = await partsCollector.handlePart(newMessageParts, newChunks, part);
           const newChunk = chunks.length !== res.chunks.length;
           toaster.success(newChunk ? 'Piece imported successfuly.' : 'Message Part imported successfuly.');
-          newChunks = res.chunks;
           newMessageParts = res.messageParts;
+          newChunks = res.chunks;
         }
 
+        // append descriptions
         setChunks(newChunks);
         setMessageParts(newMessageParts);
         return true;
@@ -97,16 +125,7 @@ const Import = () => {
     [setError, setChunks, setMessageParts, setLastPart, lastPart, partsCollector, messageParts, chunks],
   );
 
-  const removeChunk = useCallback(
-    (chunk: Chunk) => {
-      const idx = chunks.indexOf(chunk);
-      if (idx !== -1) {
-        chunks.splice(idx, 1);
-      }
-      setChunks([...chunks]);
-    },
-    [chunks, setChunks],
-  );
+  const justChunks = useMemo(() => chunks.map((c) => c.chunk), [chunks]);
 
   return (
     <>
@@ -126,12 +145,11 @@ const Import = () => {
       {error && <Alert intent="danger">{error}</Alert>}
       <DisplayResults
         messageParts={messageParts}
-        chunks={chunks}
-        removeChunk={removeChunk}
+        chunksApi={chunksApi}
       />
       <Restore
         messageParts={messageParts}
-        chunks={chunks}
+        chunks={justChunks}
         partsCollector={partsCollector}
       />
     </>
@@ -140,13 +158,12 @@ const Import = () => {
 
 const DisplayResults = ({
   messageParts,
-  chunks,
-  removeChunk,
+  chunksApi,
 }: {
   messageParts: MessagePart[];
-  chunks: Chunk[];
-  removeChunk: (a0: Chunk) => void;
+  chunksApi: ChunksApi<ChunksMeta>;
 }) => {
+  const { chunks } = chunksApi;
   const messagePartsAvailable = messageParts.length;
   const messagePartsTotal = messageParts[0]?.partsTotal || 0;
   const messageBytes = messageParts.length > 0 ? encryptedMessageBytes(messageParts.map((x) => x.data)) : '???';
@@ -157,15 +174,16 @@ const DisplayResults = ({
   const navigate = useNavigate();
   const handleNextStep = useCallback(() => {
     const chunksConfiguration = {
-      required: chunks[0].requiredChunks,
-      spare: chunks[0].spareChunks,
+      required: chunks[0].chunk.requiredChunks,
+      spare: chunks[0].chunk.spareChunks,
     };
-    const encryptedMessage = messageParts.map((x) => x.data);
+    const encryptedMessageRaw = messageParts.map((x) => x.raw);
     const encryptionResult = {
-      encryptedMessage,
-      encryptedMessageBytes: encryptedMessageBytes(encryptedMessage),
-      chunks: chunks.map(chunkToMeta),
+      encryptedMessageRaw,
+      encryptedMessageBytes: encryptedMessageBytes(encryptedMessageRaw),
+      chunks,
     };
+
     navigate('/store', {
       state: {
         chunksConfiguration,
@@ -195,9 +213,11 @@ const DisplayResults = ({
       </EncryptedMessageView>
       {chunks.map((chunk) => (
         <ChunkView
-          key={chunk.chunkIndex}
+          key={chunk.chunk.chunkIndex}
           chunk={chunk}
-          removeChunk={removeChunk}
+          onRemoveChunk={chunksApi.discardChunk}
+          onNameChange={chunksApi.changeName}
+          onDescriptionChange={chunksApi.changeDescription}
         />
       ))}
 
@@ -211,34 +231,26 @@ const DisplayResults = ({
   );
 };
 
-function chunkToMeta(chunk: Chunk) {
-  return {
-    description: '',
-    chunk,
-  };
-}
-
-const ChunkView = ({ chunk, removeChunk }: { chunk: Chunk; removeChunk: (a0: Chunk) => void }) => {
-  const chunkMeta = useMemo(() => {
-    return chunkToMeta(chunk);
-  }, [chunk]);
-
-  const handleClick = useCallback(() => {
-    removeChunk(chunk);
-  }, [chunk, removeChunk]);
+const ChunkView = ({
+  chunk,
+  onRemoveChunk,
+  onNameChange,
+  onDescriptionChange,
+}: {
+  chunk: ChunksMeta;
+  onRemoveChunk: (a0: ChunksMeta) => void;
+  onNameChange: (a0: ChunksMeta, a1: string) => Promise<string | null>;
+  onDescriptionChange: (a0: ChunksMeta, a1: string) => void;
+}) => {
   return (
-    <PieceView chunk={chunkMeta}>
-      <Pane
-        flex="1"
-        display="flex"
-        justifyContent="flex-end"
-      >
-        <IconButton
-          appearance="minimal"
-          icon={<TrashIcon color="#B0B0B0" />}
-          onClick={handleClick}
-        />
-      </Pane>
+    <PieceView chunk={chunk}>
+      <Pane flex="1"></Pane>
+      <PieceOptions
+        chunk={chunk}
+        onDiscard={onRemoveChunk}
+        onNameChange={onNameChange}
+        onDescriptionChange={onDescriptionChange}
+      />
     </PieceView>
   );
 };
@@ -275,7 +287,7 @@ const Restore = ({
 }: {
   messageParts: MessagePart[];
   chunks: Chunk[];
-  partsCollector: PartsCollector;
+  partsCollector: PartsCollector<ChunksMeta>;
 }) => {
   const hasAllMessageParts = messageParts.length === messageParts[0]?.partsTotal;
   const hasEnoughChunks = chunks.length >= chunks[0]?.requiredChunks;

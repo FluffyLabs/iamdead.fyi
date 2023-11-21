@@ -1,17 +1,27 @@
 import { Chunk, Crypto, MessagePart } from './crypto';
 import { isEqual } from 'lodash';
 
-export class PartsCollector {
+export interface ChunkWrapper {
+  chunk: Chunk;
+}
+
+export interface ChunkWrapperConstructor<T extends ChunkWrapper> {
+  (a0: Chunk): T;
+}
+
+export class PartsCollector<T extends ChunkWrapper> {
+  ctor: ChunkWrapperConstructor<T>;
   crypto: Promise<Crypto | void>;
 
-  constructor(setError: (e: string) => void) {
+  constructor(ctor: ChunkWrapperConstructor<T>, setError: (e: string) => void) {
+    this.ctor = ctor;
     this.crypto = Crypto.initialize().catch((err: Error) => {
       console.error(err);
       setError(err.message);
     });
   }
 
-  async handlePart(messageParts: MessagePart[], chunks: Chunk[], part: string) {
+  async handlePart(messageParts: MessagePart[], chunks: T[], part: string) {
     const crypto = await this.getCrypto();
     let id;
     try {
@@ -56,17 +66,17 @@ export class PartsCollector {
     }
   }
 
-  addChunk(chunks: Chunk[], chunk: Chunk) {
+  addChunk(chunks: T[], chunk: Chunk) {
     // happy case :)
     if (chunks.length === 0) {
-      return [chunk];
+      return [this.ctor(chunk)];
     }
     // check duplicate
-    if (chunks.find((p) => isEqual(p, chunk))) {
+    if (chunks.find((p) => isEqual(p.chunk, chunk))) {
       throw new Error('Duplicated chunk.');
     }
     // check if it matches the ones we already have
-    const { version, requiredChunks, spareChunks, keyHash } = chunks[0];
+    const { version, requiredChunks, spareChunks, keyHash } = chunks[0].chunk;
     if (keyHash !== chunk.keyHash) {
       throw new Error('This chunk is for a different key.');
     }
@@ -77,7 +87,8 @@ export class PartsCollector {
       throw new Error('Chunk configuration mismatch.');
     }
 
-    return this.insertAtLocation(chunks, chunk, (x) => x.chunkIndex);
+    const chunkWrapper = this.ctor(chunk);
+    return this.insertAtLocation(chunks, chunkWrapper, (x) => x.chunk.chunkIndex);
   }
 
   addMessage(parts: MessagePart[], messagePart: MessagePart) {
