@@ -49,7 +49,7 @@ export function useIndieAuthAuthorization() {
     }
 
     if (isSuccess) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [setSearchParams, hasProfileParams, isSuccess, isError, navigate]);
 
