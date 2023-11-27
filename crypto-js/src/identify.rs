@@ -5,10 +5,11 @@ use icod_crypto::{encryption::EncryptedMessagePart, shamir::Chunk};
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 
-use crate::{encryption::MSG_PREFIX, shamir::CHUNK_PREFIX};
+use crate::{conv, encryption::MSG_PREFIX, shamir::CHUNK_PREFIX, JsValueOrString};
 
 /// Error occuring during identification.
 #[derive(Debug)]
+#[cfg_attr(test, derive(Eq, PartialEq))]
 pub enum Error {
   /// The string is missing a known prefix.
   MissingPrefix,
@@ -42,6 +43,8 @@ pub enum Identification {
   },
   /// The string is a SSS chunk.
   Chunk {
+    /// Name of the chunk.
+    name: String,
     /// Version byte.
     version: u8,
     /// Hash of the key the chunk is for.
@@ -71,15 +74,32 @@ pub type IdentificationOrJsValue = Identification;
 #[cfg(not(test))]
 pub type IdentificationOrJsValue = JsValue;
 
+fn identify_chunk(item: &str) -> Option<(Option<&str>, &str)> {
+  if let Some(chunk) = item.strip_prefix(CHUNK_PREFIX) {
+    Some(if let Some(index) = chunk.find(':') {
+      let (name, rest) = chunk.split_at(index);
+      (Some(name), &rest[1..])
+    } else {
+      (None, chunk)
+    })
+  } else {
+    None
+  }
+}
+
 /// Given a string attempts to identify and decode the details
 /// of encoded value.
 #[cfg_attr(not(test), wasm_bindgen)]
 pub fn identify(item: String) -> Result<IdentificationOrJsValue, Error> {
-  if let Some(chunk) = item.strip_prefix(CHUNK_PREFIX) {
+  if let Some((name, chunk)) = identify_chunk(&item) {
     let bytes = crate::conv::decode(&chunk).map_err(|_| Error::DecodingError)?;
     let chunk = Chunk::decode(&bytes).map_err(|e| Error::Other(format!("{}", e)))?;
+    let total_chunks = chunk.configuration().total();
 
     return Ok(serialize(Identification::Chunk {
+      name: name
+        .map(Into::into)
+        .unwrap_or_else(|| format!("Restoration Piece {}/{}", chunk.index() + 1, total_chunks)),
       version: chunk.version(),
       key_hash: crate::conv::encode(&chunk.key_hash().to_bytes()),
       required_chunks: chunk.configuration().required() as u8,
@@ -102,6 +122,60 @@ pub fn identify(item: String) -> Result<IdentificationOrJsValue, Error> {
   }
 
   return Err(Error::MissingPrefix);
+}
+
+const MAX_CHUNKS_NAME_LEN: usize = 16;
+
+/// Given an encoded chunk (potentially with a name) and new name, alters the
+/// chunk to have given name.
+#[cfg_attr(not(test), wasm_bindgen)]
+pub fn alter_chunks_name(
+  chunk: String,
+  new_name: String,
+) -> Result<JsValueOrString, AlterChunksNameError> {
+  if let Some((_name, chunk)) = identify_chunk(&chunk) {
+    if new_name.find(":").is_some() {
+      return Err(AlterChunksNameError::InvalidCharacters);
+    }
+
+    if new_name.len() > MAX_CHUNKS_NAME_LEN {
+      return Err(AlterChunksNameError::NameTooLong);
+    }
+
+    Ok(conv::js_value_or_string(format!(
+      "{}{}:{}",
+      CHUNK_PREFIX, new_name, chunk
+    )))
+  } else {
+    Err(AlterChunksNameError::NotAChunk)
+  }
+}
+
+/// Error occuring during chunk name alteration.
+#[derive(Debug)]
+#[cfg_attr(test, derive(Eq, PartialEq))]
+pub enum AlterChunksNameError {
+  /// The value is not a chunk.
+  NotAChunk,
+  /// The chunk contains invalid characters.
+  InvalidCharacters,
+  /// The name is too long.
+  NameTooLong,
+}
+
+impl From<AlterChunksNameError> for JsValue {
+  fn from(value: AlterChunksNameError) -> Self {
+    use AlterChunksNameError::*;
+    let r = match value {
+      NotAChunk => "Given string does not look like encoded piece.".into(),
+      NameTooLong => format!(
+        "The name has too many characters. Max: {}",
+        MAX_CHUNKS_NAME_LEN
+      ),
+      InvalidCharacters => "The name cannot contain `:`.".into(),
+    };
+    JsValue::from_str(&r)
+  }
 }
 
 #[cfg(test)]
@@ -131,6 +205,7 @@ mod tests {
       _ => "".into(),
     };
     assert_eq!(result, Identification::Chunk {
+      name: "Restoration Piece 2/5".into(),
       version:0,
       key_hash: "av90pe1vsder0me4lgd8bb5beegqo083q4s0p2sdi36248eqq2cllacfebsb5ne4644jsqe7i515nrggqhgv00q4f87nvijrjul6q58".into(),
       required_chunks: 2,
@@ -163,5 +238,51 @@ mod tests {
         data: "0r7rf3m80rr69ic6ktsbkr3k4bcdo86618411joljt9kbvp7f4qst8kpkc3vjl9s1tfdph0".into(),
       }
     );
+  }
+
+  #[test]
+  fn should_support_named_chunks() {
+    // given
+    let chunk = "icod-chunk:my chunk 1:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g20j9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g";
+
+    // when
+    let result = identify(chunk.to_owned()).unwrap();
+
+    // then
+    assert_eq!(
+      result,
+      Identification::Chunk {
+        name: "my chunk 1".into(),
+        version: 0,
+        key_hash: "av90pe1vsder0me4lgd8bb5beegqo083q4s0p2sdi36248eqq2cllacfebsb5ne4644jsqe7i515nrggqhgv00q4f87nvijrjul6q58".into(),
+        required_chunks: 1,
+        spare_chunks: 1,
+        chunk_index: 1,
+        data: "09km6rr4dc002081040g2081040g2081040g2081040g2081040g2081040g208".into(),
+      }
+    );
+  }
+
+  #[test]
+  fn should_alter_chunks_name() {
+    // given
+    let chunk1 = "icod-chunk:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g20j9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g";
+    let chunk2 = "icod-chunk:my chunk 1:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g20j9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g";
+    let chunk3 = "icod-msg:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g20j9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g";
+
+    // when
+    let res1 = alter_chunks_name(chunk1.into(), "new name".into());
+    let res2 = alter_chunks_name(chunk2.into(), "new name".into());
+    let res3 = alter_chunks_name(chunk3.into(), "new name".into());
+    let res4 = alter_chunks_name(chunk1.into(), "new:name".into());
+    let res5 = alter_chunks_name(chunk1.into(), "new name is way too long".into());
+
+    // then
+    let res = "icod-chunk:new name:d5hmup3301bt435o7vhlrc2poim1l1dcldpq3b010f8jg34bhm8co8h1rb89iml9htpfhcmtogogifj9ou8k4mve23a63s038ht0uvuafefqkr8l040g20j9cdnm8qo0040g2081040g2081040g2081040g2081040g2081040g2081040g";
+    assert_eq!(res1, Ok(res.into()));
+    assert_eq!(res2, Ok(res.into()));
+    assert_eq!(res3, Err(AlterChunksNameError::NotAChunk));
+    assert_eq!(res4, Err(AlterChunksNameError::InvalidCharacters));
+    assert_eq!(res5, Err(AlterChunksNameError::NameTooLong));
   }
 }

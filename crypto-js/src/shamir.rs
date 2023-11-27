@@ -139,7 +139,7 @@ pub(crate) mod conv {
     chunks
       .into_iter()
       .map(|val| {
-        crate::conv::prefixed_str_js_to_bytes(CHUNK_PREFIX, val)
+        crate::conv::prefixed_str_js_to_bytes(CHUNK_PREFIX, val, true)
           .map_err(RecoveryError::from)
           .and_then(|v| {
             icod_crypto::shamir::Chunk::decode(&v)

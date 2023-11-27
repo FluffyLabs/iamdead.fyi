@@ -1,0 +1,10 @@
+.pane {
+  .button {
+    opacity: 0;
+    transition: opacity ease-in 150ms;
+  }
+
+  &:hover .button {
+    opacity: 1;
+  }
+}

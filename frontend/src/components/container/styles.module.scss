@@ -1,6 +1,9 @@
 .container {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  background: #fff;
+
+  &.noBackground {
+    background: none;
+  }
 }
 
 @media (min-width: 768px) {

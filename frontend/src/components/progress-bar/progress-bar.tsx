@@ -6,6 +6,9 @@ type Props = {
 
 export const ProgressBar = ({ progress }: Props) => (
   <div className={styles.wrapper}>
-    <div className={styles.progress} style={{ width: progress }} />
+    <div
+      className={styles.progress}
+      style={{ width: progress }}
+    />
   </div>
 );

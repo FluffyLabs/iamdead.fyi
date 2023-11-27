@@ -9,7 +9,7 @@ export function useDefaultSubpath(defaultSubpath: string) {
     const pathFragments = pathname.split('/').filter((pathFragment) => !!pathFragment);
     const hasSubpathSelected = pathFragments.length > 1;
     if (!hasSubpathSelected) {
-      navigate(defaultSubpath);
+      navigate(defaultSubpath, { replace: true });
     }
   }, [pathname, navigate, defaultSubpath]);
 }

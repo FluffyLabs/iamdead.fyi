@@ -1,15 +1,12 @@
-body {
-  margin: 0;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
+@import './colors.scss';
 
 body,
 html {
   min-height: 100vh;
-  font-family: Raleway, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: $background;
+  color: #101840;
 }
 
 * {

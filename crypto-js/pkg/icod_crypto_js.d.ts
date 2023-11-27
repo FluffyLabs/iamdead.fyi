@@ -1,6 +1,21 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* Given a string attempts to identify and decode the details
+* of encoded value.
+* @param {string} item
+* @returns {any}
+*/
+export function identify(item: string): any;
+/**
+* Given an encoded chunk (potentially with a name) and new name, alters the
+* chunk to have given name.
+* @param {string} chunk
+* @param {string} new_name
+* @returns {any}
+*/
+export function alter_chunks_name(chunk: string, new_name: string): any;
+/**
 * Split given `key` into SSS chunks according to `configuration`.
 *
 * The `key` should be raw, 32-bytes key. The magic sequence and version
@@ -19,13 +34,6 @@ export function split_into_chunks(key: Uint8Array, configuration: ChunksConfigur
 * @returns {Uint8Array}
 */
 export function recover_key(chunks: any[]): Uint8Array;
-/**
-* Given a string attempts to identify and decode the details
-* of encoded value.
-* @param {string} item
-* @returns {any}
-*/
-export function identify(item: string): any;
 /**
 * Secure given message by randomly selecting an encryption key,
 * encrypting the message and splitting the key using Shamir Secret Sharing
@@ -101,6 +109,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly identify: (a: number, b: number, c: number) => void;
+  readonly alter_chunks_name: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbg_chunksconfiguration_free: (a: number) => void;
   readonly __wbg_get_chunksconfiguration_required: (a: number) => number;
   readonly __wbg_set_chunksconfiguration_required: (a: number, b: number) => void;
@@ -109,7 +119,6 @@ export interface InitOutput {
   readonly chunksconfiguration_new: (a: number, b: number) => number;
   readonly split_into_chunks: (a: number, b: number, c: number, d: number) => void;
   readonly recover_key: (a: number, b: number, c: number) => void;
-  readonly identify: (a: number, b: number, c: number) => void;
   readonly secure_message: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly restore_message: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly encrypt_message: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
