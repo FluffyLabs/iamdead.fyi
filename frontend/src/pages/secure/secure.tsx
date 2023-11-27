@@ -98,8 +98,19 @@ export const Secure = () => {
         return;
       }
 
-      if (oldVal.name !== val.name || oldVal.description !== val.description) {
-        oldUserDefined[idx] = val;
+      let oldValUpdated = false;
+      if (oldVal.name && oldVal.name !== val.name) {
+        oldVal.name = val.name;
+        oldValUpdated = true;
+      }
+
+      if (oldVal.description && oldVal.description !== val.description) {
+        oldVal.description = val.description;
+        oldValUpdated = true;
+      }
+
+      if (oldValUpdated) {
+        oldUserDefined[idx] = { ...oldVal };
         shouldUpdate = true;
       }
     });
