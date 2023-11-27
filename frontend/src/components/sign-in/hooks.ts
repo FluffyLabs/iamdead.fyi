@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { axios } from '../../services/axios';
+import Cookies from 'js-cookie';
 
 export function useAuthorizationParams() {
   const origin = window.location.origin;
@@ -19,8 +20,8 @@ export function useProfileParams() {
   const [searchParams] = useSearchParams();
 
   return {
-    client_id: clientId,
-    redirect_uri: redirectUri,
+    clientId,
+    redirectUri,
     code: searchParams.get('code'),
   };
 }
@@ -36,7 +37,7 @@ export function useIndieAuthAuthorization() {
   const [, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { isLoading, error, isSuccess, isError } = useQuery({
+  const { isLoading, error, isSuccess, isError, data } = useQuery({
     queryKey: [],
     queryFn: ({ signal }) => axios.post('/auth/indie-auth/authorize', profileParams, { signal }),
     enabled: hasProfileParams,
@@ -48,9 +49,16 @@ export function useIndieAuthAuthorization() {
     }
 
     if (isSuccess) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [setSearchParams, hasProfileParams, isSuccess, isError, navigate]);
+
+  useEffect(() => {
+    const token: string | undefined = data?.data?.token;
+    if (token) {
+      Cookies.set('token', token);
+    }
+  }, [data]);
 
   return {
     isLoading,

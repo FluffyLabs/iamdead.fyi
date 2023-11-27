@@ -1,9 +1,14 @@
 use form_urlencoded::Serializer;
-use surf;
+use icod_data::models::NewUser;
+use icod_data::{insert_user, query_users_by_auth_provider};
 use tide::prelude::*;
 use tide::{Body, Request, Response};
 
+use crate::auth::create_jwt;
+use crate::state::State;
+
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct IndieAuthBody {
   client_id: String,
   redirect_uri: String,
@@ -21,7 +26,7 @@ struct IndieAuthError {
   error_description: String,
 }
 
-pub async fn authorize_indie_auth(mut req: Request<()>) -> tide::Result {
+pub async fn authorize_indie_auth(mut req: Request<State>) -> tide::Result {
   let IndieAuthBody {
     client_id,
     redirect_uri,
@@ -49,7 +54,32 @@ pub async fn authorize_indie_auth(mut req: Request<()>) -> tide::Result {
   }
 
   let json = response.body_json::<IndieAuthResponse>().await?;
+
+  let auth_provider = "IndieAuth".to_owned();
+
+  let connection = &mut req.state().db_pool.get()?;
+  let user = query_users_by_auth_provider(connection, auth_provider.clone(), json.me.clone());
+
+  let user = match user? {
+    Some(user) => user,
+    None => {
+      tracing::info!("User not found");
+      insert_user(
+        connection,
+        NewUser {
+          auth_provider: auth_provider.clone(),
+          auth_provider_id: json.me.clone(),
+          username: json.me.clone(),
+        },
+      )?;
+      let created_user = query_users_by_auth_provider(connection, auth_provider, json.me.clone())?;
+
+      created_user.ok_or_else(|| anyhow::format_err!("Missing user after creation!"))?
+    }
+  };
+
+  let response = create_jwt(user.id, &req.state().jwt_secret)?;
   tracing::info!("Website authorized correctly: {:?}", json.me);
 
-  Ok(Response::new(204))
+  Ok(tide::Body::from_json(&response)?.into())
 }
