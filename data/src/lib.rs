@@ -23,7 +23,7 @@ type DbConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
 pub struct MigrationError;
 
 pub fn get_connection_pool(database_url: &str) -> DbPool {
-    let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+  let manager = ConnectionManager::<SqliteConnection>::new(database_url);
 
   Pool::builder()
     .test_on_check_out(true)

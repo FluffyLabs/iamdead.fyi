@@ -21,12 +21,10 @@ async fn main() -> tide::Result<()> {
     .with_max_level(tracing::Level::INFO)
     .init();
 
-  let database_url = dotenvy::var("DATABASE_URL")
-    .expect("DATABASE_URL env variable must be set in .env file.");
-  let jwt_secret = dotenvy::var("SESSION_SECRET")
-    .expect("SESSION_SECRET must be set in .env file");
-  let server_url = dotenvy::var("SERVER_URL")
-    .unwrap_or_else(|_| "127.0.0.1:8080".to_owned());
+  let database_url =
+    dotenvy::var("DATABASE_URL").expect("DATABASE_URL env variable must be set in .env file.");
+  let jwt_secret = dotenvy::var("SESSION_SECRET").expect("SESSION_SECRET must be set in .env file");
+  let server_url = dotenvy::var("SERVER_URL").unwrap_or_else(|_| "127.0.0.1:8080".to_owned());
 
   let db_pool = get_connection_pool(&database_url);
   perform_migrations(&mut db_pool.get()?).expect("Error performing migrations");
