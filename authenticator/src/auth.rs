@@ -1,7 +1,7 @@
 use std::{future::Future, pin::Pin};
 
 use serde::{Deserialize, Serialize};
-use tide::{Next, Request, Response, Result};
+use tide::{Next, Request, Response};
 
 use crate::state::State;
 
@@ -18,18 +18,17 @@ pub struct Claims {
 
 const EXP: u64 = 10000000000;
 
-pub fn create_jwt(id: i32) -> AuthResponse {
-  let secret = std::env::var("SESSION_SECRET").unwrap();
+pub fn create_jwt(id: i32, secret: &str) -> Result<AuthResponse, anyhow::Error> {
   let claims = Claims { exp: EXP, id };
 
-  let token = tide_jwt::jwtsign_secret(&claims, &secret).unwrap();
-  AuthResponse { token }
+  let token = tide_jwt::jwtsign_secret(&claims, secret)?;
+  Ok(AuthResponse { token })
 }
 
 pub fn require_authorization_middleware<'a>(
   req: Request<State>,
   next: Next<'a, State>,
-) -> Pin<Box<dyn Future<Output = Result> + Send + 'a>> {
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
   Box::pin(async {
     let res = match req.ext::<Claims>() {
       None => Response::new(401),

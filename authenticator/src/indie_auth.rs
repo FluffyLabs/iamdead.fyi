@@ -78,7 +78,7 @@ pub async fn authorize_indie_auth(mut req: Request<State>) -> tide::Result {
     }
   };
 
-  let response = create_jwt(user.id);
+  let response = create_jwt(user.id, &req.state().jwt_secret)?;
   tracing::info!("Website authorized correctly: {:?}", json.me);
 
   Ok(tide::Body::from_json(&response)?.into())
