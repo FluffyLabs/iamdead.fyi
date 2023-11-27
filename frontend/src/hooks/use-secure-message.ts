@@ -34,10 +34,14 @@ export function useSecureMessage() {
 
           await Promise.all(
             userDefinedNames.map(async (name, idx) => {
-              if (onlyChunks.length > idx && name) {
-                const raw = await crypto.alterChunksName(onlyChunks[idx].raw, name);
-                onlyChunks[idx].name = name;
-                onlyChunks[idx].raw = raw;
+              try {
+                if (onlyChunks.length > idx && name) {
+                  const raw = await crypto.alterChunksName(onlyChunks[idx].raw, name);
+                  onlyChunks[idx].name = name;
+                  onlyChunks[idx].raw = raw;
+                }
+              } catch (e) {
+                console.error(e);
               }
             }),
           );

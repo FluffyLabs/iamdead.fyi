@@ -93,11 +93,17 @@ export const Secure = () => {
     let shouldUpdate = false;
     const oldUserDefined = userDefinedRef.current;
     newUserDefined.forEach((val, idx) => {
-      if (oldUserDefined[idx]?.name !== val.name || oldUserDefined[idx]?.description !== val.description) {
+      const oldVal = oldUserDefined[idx];
+      if (!oldVal) {
+        return;
+      }
+
+      if (oldVal.name !== val.name || oldVal.description !== val.description) {
         oldUserDefined[idx] = val;
         shouldUpdate = true;
       }
     });
+
     if (shouldUpdate) {
       setUserDefined([...oldUserDefined]);
     }

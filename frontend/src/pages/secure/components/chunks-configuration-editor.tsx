@@ -39,11 +39,16 @@ export const ChunksConfigurationEditor = ({ configuration, onChange }: ChunksCon
 
   // sync internal changes
   useEffect(() => {
-    onChange({
+    const newVal = {
       required: totalChunks - spareChunks,
       spare: spareChunks,
-    });
-  }, [onChange, totalChunks, spareChunks]);
+    };
+    // avoid refreshing if the component is created
+    // but there is just no change.
+    if (configuration.required !== newVal.required || configuration.spare !== newVal.spare) {
+      onChange(newVal);
+    }
+  }, [onChange, configuration, totalChunks, spareChunks]);
 
   // sync incoming changes
   useEffect(() => {
