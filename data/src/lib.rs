@@ -41,9 +41,9 @@ pub fn perform_migrations(connection: &mut DbConnection) -> Result<(), Migration
 }
 
 pub fn insert_user(connection: &mut DbConnection, new_user: models::NewUser) -> Result<(), Error> {
-  use self::schema::users::dsl::*;
+  use self::schema::users::dsl;
 
-  diesel::insert_into(users::table())
+  diesel::insert_into(dsl::users::table())
     .values(&new_user)
     .execute(connection)
     .map(|_| ())
