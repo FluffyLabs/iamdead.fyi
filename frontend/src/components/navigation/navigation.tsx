@@ -1,10 +1,12 @@
-import { majorScale, Link } from 'evergreen-ui';
+import { majorScale, Link, Spinner } from 'evergreen-ui';
 import logoWide from './logo256-wide-transparent.png';
-import { ReactNode } from 'react';
+import { ReactNode, useDeferredValue, useEffect, useState } from 'react';
 import styles from './styles.module.scss';
 import { useIsActive } from '../../hooks/use-is-active';
 import clsx from 'clsx';
 import { Slab } from '../slab';
+import { useUser } from '../../hooks/use-user';
+import { useBufferedSynced } from '../../hooks/use-buffered-state';
 
 const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; fill?: boolean }) => {
   const isActive = useIsActive(href);
@@ -22,7 +24,7 @@ const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; 
   );
 };
 
-export const Navigation = ({ fill, isFixed }: { fill?: boolean; isFixed?: boolean }) => {
+export const Navigation = ({ fill = false, isFixed }: { fill?: boolean; isFixed?: boolean }) => {
   const extraStyles = isFixed
     ? {
         position: 'absolute' as any,
@@ -74,13 +76,47 @@ export const Navigation = ({ fill, isFixed }: { fill?: boolean; isFixed?: boolea
         >
           Restore
         </NavLink>
-        <NavLink
-          fill={fill}
-          href="/login"
-        >
-          Login
-        </NavLink>
+        <UserMenu fill={fill} />
       </Slab>
     </Slab>
   );
 };
+
+function UserMenu({ fill }: { fill: boolean }) {
+  const { isLoading, me } = useUser();
+  const isSlowLoading = useBufferedSynced({
+    syncValue: isLoading,
+    initialValue: false,
+  });
+
+  if (!me && !isLoading) {
+    return (
+      <NavLink
+        fill={fill}
+        href="/login"
+      >
+        Login
+      </NavLink>
+    );
+  }
+
+  if (isSlowLoading) {
+    return (
+      <NavLink
+        fill={fill}
+        href="."
+      >
+        <Spinner />
+      </NavLink>
+    );
+  }
+
+  return (
+    <NavLink
+      fill={fill}
+      href="/dashboard"
+    >
+      Profile
+    </NavLink>
+  );
+}

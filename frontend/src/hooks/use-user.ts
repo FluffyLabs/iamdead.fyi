@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { axios } from '../../services/axios';
+import { axios } from '../services/axios';
 
 export function useUser() {
   const { isLoading, error, data, isSuccess } = useQuery({
