@@ -22,11 +22,8 @@ type DbConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
 #[derive(Debug)]
 pub struct MigrationError;
 
-pub fn get_connection_pool() -> DbPool {
-  dotenvy::dotenv().ok();
-  let database_url =
-    std::env::var("DATABASE_URL").expect("DATABASE_URL env variable must be set in .env file.");
-  let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+pub fn get_connection_pool(database_url: &str) -> DbPool {
+    let manager = ConnectionManager::<SqliteConnection>::new(database_url);
 
   Pool::builder()
     .test_on_check_out(true)

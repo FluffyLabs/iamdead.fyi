@@ -1253,7 +1253,6 @@ version = "0.1.0"
 dependencies = [
  "diesel",
  "diesel_migrations",
- "dotenvy",
  "libsqlite3-sys",
  "serde",
  "tracing",
