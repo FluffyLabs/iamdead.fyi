@@ -23,14 +23,15 @@ async fn main() -> tide::Result<()> {
 
   let db_pool = get_connection_pool();
   perform_migrations(&mut db_pool.get()?).expect("Error performing migrations");
-  let server_url = std::env::var("SERVER_URL")
-    .unwrap_or_else(|_| "127.0.0.1:8080".to_owned());
+  let server_url = std::env::var("SERVER_URL").unwrap_or_else(|_| "127.0.0.1:8080".to_owned());
 
-  let jwt_secret = std::env::var("SESSION_SECRET")
-    .expect("SESSION_SECRET must be set");
+  let jwt_secret = std::env::var("SESSION_SECRET").expect("SESSION_SECRET must be set");
   let jwt_secret_base64 = DecodingKey::from_base64_secret(&jwt_secret)?;
 
-  let mut app = tide::with_state(state::State { db_pool, jwt_secret });
+  let mut app = tide::with_state(state::State {
+    db_pool,
+    jwt_secret,
+  });
 
   app.with(TraceMiddleware::new());
 
