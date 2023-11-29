@@ -1,7 +1,7 @@
 use std::{future::Future, pin::Pin};
 
 use serde::{Deserialize, Serialize};
-use tide::{Next, Request, Response};
+use tide::{Next, Request};
 
 use crate::state::State;
 
@@ -10,16 +10,26 @@ pub struct AuthResponse {
   pub token: String,
 }
 
+/// JWT claims object.
+///
+/// Keep the field names here small, since a serialized version of this
+/// is passed with every request in the cookie as JWT token.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-  pub id: i32,
-  exp: u64,
+  /// Our own user id.
+  pub uid: i32,
+  /// Expiration claim (reserved), required by JWT.
+  exp: usize,
 }
 
-const EXP: u64 = 10000000000;
+// TODO [ToDr] Should be initialized with current date + session duration.
+const EXPIRATION: usize = 10_000_000_000;
 
-pub fn create_jwt(id: i32, secret: &str) -> Result<AuthResponse, anyhow::Error> {
-  let claims = Claims { exp: EXP, id };
+pub fn create_jwt(user_id: i32, secret: &str) -> Result<AuthResponse, anyhow::Error> {
+  let claims = Claims {
+    exp: EXPIRATION,
+    uid: user_id,
+  };
 
   let token = tide_jwt::jwtsign_secret(&claims, secret)?;
   Ok(AuthResponse { token })
@@ -30,11 +40,12 @@ pub fn require_authorization_middleware<'a>(
   next: Next<'a, State>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
   Box::pin(async {
-    let res = match req.ext::<Claims>() {
-      None => Response::new(401),
-      Some(_claims) => next.run(req).await,
-    };
-
-    Ok(res)
+    match req.ext::<Claims>() {
+      None => Err(tide::Error::from_str(
+        tide::StatusCode::Unauthorized,
+        "log in required",
+      )),
+      Some(_claims) => Ok(next.run(req).await),
+    }
   })
 }

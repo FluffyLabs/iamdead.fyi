@@ -3,10 +3,7 @@ use jsonwebtoken::{DecodingKey, Validation};
 use tide_jwt::JwtAuthenticationDecoder;
 use tide_tracing::TraceMiddleware;
 
-use crate::{
-  auth::{require_authorization_middleware, Claims},
-  user::me,
-};
+use crate::auth::{require_authorization_middleware, Claims};
 
 mod auth;
 mod indie_auth;
@@ -18,7 +15,7 @@ async fn main() -> tide::Result<()> {
   dotenvy::dotenv().ok();
 
   tracing_subscriber::fmt()
-    .with_max_level(tracing::Level::INFO)
+    .with_max_level(tracing::Level::DEBUG)
     .init();
 
   let database_url =
@@ -47,11 +44,22 @@ async fn main() -> tide::Result<()> {
     .at("/auth/indie-auth/authorize")
     .post(indie_auth::authorize_indie_auth);
 
+  let state = app.state().clone();
   app
+    .at("/api/me")
     .with(require_authorization_middleware)
-    .at("/api")
-    .at("/users/me")
-    .get(me);
+    .nest({
+      let mut me = tide::with_state(state);
+      me.at("/").get(user::profile);
+
+      me.at("/recipients").get(user::recipients);
+
+      me.at("/adapters").get(user::adapters);
+
+      me.at("/stored").get(user::stored);
+
+      me
+    });
 
   app.listen(server_url).await?;
 
