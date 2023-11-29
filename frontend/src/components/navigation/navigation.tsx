@@ -1,11 +1,11 @@
 import { majorScale, Link, Spinner } from 'evergreen-ui';
 import logoWide from './logo256-wide-transparent.png';
-import { ReactNode, useDeferredValue, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import styles from './styles.module.scss';
 import { useIsActive } from '../../hooks/use-is-active';
 import clsx from 'clsx';
 import { Slab } from '../slab';
-import { useUser } from '../../hooks/use-user';
+import { useUser } from '../../hooks/user/use-user';
 import { useBufferedSynced } from '../../hooks/use-buffered-state';
 
 const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; fill?: boolean }) => {

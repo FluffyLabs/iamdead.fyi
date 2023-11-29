@@ -8,7 +8,7 @@ use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::RunQueryDsl;
 use diesel::SqliteConnection;
-use models::User;
+use models::user::User;
 
 pub mod models;
 pub mod schema;
@@ -40,7 +40,10 @@ pub fn perform_migrations(connection: &mut DbConnection) -> Result<(), Migration
   Ok(())
 }
 
-pub fn insert_user(connection: &mut DbConnection, new_user: models::NewUser) -> Result<(), Error> {
+pub fn insert_user(
+  connection: &mut DbConnection,
+  new_user: models::user::NewUser,
+) -> Result<(), Error> {
   use self::schema::users::dsl;
 
   diesel::insert_into(dsl::users::table())
@@ -57,8 +60,8 @@ pub fn insert_user(connection: &mut DbConnection, new_user: models::NewUser) -> 
 
 pub fn query_users_by_auth_provider(
   connection: &mut DbConnection,
-  auth_provider_val: String,
-  auth_provider_id_val: String,
+  auth_provider_val: &str,
+  auth_provider_id_val: &str,
 ) -> Result<Option<User>, Error> {
   use self::schema::users::dsl;
 

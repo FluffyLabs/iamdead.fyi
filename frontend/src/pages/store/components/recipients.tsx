@@ -4,30 +4,7 @@ import { RecipientRow } from './recipient-row';
 import { EncryptedMessageView } from '../../../components/encrypted-message-view';
 import { ChunksApi } from '../../../hooks/use-chunks';
 import { ChunkStorage } from '../store';
-
-export class Recipient {
-  id: number;
-  name: string;
-  email: string;
-
-  constructor(id: number, name: string, email: string) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-  }
-
-  toString() {
-    return `${this.name} <${this.email}>`;
-  }
-
-  // TODO [ToDr] To overcome issues with evergreen Combobox component
-  trim() {
-    this.toString().trim();
-  }
-}
-
-export type MaybeRecipient = Recipient | string | null;
-export type NewOrOldRecipient = Recipient | string;
+import { MaybeRecipient, NewOrOldRecipient } from '../../../hooks/user/use-recipients';
 
 type RecipientsProps = {
   chunksApi: ChunksApi<ChunkStorage>;

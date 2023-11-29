@@ -19,7 +19,9 @@ axios.interceptors.request.use((req) => {
 axios.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response.status === 401) {
+    const isUnauthorized = error.response.status === 401;
+    const wasTokenSent = !!error.request.headers.Authorization;
+    if (isUnauthorized && wasTokenSent) {
       Cookies.remove('token');
     }
     return error;

@@ -1,10 +1,10 @@
 import { Combobox, Pane, Switch, majorScale, minorScale } from 'evergreen-ui';
 import EmailValidator from 'email-validator';
 import { ChangeEvent, useCallback } from 'react';
-import { MaybeRecipient, NewOrOldRecipient } from './recipients';
 import { PieceView } from '../../../components/piece-view';
 import { PieceOptions } from '../../../components/piece-options';
 import { ChunkStorage } from '../store';
+import { MaybeRecipient, NewOrOldRecipient } from '../../../hooks/user/use-recipients';
 
 function isEmailAddress(val: string) {
   const emailStart = val.indexOf('<');
@@ -97,11 +97,11 @@ export const RecipientRow = ({
           <Combobox
             marginLeft={majorScale(2)}
             autocompleteProps={{ allowOtherValues: true }}
-            initialSelectedItem={recipient}
             inputProps={inputProps as any}
             itemToString={(item) => item?.toString()}
             items={predefinedRecipients}
             onChange={setRecipient}
+            selectedItem={recipient || ''}
             placeholder="Recipient e-mail"
           />
         )}

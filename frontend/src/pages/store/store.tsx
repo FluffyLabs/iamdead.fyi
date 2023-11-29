@@ -9,13 +9,15 @@ import { NextStepButton } from '../../components/next-step-button';
 import { Adapter, ConfiguredAdapter } from './services/adapters';
 import { ProofOfLife } from './components/proof-of-life/proof-of-life';
 import { useProofOfLife } from './hooks/use-proof-of-life';
-import { MaybeRecipient, NewOrOldRecipient, Recipient, Recipients } from './components/recipients';
+import { Recipients } from './components/recipients';
 import { ChunksConfiguration } from '../../services/crypto';
 import { EncryptionResult } from '../secure';
 import { Summary } from './components/summary';
 import { SignIn } from '../../components/sign-in/sign-in';
 import { uniq } from 'lodash';
 import { ChunksMeta, useChunks } from '../../hooks/use-chunks';
+import { useUser } from '../../hooks/user/use-user';
+import { MaybeRecipient, NewOrOldRecipient, isRecipientValid, useRecipients } from '../../hooks/user/use-recipients';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -57,22 +59,6 @@ export const Store = () => {
   );
 };
 
-function isValid(recipient: MaybeRecipient) {
-  if (recipient === null) {
-    return true;
-  }
-
-  if (typeof recipient !== 'string') {
-    return false;
-  }
-
-  if (recipient.trim() === '') {
-    return true;
-  }
-
-  return false;
-}
-
 export type ChunkStorage = ChunksMeta & {
   isSelected: boolean;
   recipient: MaybeRecipient;
@@ -81,6 +67,7 @@ export type ChunkStorage = ChunksMeta & {
 const Storage = () => {
   const { state }: { state: State | null } = useLocation();
   const navigate = useNavigate();
+  const { isLogged } = useUser();
 
   const [step, setStep] = useState('recipients' as Steps);
   const [showLogin, setShowLogin] = useState(false);
@@ -99,6 +86,22 @@ const Storage = () => {
   );
   const { chunks } = chunksApi;
 
+  const proofOfLife = useProofOfLife();
+
+  const proofOfLifeDefinition = proofOfLife.listOfAdapters;
+
+  const storageData = useMemo(() => {
+    const encryptedMessageRaw = encryptionResult?.encryptedMessageRaw;
+    const selectedChunks = chunks.filter((c) => c.isSelected);
+
+    return {
+      chunksConfiguration,
+      encryptedMessageRaw,
+      chunks: selectedChunks,
+      proofOfLife: proofOfLifeDefinition,
+    };
+  }, [chunksConfiguration, encryptionResult, chunks, proofOfLifeDefinition]);
+
   const nextStep = useCallback(() => {
     if (step === 'recipients') {
       setStep('proof-of-life');
@@ -107,9 +110,14 @@ const Storage = () => {
       setStep('summary');
     }
     if (step === 'summary') {
-      setShowLogin(true);
+      if (!isLogged) {
+        setShowLogin(true);
+      } else {
+        console.log(storageData);
+        throw new Error('not implemented yet');
+      }
     }
-  }, [step, setStep, setShowLogin]);
+  }, [step, setStep, setShowLogin, isLogged, storageData]);
 
   useEffect(() => {
     // successfuly initialized from state
@@ -125,16 +133,11 @@ const Storage = () => {
     }
   }, [stateChunks, chunks, navigate]);
 
-  const [predefinedRecipients] = useState([
-    new Recipient(1, 'Mommy', 'mommy@home.com'),
-    new Recipient(2, 'Dad', 'dad@home.com'),
-    new Recipient(3, 'Wife', 'wife@home.com'),
-  ]);
-  const proofOfLife = useProofOfLife();
+  const { recipients: predefinedRecipients } = useRecipients();
 
   const isNextStepActive = (() => {
     if (step === 'recipients') {
-      return chunks.filter((x) => x.isSelected && isValid(x.recipient)).length === 0;
+      return chunks.filter((x) => x.isSelected && isRecipientValid(x.recipient)).length === 0;
     }
     if (step === 'proof-of-life') {
       return proofOfLife.listOfAdapters.length > 0;
@@ -203,7 +206,7 @@ const Storage = () => {
           nextStep={nextStep}
           disabled={!isNextStepActive}
         >
-          Sign in to proceed
+          {isLogged ? 'Store data to my account' : 'Sign in to proceed'}
         </NextStepButton>
       </>
     ),

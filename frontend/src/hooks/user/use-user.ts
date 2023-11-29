@@ -1,14 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
-import { axios } from '../services/axios';
+import { axios } from '../../services/axios';
 
 export function useUser() {
   const { isLoading, error, data, isSuccess } = useQuery({
-    queryKey: [],
-    queryFn: ({ signal }) => axios.get('/api/users/me', { signal }),
+    queryKey: ['user'],
+    queryFn: ({ signal }) => axios.get('/api/me', { signal }),
   });
 
+  const me = data?.data;
+
   return {
-    me: data?.data,
+    me,
+    isLogged: !!me,
     isLoading,
     isSuccess,
     error,
