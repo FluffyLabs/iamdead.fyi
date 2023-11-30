@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Adapter } from '../../../../../services/adapters';
-import { Button, Text, Group, majorScale } from 'evergreen-ui';
+import { Button, Group, majorScale } from 'evergreen-ui';
 import { UserAdapter, useAdapters } from '../../../../../../../hooks/user/use-adapters';
 
 type Props = {
