@@ -46,7 +46,12 @@ pub async fn recipients(req: Request<State>) -> tide::Result {
 }
 
 pub async fn adapters(_req: Request<State>) -> tide::Result {
-  let value = json!(["test",]);
+  let value = json!([
+    { "id": "telegram", "handle": "tomusdrw" },
+    { "id": "whatsapp", "handle": "+48123456789" },
+    { "id": "email", "handle": "hello@iamdead.fy" },
+    // { "id": "twitter", "handle": "tomusdrw" },
+  ]);
   Ok(tide::Body::from_json(&value)?.into())
 }
 

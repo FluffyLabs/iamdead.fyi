@@ -6,6 +6,7 @@ export function useRecipients() {
   const { isLoading, error, data, isSuccess } = useQuery({
     queryKey: ['recipients'],
     queryFn: ({ signal }) => axios.get('/api/me/recipients', { signal }),
+    retry: false,
   });
 
   const recipients = useMemo(() => {

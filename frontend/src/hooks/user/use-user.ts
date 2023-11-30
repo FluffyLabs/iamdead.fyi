@@ -5,6 +5,7 @@ export function useUser() {
   const { isLoading, error, data, isSuccess } = useQuery({
     queryKey: ['user'],
     queryFn: ({ signal }) => axios.get('/api/me', { signal }),
+    retry: false,
   });
 
   const me = data?.data;
