@@ -1,10 +1,13 @@
 import { AdapterSelector } from './components/adapter-selector';
 import { GroupList } from './components/group-list';
 import { Adapter, ConfiguredAdapter } from '../../services/adapters';
-import { Heading, InfoSignIcon, Pane, majorScale, Tooltip, Text, Paragraph } from 'evergreen-ui';
+import { Heading, InfoSignIcon, Pane, majorScale, Tooltip, Text, Paragraph, Alert } from 'evergreen-ui';
 import { Box } from './components/box';
 import { DraggableNumber } from '../../../../components/draggable-number';
 import { Slab } from '../../../../components/slab';
+import { UserAdapter, useAdapters } from '../../../../hooks/user/use-adapters';
+import { useMemo } from 'react';
+import { uniqBy } from 'lodash';
 
 type Props = {
   adapters: ConfiguredAdapter[][];
@@ -23,6 +26,8 @@ export const ProofOfLife = ({
   gracePeriod,
   setGracePeriod,
 }: Props) => {
+  const userAdapters = useAdapters().adapters;
+
   return (
     <>
       <Paragraph>
@@ -72,6 +77,52 @@ export const ProofOfLife = ({
           </Tooltip>
         </Heading>
       </Slab>
+      <ConfigurationAlert
+        adapters={adapters}
+        userAdapters={userAdapters}
+      />
     </>
   );
 };
+
+function ConfigurationAlert({
+  adapters,
+  userAdapters,
+}: {
+  adapters: ConfiguredAdapter[][];
+  userAdapters: UserAdapter[];
+}) {
+  const notConfigured = useMemo(() => {
+    const ids = userAdapters.map((x) => x.id);
+    const notConfigured = adapters.reduce((acc, list) => {
+      return list.reduce((acc, x) => {
+        const isConfigured = ids.indexOf(x.id) !== -1;
+        return isConfigured ? acc : [...acc, x];
+      }, acc);
+    }, []);
+    return uniqBy(notConfigured, (x) => x.id);
+  }, [adapters, userAdapters]);
+
+  const allConfigured = notConfigured.length === 0;
+
+  if (allConfigured) {
+    return null;
+  }
+
+  return (
+    <Alert
+      intent="warning"
+      title="Additional configuration required"
+    >
+      <Text>
+        For this Proof of Life to be active you need to configure {handles(notConfigured.length) + ' '}
+        for {notConfigured.reduce((acc, adapter) => `${acc.length ? acc + ', ' : ''}${adapter.name}`, '')} in your
+        profile settings. It's fine to continue, you can do it later.
+      </Text>
+    </Alert>
+  );
+}
+
+function handles(no: number) {
+  return no === 1 ? 'handle' : 'handles';
+}

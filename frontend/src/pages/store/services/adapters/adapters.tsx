@@ -15,8 +15,8 @@ export type ConfiguredAdapter = Adapter & {
   months: number;
 };
 
-const createAdapter = (name: string, text: string, icon: IconDefinition, type: AdapterType): Adapter => ({
-  id: name,
+const createAdapter = (id: string, name: string, text: string, icon: IconDefinition, type: AdapterType): Adapter => ({
+  id,
   icon: <FontAwesomeIcon icon={icon} />,
   text,
   name,
@@ -24,10 +24,10 @@ const createAdapter = (name: string, text: string, icon: IconDefinition, type: A
 });
 
 export const getAdapters = () => [
-  createAdapter('Telegram', `I don't reply on`, faTelegram, 'message'),
-  createAdapter('Whatsapp', `I don't reply on`, faWhatsapp, 'message'),
-  createAdapter('E-mail', `I don't respond to`, faMailchimp, 'message'),
-  createAdapter('Twitter', `I'm not active on`, faTwitter, 'social'),
+  createAdapter('telegram', 'Telegram', `I don't reply on`, faTelegram, 'message'),
+  createAdapter('whatsapp', 'Whatsapp', `I don't reply on`, faWhatsapp, 'message'),
+  createAdapter('email', 'E-mail', `I don't respond to`, faMailchimp, 'message'),
+  createAdapter('twitter', 'X', `I'm not active on`, faTwitter, 'social'),
 ];
 
 export const MAX_AND_ITEMS = getAdapters().length;

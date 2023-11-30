@@ -8,12 +8,16 @@ import {
   Paragraph,
   CaretRightIcon,
   CrossIcon,
+  WarningSignIcon,
+  Tooltip,
 } from 'evergreen-ui';
 import { ChunkStorage } from '../store';
 import { ConfiguredAdapter } from '../services/adapters';
 import { Slab } from '../../../components/slab';
 import { ReactNode, useMemo } from 'react';
 import React from 'react';
+import { useAdapters } from '../../../hooks/user/use-adapters';
+import { uniqBy } from 'lodash';
 
 const Box = ({ children, width }: { children: ReactNode; width?: string }) => (
   <Pane
@@ -193,7 +197,7 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
           </Heading>
         </Pane>
         <Pane flex="1">
-          <Paragraph>Configuring the accounts will be possible after signing in.</Paragraph>
+          <AdaptersConfigurationSummary adapters={listOfAdapters} />
         </Pane>
       </Slab>
 
@@ -252,6 +256,51 @@ export const Summary = ({ listOfAdapters, gracePeriod, chunks }: Props) => {
     </>
   );
 };
+
+function AdaptersConfigurationSummary({ adapters }: { adapters: ConfiguredAdapter[][] }) {
+  const userAdapters = useAdapters().adapters;
+  const selectedAdapters = uniqBy(
+    adapters.reduce((acc, group) => {
+      return group.reduce((acc, adapter) => {
+        return [...acc, adapter];
+      }, acc);
+    }, [] as ConfiguredAdapter[]),
+    (x) => x.id,
+  );
+
+  const withHandles = selectedAdapters.map((x) => {
+    const handle = userAdapters.find((y) => y.id === x.id)?.handle;
+    return [x, handle] as [ConfiguredAdapter, string | undefined];
+  });
+
+  return (
+    <>
+      {withHandles.map(([adapter, handle]) => {
+        const handleText = handle ? (
+          handle
+        ) : (
+          <>
+            <em>not configured</em>{' '}
+            <Tooltip content="Needs to be set in user profile to make this Proof of Life active">
+              <WarningSignIcon color="warning" />
+            </Tooltip>
+          </>
+        );
+        return (
+          <Pane
+            key={adapter.id}
+            marginLeft={majorScale(2)}
+            marginBottom={majorScale(1)}
+          >
+            <Heading size={300}>
+              {adapter.icon} {adapter.name}: {handleText}
+            </Heading>
+          </Pane>
+        );
+      })}
+    </>
+  );
+}
 
 function months(num: number) {
   return num === 1 ? 'month' : 'months';
