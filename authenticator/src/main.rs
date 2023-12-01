@@ -50,6 +50,7 @@ async fn main() -> tide::Result<()> {
     .with(require_authorization_middleware)
     .nest({
       let mut me = tide::with_state(state);
+
       me.at("/").get(user::profile);
 
       me.at("/recipients").get(user::recipients);
