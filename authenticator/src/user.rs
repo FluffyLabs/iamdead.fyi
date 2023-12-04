@@ -1,4 +1,10 @@
-use icod_data::{models::recipient::Recipient, query_users_by_id};
+use icod_data::{
+  models::{
+    adapter::{Adapter, AdapterKind},
+    recipient::Recipient,
+  },
+  query_users_by_id,
+};
 use tide::{convert::json, Request};
 
 use crate::{auth::Claims, state::State};
@@ -45,17 +51,40 @@ pub async fn recipients(req: Request<State>) -> tide::Result {
   Ok(tide::Body::from_json(&value)?.into())
 }
 
-pub async fn adapters(_req: Request<State>) -> tide::Result {
-  let value = json!([
-    { "id": "telegram", "handle": "tomusdrw" },
-    { "id": "whatsapp", "handle": "+48123456789" },
-    { "id": "email", "handle": "hello@iamdead.fy" },
-    // { "id": "twitter", "handle": "tomusdrw" },
-  ]);
+pub async fn adapters(req: Request<State>) -> tide::Result {
+  let user_id = Some(user_id(&req)?);
+  let recipient_id = None;
+  let testament_id = None;
+
+  let value = vec![
+    Adapter {
+      kind: AdapterKind::Telegram,
+      user_id,
+      recipient_id,
+      testament_id,
+      handle: "tomusdrw".into(),
+    },
+    Adapter {
+      kind: AdapterKind::Whatsapp,
+      user_id,
+      recipient_id,
+      testament_id,
+      handle: "+48123456789".into(),
+    },
+    Adapter {
+      kind: AdapterKind::Email,
+      user_id,
+      recipient_id,
+      testament_id,
+      handle: "hello@iamdead.fyi".into(),
+    },
+    // Adapter { id: AdapterKind::Twitter, user_id, recipient_id, testament_id, handle: "tomusdrw".into() },
+  ];
+
   Ok(tide::Body::from_json(&value)?.into())
 }
 
-pub async fn stored(_req: Request<State>) -> tide::Result {
+pub async fn testaments(_req: Request<State>) -> tide::Result {
   let value = json!(["test",]);
   Ok(tide::Body::from_json(&value)?.into())
 }

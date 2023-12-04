@@ -57,7 +57,7 @@ async fn main() -> tide::Result<()> {
 
       me.at("/adapters").get(user::adapters);
 
-      me.at("/stored").get(user::stored);
+      me.at("/testaments").get(user::testaments);
 
       me
     });
