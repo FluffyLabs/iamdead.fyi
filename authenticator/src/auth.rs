@@ -3,7 +3,7 @@ use std::{future::Future, pin::Pin};
 use serde::{Deserialize, Serialize};
 use tide::{Next, Request};
 
-use crate::state::State;
+use crate::State;
 
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {

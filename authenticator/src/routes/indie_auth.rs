@@ -5,7 +5,7 @@ use tide::prelude::*;
 use tide::{Body, Request, Response};
 
 use crate::auth::create_jwt;
-use crate::state::State;
+use crate::State;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
