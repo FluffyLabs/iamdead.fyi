@@ -1,14 +1,4 @@
-import {
-  Button,
-  Card,
-  Heading,
-  InlineAlert,
-  Pre,
-  SendMessageIcon,
-  TextInput,
-  TextInputField,
-  majorScale,
-} from 'evergreen-ui';
+import { Button, Card, Heading, InlineAlert, Pre, SendMessageIcon, TextInputField, majorScale } from 'evergreen-ui';
 import { Container } from '../../components/container';
 import { Loader } from '../../components/loader';
 import { Navigation } from '../../components/navigation';
