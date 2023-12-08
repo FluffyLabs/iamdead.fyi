@@ -8,6 +8,7 @@ import { Store, StoreIntro } from './pages/store';
 import { Scan } from './pages/scan';
 import { NotFound } from './pages/not-found';
 import { Dashboard } from './pages/dashboard';
+import { Dev } from './pages/dev';
 
 export function Routes() {
   return (
@@ -16,6 +17,10 @@ export function Routes() {
         <Route
           path="*"
           element={<NotFound />}
+        />
+        <Route
+          path="dev"
+          element={<Dev />}
         />
         <Route
           index

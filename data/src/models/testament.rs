@@ -12,7 +12,6 @@ pub struct Testament {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestamentSensitive {
-  pub id: i32,
   pub testament_id: i32,
   pub kind: DataKind,
   pub index: i32,
@@ -20,7 +19,7 @@ pub struct TestamentSensitive {
   pub recipient_id: Option<i32>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum DataKind {
   Message,
