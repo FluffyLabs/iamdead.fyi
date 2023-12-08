@@ -22,7 +22,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
 
-RUN cargo build --release 
+RUN cargo build --release
 
 # We do not need the Rust toolchain to run the binary!
 FROM gcr.io/distroless/cc-debian11
@@ -33,4 +33,4 @@ COPY --from=builder /app/target/release/icod-* /usr/local/bin/
 
 EXPOSE 8080
 
-CMD ["/usr/local/bin/icod-authenticator"]
+CMD ["/usr/local/bin/icod-backend"]
