@@ -1,5 +1,5 @@
 services:
-  authenticator:
+  backend:
     build: .
     init: true
     ports:

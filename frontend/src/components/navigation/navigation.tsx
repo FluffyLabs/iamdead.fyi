@@ -30,6 +30,7 @@ export const Navigation = ({ fill = false, isFixed }: { fill?: boolean; isFixed?
         position: 'absolute' as any,
         top: 0,
         zIndex: 2,
+        width: '100%',
       }
     : {};
 
@@ -38,7 +39,7 @@ export const Navigation = ({ fill = false, isFixed }: { fill?: boolean; isFixed?
       marginTop={0}
       display="flex"
       padding={majorScale(3)}
-      justifyContent="space-around"
+      justifyContent={isFixed ? 'space-between' : 'space-around'}
       alignItems="center"
       flexWrap="wrap"
       {...extraStyles}

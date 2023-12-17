@@ -1,11 +1,11 @@
 use form_urlencoded::Serializer;
+use icod_data::db::user;
 use icod_data::models::user::NewUser;
-use icod_data::{insert_user, query_users_by_auth_provider};
 use tide::prelude::*;
 use tide::{Body, Request, Response};
 
 use crate::auth::create_jwt;
-use crate::state::State;
+use crate::State;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -57,13 +57,13 @@ pub async fn authorize_indie_auth(mut req: Request<State>) -> tide::Result {
   let json = response.body_json::<IndieAuthResponse>().await?;
 
   let connection = &mut req.state().db_pool.get()?;
-  let user = query_users_by_auth_provider(connection, INDIE_AUTH_PROVIDER, &json.me)?;
+  let user = user::query_by_auth_provider(connection, INDIE_AUTH_PROVIDER, &json.me)?;
 
   let user = match user {
     Some(user) => user,
     None => {
       tracing::info!("User not found");
-      insert_user(
+      user::insert(
         connection,
         NewUser {
           auth_provider: INDIE_AUTH_PROVIDER.into(),
@@ -75,7 +75,7 @@ pub async fn authorize_indie_auth(mut req: Request<State>) -> tide::Result {
             .replace("/", ""),
         },
       )?;
-      let created_user = query_users_by_auth_provider(connection, INDIE_AUTH_PROVIDER, &json.me)?;
+      let created_user = user::query_by_auth_provider(connection, INDIE_AUTH_PROVIDER, &json.me)?;
 
       created_user.ok_or_else(|| anyhow::format_err!("Missing user after creation!"))?
     }

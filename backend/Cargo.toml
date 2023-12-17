@@ -1,5 +1,5 @@
 [package]
-name = "icod-authenticator"
+name = "icod-backend"
 version = "0.1.0"
 edition = "2021"
 
@@ -20,3 +20,7 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.18"
 
 icod-data = { path = "../data/" }
+
+[dev-dependencies]
+serde_json = "1.0.108"
+pretty_assertions = "1.4.0"

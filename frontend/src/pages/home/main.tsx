@@ -24,7 +24,7 @@ export const MainPage = () => {
         >
           FYI: I am dead!
         </Heading>
-        <Text>Your final words, delivered when they matter most.</Text>
+        <Text>Your final will, delivered when it matters the most.</Text>
       </Pane>
       <Slab
         display="flex"
@@ -44,13 +44,17 @@ export const MainPage = () => {
         >
           <Heading>How It Works:</Heading>
           <OrderedList margin={majorScale(3)}>
-            <ListItem>Write a message that your loved ones should receive.</ListItem>
-            <ListItem>Choose the recipients and the quorum.</ListItem>
+            <ListItem>Write your last will and testatment that your loved ones should receive.</ListItem>
+            <ListItem>Choose the recipients and how many of them needs to cooperate.</ListItem>
             <ListItem>
               Your browser will encrypt the message and split the encryption key using <em>Shamir Secret Sharing</em>.
             </ListItem>
             <ListItem>
-              Specify <em>Proof of Life</em> - the conditions under which the SSS chunks will be sent to recipients.
+              Specify <em>Proof of Life</em> - the conditions under which the parts of the key will be sent to
+              recipients.
+            </ListItem>
+            <ListItem>
+              Given the parts of the key, enough recipients will be able to decrypt and read your last will.
             </ListItem>
           </OrderedList>
           <Button
