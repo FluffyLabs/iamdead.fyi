@@ -2,8 +2,8 @@
 
 #![warn(missing_docs)]
 
-use icod_data::DbPool;
-use icod_data::{connection_pool, perform_migrations};
+use icod_data::db::DbPool;
+use icod_data::db::{connection_pool, perform_migrations};
 use jsonwebtoken::{DecodingKey, Validation};
 use tide_jwt::JwtAuthenticationDecoder;
 use tide_tracing::TraceMiddleware;

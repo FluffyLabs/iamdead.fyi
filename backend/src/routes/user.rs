@@ -1,4 +1,4 @@
-use icod_data::query_users_by_id;
+use icod_data::db::user::query_by_id;
 use tide::Request;
 
 use crate::{auth::Claims, fixtures, State};
@@ -14,7 +14,7 @@ fn user_id(req: &Request<State>) -> Result<i32, tide::Error> {
 
 pub async fn profile(req: Request<State>) -> tide::Result {
   let user_id = user_id(&req)?;
-  let user = query_users_by_id(&mut req.state().db_pool.get()?, user_id)?;
+  let user = query_by_id(&mut req.state().db_pool.get()?, user_id)?;
 
   Ok(tide::Body::from_json(&user)?.into())
 }

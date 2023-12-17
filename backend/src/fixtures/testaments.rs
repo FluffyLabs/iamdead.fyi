@@ -6,6 +6,7 @@ pub fn testament(testament_id: i32, user_id: i32) -> Testament {
     user_id,
     required_chunks: 2,
     spare_chunks: 1,
+    grace_period: 2,
   }
 }
 

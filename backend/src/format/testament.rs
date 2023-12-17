@@ -44,6 +44,7 @@ pub struct TestamentData {
   encrypted_message_raw: Vec<String>,
   chunks: Vec<TestamentChunk>,
   proof_of_life: Vec<Vec<TestamentAdapter>>,
+  grace_period: u8,
 }
 
 /// Converts data model, as saved in the DB into single object that we return to the frontend.
@@ -102,14 +103,21 @@ pub fn amalgamate(
     groups.into_iter().map(|x| x.1).collect::<Vec<_>>()
   };
 
+  let Testament {
+    required_chunks,
+    spare_chunks,
+    grace_period,
+    ..
+  } = testament;
   TestamentData {
     chunks_configuration: TestamentChunksConfiguration {
-      required: testament.required_chunks,
-      spare: testament.spare_chunks,
+      required: required_chunks,
+      spare: spare_chunks,
     },
     encrypted_message_raw: encrypted_message.into_iter().map(|c| c.data).collect(),
     chunks,
     proof_of_life,
+    grace_period,
   }
 }
 
@@ -197,7 +205,8 @@ mod tests {
         "months": 2
       }
     ]
-  ]
+  ],
+  "gracePeriod": 2
 }"#
     );
   }
