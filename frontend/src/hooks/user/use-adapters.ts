@@ -2,7 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { axios } from '../../services/axios';
 
 export type UserAdapter = {
-  id: string;
+  kind: string;
+  userId: number;
+  recipientId: number | null;
+  testamentId: number | null;
   handle: string;
 };
 

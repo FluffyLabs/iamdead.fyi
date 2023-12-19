@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 export type AdapterType = 'social' | 'message';
 
 export type Adapter = {
-  id: string;
+  kind: string;
   name: string;
   text: string;
   icon: JSX.Element;
@@ -15,8 +15,8 @@ export type ConfiguredAdapter = Adapter & {
   months: number;
 };
 
-const createAdapter = (id: string, name: string, text: string, icon: IconDefinition, type: AdapterType): Adapter => ({
-  id,
+const createAdapter = (kind: string, name: string, text: string, icon: IconDefinition, type: AdapterType): Adapter => ({
+  kind,
   icon: <FontAwesomeIcon icon={icon} />,
   text,
   name,

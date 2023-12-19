@@ -93,14 +93,14 @@ function ConfigurationAlert({
   userAdapters: UserAdapter[];
 }) {
   const notConfigured = useMemo(() => {
-    const ids = userAdapters.map((x) => x.id);
+    const ids = userAdapters.map((x) => x.kind);
     const notConfigured = adapters.reduce((acc, list) => {
       return list.reduce((acc, x) => {
-        const isConfigured = ids.indexOf(x.id) !== -1;
+        const isConfigured = ids.indexOf(x.kind) !== -1;
         return isConfigured ? acc : [...acc, x];
       }, acc);
     }, []);
-    return uniqBy(notConfigured, (x) => x.id);
+    return uniqBy(notConfigured, (x) => x.kind);
   }, [adapters, userAdapters]);
 
   const allConfigured = notConfigured.length === 0;

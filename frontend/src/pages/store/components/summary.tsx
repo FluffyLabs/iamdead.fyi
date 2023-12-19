@@ -265,11 +265,11 @@ function AdaptersConfigurationSummary({ adapters }: { adapters: ConfiguredAdapte
         return [...acc, adapter];
       }, acc);
     }, [] as ConfiguredAdapter[]),
-    (x) => x.id,
+    (x) => x.kind,
   );
 
   const withHandles = selectedAdapters.map((x) => {
-    const handle = userAdapters.find((y) => y.id === x.id)?.handle;
+    const handle = userAdapters.find((y) => y.kind === x.kind)?.handle;
     return [x, handle] as [ConfiguredAdapter, string | undefined];
   });
 
@@ -288,7 +288,7 @@ function AdaptersConfigurationSummary({ adapters }: { adapters: ConfiguredAdapte
         );
         return (
           <Pane
-            key={adapter.id}
+            key={adapter.kind}
             marginLeft={majorScale(2)}
             marginBottom={majorScale(1)}
           >

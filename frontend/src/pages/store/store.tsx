@@ -17,7 +17,14 @@ import { SignIn } from '../../components/sign-in/sign-in';
 import { uniq } from 'lodash';
 import { ChunksMeta, useChunks } from '../../hooks/use-chunks';
 import { useUser } from '../../hooks/user/use-user';
-import { MaybeRecipient, NewOrOldRecipient, isRecipientValid, useRecipients } from '../../hooks/user/use-recipients';
+import {
+  MaybeRecipient,
+  NewOrOldRecipient,
+  Recipient,
+  isRecipientValid,
+  useRecipients,
+} from '../../hooks/user/use-recipients';
+import { useTestaments } from '../../hooks/user/use-testaments';
 
 export type Steps = 'recipients' | 'proof-of-life' | 'summary';
 
@@ -68,6 +75,7 @@ const Storage = () => {
   const { state }: { state: State | null } = useLocation();
   const navigate = useNavigate();
   const { isLogged } = useUser();
+  const { storeTestament } = useTestaments();
 
   const [step, setStep] = useState('recipients' as Steps);
   const [showLogin, setShowLogin] = useState(false);
@@ -88,19 +96,25 @@ const Storage = () => {
 
   const proofOfLife = useProofOfLife();
 
+  const gracePeriod = proofOfLife.gracePeriod;
   const proofOfLifeDefinition = proofOfLife.listOfAdapters;
 
   const storageData = useMemo(() => {
-    const encryptedMessageRaw = encryptionResult?.encryptedMessageRaw;
+    const encryptedMessageRaw = encryptionResult?.encryptedMessageRaw || [];
     const selectedChunks = chunks.filter((c) => c.isSelected);
 
     return {
       chunksConfiguration,
+      gracePeriod: gracePeriod,
       encryptedMessageRaw,
-      chunks: selectedChunks,
+      chunks: selectedChunks.map((c) => ({
+        chunk: c.chunk.raw,
+        description: c.description,
+        recipient: c.recipient as Recipient,
+      })),
       proofOfLife: proofOfLifeDefinition,
     };
-  }, [chunksConfiguration, encryptionResult, chunks, proofOfLifeDefinition]);
+  }, [chunksConfiguration, encryptionResult, chunks, proofOfLifeDefinition, gracePeriod]);
 
   const nextStep = useCallback(() => {
     if (step === 'recipients') {
@@ -111,13 +125,13 @@ const Storage = () => {
     }
     if (step === 'summary') {
       if (!isLogged) {
+        // TODO [ToDr] Logging in should not redirect.
         setShowLogin(true);
       } else {
-        console.log(storageData);
-        throw new Error('not implemented yet');
+        storeTestament(storageData);
       }
     }
-  }, [step, setStep, setShowLogin, isLogged, storageData]);
+  }, [step, setStep, setShowLogin, isLogged, storageData, storeTestament]);
 
   useEffect(() => {
     // successfuly initialized from state

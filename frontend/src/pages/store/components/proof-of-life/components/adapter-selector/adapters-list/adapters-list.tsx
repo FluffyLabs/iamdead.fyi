@@ -13,12 +13,12 @@ export const AdaptersList = ({ adapters, onClick, short }: Props) => {
   const configuredAdapters = useAdapters().adapters;
 
   function getHandle(configuredAdapters: UserAdapter[], adapter: Adapter) {
-    return configuredAdapters.find((x) => x.id === adapter.id)?.handle;
+    return configuredAdapters.find((x) => x.kind === adapter.kind)?.handle;
   }
 
   const items = adapters.map((adapter: Adapter) => (
     <AdapterItem
-      key={adapter.id}
+      key={adapter.kind}
       short={short}
       onClick={onClick}
       adapter={adapter}

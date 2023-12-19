@@ -36,7 +36,7 @@ export const GroupSublist = ({
 
   const isAlreadyAdded = useCallback(
     (adapter: Adapter) => {
-      return items.findIndex((x) => x.id === adapter.id) !== -1;
+      return items.findIndex((x) => x.kind === adapter.kind) !== -1;
     },
     [items],
   );

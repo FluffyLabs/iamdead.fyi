@@ -3,9 +3,11 @@ import { Container } from '../../components/container';
 import { Loader } from '../../components/loader';
 import { Navigation } from '../../components/navigation';
 import { useUser } from '../../hooks/user/use-user';
+import { useTestaments } from '../../hooks/user/use-testaments';
 
 export const Dashboard = () => {
   const { isLoading, me, isSuccess } = useUser();
+  const { testaments } = useTestaments();
 
   return (
     <>
@@ -26,6 +28,8 @@ export const Dashboard = () => {
             <Pre>{JSON.stringify(me, null, 2)}</Pre>
           </Card>
         )}
+        <hr />
+        <Pre>{JSON.stringify(testaments, null, 2)}</Pre>
       </Container>
     </>
   );
