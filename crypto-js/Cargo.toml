@@ -10,7 +10,7 @@ pretty_assertions = "1.4.0"
 data-encoding = "2.5.0"
 icod-crypto = { path = "../crypto" }
 serde = { version = "1.0.196", features = ["derive"] }
-serde-wasm-bindgen = "0.6.3"
+serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = "0.2"
 
 # required to make wasm32-unknown-unknown target work since
