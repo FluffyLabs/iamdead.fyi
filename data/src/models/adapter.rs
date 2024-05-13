@@ -1,9 +1,9 @@
 //! Proof of Life adapters.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A single adapter defition that can be used for Proof Of Life or for testament recipient.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Adapter {
   /// Kind of the adapter.
@@ -27,7 +27,7 @@ pub struct Adapter {
 }
 
 /// The kind of the adapter.
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum AdapterKind {
   /// E-mail adapter.

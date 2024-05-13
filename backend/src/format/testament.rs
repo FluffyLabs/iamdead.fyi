@@ -4,16 +4,17 @@ use icod_data::models::{
   recipient::Recipient,
   testament::{self, Testament, TestamentSensitive},
 };
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestamentChunksConfiguration {
   required: u8,
   spare: u8,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestamentChunk {
   chunk: String,
@@ -21,7 +22,7 @@ pub struct TestamentChunk {
   recipient: Option<TestamentRecipient>,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestamentRecipient {
   id: i32,
@@ -30,14 +31,14 @@ pub struct TestamentRecipient {
   adapters: Vec<Adapter>,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestamentAdapter {
   kind: AdapterKind,
   months: u32,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TestamentData {
   chunks_configuration: TestamentChunksConfiguration,

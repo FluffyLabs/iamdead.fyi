@@ -1,6 +1,7 @@
 use crate::auth::require_authorization_middleware;
 
 pub mod indie_auth;
+pub mod testament;
 pub mod user;
 
 pub fn configure(app: &mut tide::Server<crate::State>) {
@@ -21,7 +22,9 @@ pub fn configure(app: &mut tide::Server<crate::State>) {
 
       me.at("/adapters").get(user::adapters);
 
-      me.at("/testaments").get(user::testaments);
+      me.at("/testaments")
+        .post(testament::add_testament)
+        .get(testament::user_testaments);
 
       me
     });
