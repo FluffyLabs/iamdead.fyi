@@ -15,7 +15,7 @@
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.51",
     "@types/react-dom": "^18.2.18",
-    "axios": "^1.6.7",
+    "axios": "^1.7.2",
     "clsx": "^2.1.1",
     "email-validator": "^2.0.4",
     "evergreen-ui": "^7.1.9",
