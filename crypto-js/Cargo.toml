@@ -9,7 +9,7 @@ pretty_assertions = "1.4.0"
 [dependencies]
 data-encoding = "2.6.0"
 icod-crypto = { path = "../crypto" }
-serde = { version = "1.0.201", features = ["derive"] }
+serde = { version = "1.0.204", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = "0.2"
 
