@@ -23,6 +23,8 @@ These chunks can be "released" to selected people based on the Proof of Life con
 
 # Alternatives
 
+- https://whenidie.com/
+
 - https://www.deadmanswitch.com/pl/en (investigating)
 
 - https://www.deadmantracker.com/terms (dead)
