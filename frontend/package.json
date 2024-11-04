@@ -2,6 +2,7 @@
   "name": "icod",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://fluffylabs.dev/iamdead.fyi/",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-brands-svg-icons": "^6.5.1",
@@ -62,6 +63,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/js-cookie": "^3.0.6"
   }
 }
