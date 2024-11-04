@@ -15,7 +15,7 @@ const NavLink = ({ href, children, fill }: { href: string; children: ReactNode; 
       className={clsx(styles.navLink, isActive ? styles.active : null, fill ? styles.fill : null)}
       borderRadius={majorScale(1)}
       margin={majorScale(1)}
-      href={href}
+      href={`#${href}`}
       size="large"
       padding={majorScale(2)}
     >
@@ -44,7 +44,7 @@ export const Navigation = ({ fill = false, isFixed }: { fill?: boolean; isFixed?
       flexWrap="wrap"
       {...extraStyles}
     >
-      <a href="/">
+      <a href="#/">
         <img
           src={logoWide}
           alt="ICOD logo"
