@@ -2,7 +2,7 @@
   "name": "icod",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://fluffylabs.dev/iamdead.fyi/",
+  "homepage": "https://www.iamdead.fyi",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-brands-svg-icons": "^6.5.1",
