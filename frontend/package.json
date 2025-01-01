@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "https://www.iamdead.fyi",
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@tanstack/react-query": "^5.62.0",
